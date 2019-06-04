@@ -1,0 +1,378 @@
+[
+  {
+    "uri":"/fhir/stu3/:resource",
+    "method":"POST",
+    "handler":"create",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/:resource",
+    "method":"GET",
+    "handler":"read",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/:resource/:resourceId",
+    "method":"GET",
+    "handler":"read",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/api/v1/tests/fhir-response/create",
+    "method":"POST",
+    "handler":"fhirResponseTest",
+    "on_microservice":"tests",
+    "authenticate":false
+  },
+  {
+    "uri":"/services/v1/responder/create",
+    "method":"POST",
+    "handler":"create",
+    "on_microservice":"responder",
+    "authenticate":false,
+    "from_microservices":[
+      "tests",
+      "fhir",
+      "index",
+      "repo",
+      "repoadapter",
+      "search"
+    ]
+  },
+  {
+    "uri":"/services/v1/adapters/repo/create",
+    "method":"POST",
+    "handler":"create",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "fhir"
+    ],
+    "authenticate":false
+  },
+  {
+    "uri": "/api/v1/tests/repo/create",
+    "method": "POST",
+    "handler": "repoCreate",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/create",
+    "method": "POST",
+    "handler": "create",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests",
+      "repoadapter"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/repo/:resource/:resourceId",
+    "method": "GET",
+    "handler": "repoRead",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri":"/services/v1/adapters/repo/read",
+    "method":"POST",
+    "handler":"read",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "fhir",
+      "index"
+    ],
+    "authenticate":false
+  },
+
+  {
+    "uri":"/services/v1/adapters/repo/search",
+    "method":"POST",
+    "handler":"search",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "fhir",
+      "index",
+      "search"
+    ],
+    "authenticate":false
+  },
+  {
+    "uri": "/services/v1/repo/read",
+    "method": "POST",
+    "handler": "read",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests", 
+      "repoadapter"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri":"/services/v1/adapters/repo/respond",
+    "method":"POST",
+    "handler":"respond",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "repo",
+      "search"
+    ],
+    "authenticate":false
+  },
+  {
+    "uri": "/api/v1/tests/repo/search",
+    "method": "POST",
+    "handler": "repoSearch",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/search",
+    "method": "POST",
+    "handler": "search",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests", 
+      "repoadapter"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/repo/batch",
+    "method": "POST",
+    "handler": "repoBatchRead",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/batch",
+    "method": "POST",
+    "handler": "batch",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests", 
+      "repoadapter",
+      "index",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/repo/index",
+    "method": "POST",
+    "handler": "repoIndexCreate",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/index",
+    "method": "POST",
+    "handler": "create",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests",
+      "repo"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/repo/index/:resource/:resourceId",
+    "method": "POST",
+    "handler": "repoIndexRead",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/index/:documentType/:documentId",
+    "method": "POST",
+    "handler": "read",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests"
+    ],
+    "authenticate": false
+  }, 
+  {
+    "uri": "/api/v1/tests/repo/index/:resource/:resourceId/:indexType",
+    "method": "POST",
+    "handler": "repoIndexRead",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/index/:documentType/:documentId/:indexType",
+    "method": "POST",
+    "handler": "read",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/repo/index/query",
+    "method": "POST",
+    "handler": "repoIndexQuery",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/index/query",
+    "method": "POST",
+    "handler": "query",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests",
+      "repoadapter",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search",
+    "method": "POST",
+    "handler": "searchCreate",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search",
+    "method": "POST",
+    "handler": "create",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "repo"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId/paginate/:page/:pageSize",
+    "method": "POST",
+    "handler": "searchRead",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/paginate/:page/:pageSize",
+    "method": "POST",
+    "handler": "paginate",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId",
+    "method": "POST",
+    "handler": "searchUpdate",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId",
+    "method": "POST",
+    "handler": "update",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId/sort",
+    "method": "POST",
+    "handler": "searchSort",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/sort",
+    "method": "POST",
+    "handler": "sort",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId/add",
+    "method": "POST",
+    "handler": "searchAdd",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/add",
+    "method": "POST",
+    "handler": "add",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId/include",
+    "method": "POST",
+    "handler": "searchInclude",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/include",
+    "method": "POST",
+    "handler": "include",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/api/v1/tests/search/:searchSetId/revinclude",
+    "method": "POST",
+    "handler": "searchRevInclude",
+    "on_microservice": "tests",
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/revinclude",
+    "method": "POST",
+    "handler": "revinclude",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/results",
+    "method": "POST",
+    "handler": "results",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "index"
+    ],
+    "authenticate": false
+  }
+]

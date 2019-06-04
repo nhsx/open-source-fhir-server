@@ -1,0 +1,80 @@
+version: '2'
+services:
+
+ orchestrator:
+  image: rtweed/qewd-server
+  container_name: orchestrator
+  volumes: 
+   - ~/Repos/roqr:/opt/qewd/mapped
+  ports:
+   - 8080:8080
+
+ fhir:
+  image: rtweed/qewd-server
+  container_name: fhir
+  volumes: 
+   - ~/Repos/roqr:/opt/qewd/mapped
+  environment:
+    - microservice=fhir
+  ports:
+   - 8081:8080
+
+ repoadapter:
+   image: rtweed/qewd-server
+   container_name: repoadapter
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=repoadapter
+   ports:
+    - 9001:8080
+
+ repo:
+   image: rtweed/qewd-server
+   container_name: repo
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=repo
+   ports:
+    - 9002:8080
+    
+ index:
+   image: rtweed/qewd-server
+   container_name: index
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=index
+   ports:
+    - 9003:8080
+
+ search:
+   image: rtweed/qewd-server
+   container_name: search
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=search
+   ports:
+    - 9004:8080
+
+ responder:
+   image: rtweed/qewd-server
+   container_name: responder
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=responder
+   ports:
+    - 9005:8080
+
+ tests:
+   image: rtweed/qewd-server
+   container_name: tests
+   volumes: 
+    - ~/Repos/roqr:/opt/qewd/mapped
+   environment:
+    - microservice=tests
+   ports:
+    - 6666:8080
