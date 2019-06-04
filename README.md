@@ -140,20 +140,28 @@ Once ROQR is up and running, you can try out the FHIR API by executing the follo
 The following outlines the current remaining development of work before the server is considered to be beta:
 
 ### Short Term (June/July 2019)
-1. Configure ROQR to support [Observation](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Observation-1), [AllergyIntolerance](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1), [Procedure](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Procedure-1), [Condition](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1), [Medication](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Medication-1), [MedicationStatement](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-MedicationStatement-1), [Location](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Location-1) and [PractitionerRole](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1) resources.
+1. Although any resource can be stored in the local FHIR store (it is a NoSQL/schemaless database), it is necessary to import schemas that describe the structure of a FHIR resource to help with indexing and searching.  The following resources need to be mapped: [Observation](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Observation-1), [AllergyIntolerance](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1), [Procedure](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Procedure-1), [Condition](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1), [Medication](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Medication-1), [MedicationStatement](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-MedicationStatement-1), [Location](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Location-1) and [PractitionerRole](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1) resources.
 
-2. Implement [FHIR capability](http://hl7.org/fhir/STU3/capabilitystatement.html) statement API
+2. Modify the built JWT/OAUTH authentication services to support [YHCR](https://yhcr.org) technical design paper: [Design Paper 005 - Identity and Access Management](https://yhcr.org/wp-content/uploads/2019/05/YHCR_Design_Paper_005__Identity_and_Access_Management_v1.0.docx) 
 
-3. Subscription Processing - create a [subscription](http://hl7.org/fhir/STU3/subscription.html) service which is to slot into the create and update interaction service pipeline.
+3. Build a SQL/Database proxy adapter service so that FHIR resources can be extracted from external databases.
 
-4. Versioning - create a versioning service [FHIR Versioning/History](https://www.hl7.org/fhir/STU3/http.html#history) which will be slotted into the create and update interaction service pipeline.
+4. Implement a policy and consent service that adheres to the concepts described in [YHCR](https://yhcr.org) technical design paper: [Design Paper 008 - Data Access and Consent Management](https://yhcr.org/wp-content/uploads/2019/05/YHCR_Design_Paper_008__Data_Access_and_Consent_Management_v1.1.docx).
 
-5. Validation - create a [validation](http://hl7.org/fhir/STU3/validation.html) service which will be slotted into the create interaction service pipeline.
+5. Implement [FHIR capability](http://hl7.org/fhir/STU3/capabilitystatement.html) statement API
 
-6. Create an NGINX reverse proxy server to sit in front of the API.
+6. Subscription Processing - create a [subscription](http://hl7.org/fhir/STU3/subscription.html) service which is to slot into the create and update interaction service pipeline.
+
+7. Versioning - create a versioning service [FHIR Versioning/History](https://www.hl7.org/fhir/STU3/http.html#history) which will be slotted into the create and update interaction service pipeline.
+
+8. Validation - create a [validation](http://hl7.org/fhir/STU3/validation.html) service which will be slotted into the create interaction service pipeline.
 
 ### Medium Term (July/August 2019)
-1. Add support to construct and transmit [ITK3 Inpatient and Emergency Transfer of Care](https://digital.nhs.uk/services/interoperability-toolkit/developer-resources/transfer-of-care-specification-versions) FHIR resources via MESH.
+1. Containerize an NGINX reverse proxy server to sit in front of the API.
+
+2. Build a proxy adapter service so that FHIR resources can be searched and read from an external FHIR data store/server.
+
+3. Add support to construct and transmit [ITK3 Inpatient and Emergency Transfer of Care](https://digital.nhs.uk/services/interoperability-toolkit/developer-resources/transfer-of-care-specification-versions) FHIR resources via MESH.
 
 
 
