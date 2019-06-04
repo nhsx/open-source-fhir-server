@@ -9,21 +9,25 @@ Twitter: [@YHCareRecord](https://twitter.com/YHCareRecord/)
 ROQR (pronounced 'rocker') is an open source fhir server which is being built by the Yorkshire and Humber Care Record (YHCR) project team as part of their work with the [NHS England Local Health and Care Record Exampler](https://www.england.nhs.uk/publication/local-health-and-care-record-exemplars/) (LHCRE) programme. The name ROQR reflects the stack of open source software and health care interoperability standards that the server has been built upon, namely:
 
 [Fast Healthcare Interoperable Resources - FHIR](https://fhir.hl7.org.uk)
+Fast Healthcare Interoperability Resources is a standard describing data formats and elements and an application programming interface for exchanging electronic health records. The standard was created by the Health Level Seven International health-care standards organization.
 
 [Quick and Easy Web API Development - QEWD-Up](https://github.com/robtweed/qewd/tree/master/up)
+A fast-track route to Building APIs built on top of Node.js
 
 [YottaDB](https://yottadb.com)
+YottaDB is a [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database platform built upon a proven database engine that enhances simplicity, security, stability and scalability.
 
 [Docker](https://www.docker.com)
+Docker is a set of coupled software-as-a-service and platform-as-a-service products that use operating-system-level virtualization to develop and deliver software in packages called containers.
 
-ROQR is being developed in accordance with a series of [technical papers](https://yhcr.org/downloads/) produced by the YHCR. Each design paper describes a set of "model" software components and architectures that, when realised, can enable health and social care organisations to share data using [FHIR](https://www.hl7.org/fhir/STU3/). 
+ROQR is being developed in accordance to a series of [technical papers](https://yhcr.org/downloads/) produced by the [YHCR](https://yhcr.org). Each design paper describes a set of "model" software components and architectures that, when realised, can enable health and social care organisations to share data using [FHIR](https://www.hl7.org/fhir/STU3/). 
 
-ROQR is very much a work in progress and will keep evolving in step with both the LHCRE and YHCR programmes. The overall aim, however, is that the server will provide an out of the box, open source solution to health and social care organisations who require the ability to share data using FHIR. 
+ROQR is very much a work in progress and will keep evolving in step with both the LHCRE and YHCR programmes. The overall aim, however, is that the server will provide an out of the box, open source solution to health and social care organisations who require the ability to share data using FHIR. It is very much hoped that the code base here will be developed by clinicians, engineers, architects and healthcare interoperability standards bodies.
 
 ---
 
 # Current Features
-The source code available here is pre-alpha and very much under development - this is a working an active project, however. At the time of writing, the server supports:
+The source code available here is pre-alpha and very much under development - this is an active, working project that is subject to (hopefully) frequent change. At the time of writing, the server supports:
 
 * A local FHIR store/repository
 * Resource creation and reads for FHIR [Encounter](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Encounter-1), [Patient](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Patient-1), [Practitioner](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1), [Organization](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Organization-1) resources.
@@ -84,20 +88,30 @@ The docker compose file and commands listed below do not persist data. Once the 
 ## Launching ROQR
 
 ### Get the source
+
 1. Either navigate to your local repo directory or create one, e.g. `C:\myrepos\` or `~/Repos`
+
 2. In your command line type (followed by enter): `git clone https://github.com/nhsx/open-source-fhir-server.git`
+
 3. Open the folder in your development environment and take a few minutes to have a look at the code (if you wish).
 
 ### Docker (command line)
 ROQR currently consists of 8 services - each of which needs to be launched. This can be labourious using the Docker command line and subverting this process is where docker-compose comes into its own. However, the following instructions are provided for completeness:
 
 1. Launch the [QEWD-Up](https://github.com/robtweed/qewd/tree/master/up#dockerised-qewd-microservices) Orchestrator: `docker run -d --name orchestrator --rm -p8080:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=orchestrator rtweed/qewd-server`
+
 2. Launch the FHIR API Service: `docker run -d --name fhir --rm -p8081:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=fhir rtweed/qewd-server`
+
 3. Launch the Repo Adapter Service: `docker run -d --name repoadapter --rm -p9001:8080 -v<file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=repoadapter rtweed/qewd-server`
+
 4. Launch the Repo Service: `docker run -d --name repo --rm -p9002:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=repo rtweed/qewd-server`
+
 5. Launch the Index Service: `docker run -d --name index --rm -p9003:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=index rtweed/qewd-server`
+
 6. Launch the Search Service: `docker run -d --name search --rm -p9004:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=search rtweed/qewd-server`
+
 7. Launch the Responder Service: `docker run -d --name responder --rm -p9005:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=responder rtweed/qewd-server`
+
 8. Launch the (Optional) Tests Service: `docker run -d --name tests --rm -p6666:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=tests rtweed/qewd-server`
 
 Each of the above commands will launch the services in "headless" or "daemon" mode. If you wish to run the containers in "interactive" mode then replace `-d` with `-it` (see [here](https://docs.docker.com/engine/reference/commandline/run/) for more information on the Docker command line options).
@@ -106,9 +120,13 @@ Each of the above commands will launch the services in "headless" or "daemon" mo
 This process is significantly less of a pain! Before running these commands, please check that the file/directory paths in the Docker compose file match your local environment. *Note* steps 1 and 2 are only required to be completed once - on first run:
 
 1. `docker run -it --name fhir --rm -p8081:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=fhir rtweed/qewd-server` to bring up the orchestrator service and ensure that the additional node packages required by ROQR are installed. 
+
 2. Kill the container `docker stop fhir`
+
 3. Bring up ROQR: `docker-compose up -d` 
+
 4. To tear the containers down, simply enter `docker-compose down`
+
 
 ### Postman Collection and Environment
 Once ROQR is up and running, you can try out the FHIR API by executing the following Postman collection (and environment). The process for importing [collections](https://learning.getpostman.com/docs/postman/collections/intro_to_collections) and [environments](https://learning.getpostman.com/docs/postman/environments_and_globals/intro_to_environments_and_globals) into Postman is very well documented [here](https://learning.getpostman.com/docs/postman/collections/data_formats/)
@@ -124,8 +142,11 @@ The following outlines the current remaining development of work before the serv
 ### Short Term (June/July 2019)
 1. Configure ROQR to support [Observation](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Observation-1), [AllergyIntolerance](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1), [Procedure](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Procedure-1), [Condition](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1), [Medication](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Medication-1), [MedicationStatement](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-MedicationStatement-1), [Location](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Location-1) and [PractitionerRole](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1) resources.
 3. Implement [FHIR capability](http://hl7.org/fhir/STU3/capabilitystatement.html) statement API
+
 4. Subscription Processing - create a [subscription](http://hl7.org/fhir/STU3/subscription.html) service which is to slot into the create and update interaction service pipeline.
+
 5. Versioning - create a versioning service [FHIR Versioning/History](https://www.hl7.org/fhir/STU3/http.html#history) which will be slotted into the create and update interaction service pipeline.
+
 6. Validation - create a [validation](http://hl7.org/fhir/STU3/validation.html) service which will be slotted into the create interaction service pipeline.
 
 ### Medium Term (July/August 2019)
