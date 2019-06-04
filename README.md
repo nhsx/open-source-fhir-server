@@ -131,8 +131,8 @@ This process is significantly less of a pain! Before running these commands, ple
 ### Postman Collection and Environment
 Once ROQR is up and running, you can try out the FHIR API by executing the following Postman collection (and environment). The process for importing [collections](https://learning.getpostman.com/docs/postman/collections/intro_to_collections) and [environments](https://learning.getpostman.com/docs/postman/environments_and_globals/intro_to_environments_and_globals) into Postman is very well documented [here](https://learning.getpostman.com/docs/postman/collections/data_formats/)
 
-1. Postman Environment
-2. Postman Collection
+1. Postman Environment(https://github.com/nhsx/open-source-fhir-server/blob/development/roqr-nhsx.postman_collection.json)
+2. [Postman Collection](https://github.com/nhsx/open-source-fhir-server/blob/development/roqr-nhsx.postman_collection.json)
 
 ---
 
