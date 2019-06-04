@@ -1,4 +1,4 @@
-# ROQR (fhiR On Qewd and dockeR) - Open Source Fhir Server
+# ROQR (fhiR On Qewd and dockeR) - Open Source FHIR Server
 4th June 2019, [Yorkshire and Humber Care Record](https://yhcr.org)
 
 Twitter: [@YHCareRecord](https://twitter.com/YHCareRecord/)
@@ -6,7 +6,7 @@ Twitter: [@YHCareRecord](https://twitter.com/YHCareRecord/)
 ---
 
 # What is the ROQR?
-ROQR (pronounced 'rocker') is an open source fhir server which is being built by the Yorkshire and Humber Care Record (YHCR) project team as part of their work with the [NHS England Local Health and Care Record Exampler](https://www.england.nhs.uk/publication/local-health-and-care-record-exemplars/) (LHCRE) programme. The name ROQR reflects the stack of open source software and health care interoperability standards that the server has been built upon, namely:
+ROQR (pronounced 'rocker') is an open source FHIR server which is being built by the Yorkshire and Humber Care Record (YHCR) project team as part of their work with the [NHS England Local Health and Care Record Exampler](https://www.england.nhs.uk/publication/local-health-and-care-record-exemplars/) (LHCRE) programme. The name ROQR reflects the stack of open source software and health care interoperability standards that the server has been built upon, namely:
 
 [Fast Healthcare Interoperable Resources - FHIR](https://fhir.hl7.org.uk)
 Fast Healthcare Interoperability Resources is a standard describing data formats and elements and an application programming interface for exchanging electronic health records. The standard was created by the Health Level Seven International health-care standards organization.
@@ -131,7 +131,7 @@ This process is significantly less of a pain! Before running these commands, ple
 ### Postman Collection and Environment
 Once ROQR is up and running, you can try out the FHIR API by executing the following Postman collection (and environment). The process for importing [collections](https://learning.getpostman.com/docs/postman/collections/intro_to_collections) and [environments](https://learning.getpostman.com/docs/postman/environments_and_globals/intro_to_environments_and_globals) into Postman is very well documented [here](https://learning.getpostman.com/docs/postman/collections/data_formats/)
 
-1. Postman Environment(https://github.com/nhsx/open-source-fhir-server/blob/development/roqr-nhsx.postman_collection.json)
+1. [Postman Environment](https://github.com/nhsx/open-source-fhir-server/blob/development/roqr-nhsx.postman_environment.json)
 2. [Postman Collection](https://github.com/nhsx/open-source-fhir-server/blob/development/roqr-nhsx.postman_collection.json)
 
 ---
