@@ -103,7 +103,7 @@ ROQR currently consists of 8 services - each of which needs to be launched. This
 Each of the above commands will launch the services in "headless" or "daemon" mode. If you wish to run the containers in "interactive" mode then replace `-d` with `-it` (see [here](https://docs.docker.com/engine/reference/commandline/run/) for more information on the Docker command line options).
 
 ### Docker Compose
-This process is significantly less of a pain! (*Note* steps 1 and 2 are only required to be completed once - on first run):
+This process is significantly less of a pain! Before running these commands, please check that the file/directory paths in the Docker compose file match your local environment. *Note* steps 1 and 2 are only required to be completed once - on first run:
 
 1. `docker run -it --name fhir --rm -p8081:8080 -v <file-path-to-the-ROQR-source>:/opt/qewd/mapped -e microservice=fhir rtweed/qewd-server` to bring up the orchestrator service and ensure that the additional node packages required by ROQR are installed. 
 2. Kill the container `docker stop fhir`
