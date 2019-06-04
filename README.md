@@ -6,7 +6,7 @@ Twitter: [@YHCareRecord](https://twitter.com/YHCareRecord/)
 ---
 
 # What is the ROQR?
-ROQR (pronounced 'rocker') is an open source FHIR server which is being built by the Yorkshire and Humber Care Record (YHCR) project team as part of their work with the [NHS England Local Health and Care Record Exampler](https://www.england.nhs.uk/publication/local-health-and-care-record-exemplars/) (LHCRE) programme. The name ROQR reflects the stack of open source software and health care interoperability standards that the server has been built upon, namely:
+ROQR (pronounced 'rocker') is an open source FHIR server which is being built by the [Yorkshire and Humber Care Record](https://yhcr.org) (YHCR) project team as part of their work with the [NHS England Local Health and Care Record Exampler](https://www.england.nhs.uk/publication/local-health-and-care-record-exemplars/) (LHCRE) programme. The name ROQR reflects the stack of open source software and health care interoperability standards that the server has been built upon, namely:
 
 [Fast Healthcare Interoperable Resources - FHIR](https://fhir.hl7.org.uk)
 Fast Healthcare Interoperability Resources is a standard describing data formats and elements and an application programming interface for exchanging electronic health records. The standard was created by the Health Level Seven International health-care standards organization.
@@ -141,13 +141,16 @@ The following outlines the current remaining development of work before the serv
 
 ### Short Term (June/July 2019)
 1. Configure ROQR to support [Observation](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Observation-1), [AllergyIntolerance](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1), [Procedure](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Procedure-1), [Condition](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1), [Medication](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Medication-1), [MedicationStatement](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-MedicationStatement-1), [Location](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Location-1) and [PractitionerRole](https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1) resources.
-3. Implement [FHIR capability](http://hl7.org/fhir/STU3/capabilitystatement.html) statement API
 
-4. Subscription Processing - create a [subscription](http://hl7.org/fhir/STU3/subscription.html) service which is to slot into the create and update interaction service pipeline.
+2. Implement [FHIR capability](http://hl7.org/fhir/STU3/capabilitystatement.html) statement API
 
-5. Versioning - create a versioning service [FHIR Versioning/History](https://www.hl7.org/fhir/STU3/http.html#history) which will be slotted into the create and update interaction service pipeline.
+3. Subscription Processing - create a [subscription](http://hl7.org/fhir/STU3/subscription.html) service which is to slot into the create and update interaction service pipeline.
 
-6. Validation - create a [validation](http://hl7.org/fhir/STU3/validation.html) service which will be slotted into the create interaction service pipeline.
+4. Versioning - create a versioning service [FHIR Versioning/History](https://www.hl7.org/fhir/STU3/http.html#history) which will be slotted into the create and update interaction service pipeline.
+
+5. Validation - create a [validation](http://hl7.org/fhir/STU3/validation.html) service which will be slotted into the create interaction service pipeline.
+
+6. Create an NGINX reverse proxy server to sit in front of the API.
 
 ### Medium Term (July/August 2019)
 1. Add support to construct and transmit [ITK3 Inpatient and Emergency Transfer of Care](https://digital.nhs.uk/services/interoperability-toolkit/developer-resources/transfer-of-care-specification-versions) FHIR resources via MESH.
