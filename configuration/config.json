@@ -1,0 +1,50 @@
+{
+  "qewd_up": true,
+  "microservices": [
+    {
+      "name": "tests",
+      "qewd": {
+        "serverName": "ROQR Test API Service"
+      }
+    },
+    {
+      "name": "repoadapter",
+      "qewd": {
+        "serverName": "ROQR FHIR Request Adapter Service"
+      }
+    },
+    {
+      "name": "repo",
+      "qewd": {
+        "serverName": "ROQR Local FHIR Repository Service"
+      }
+    },
+    {
+      "name": "index",
+      "qewd": {
+        "serverName": "ROQR Local FHIR Resource Index Service"
+      }
+    },
+    {
+      "name": "search",
+      "qewd": {
+        "serverName": "ROQR Search Service"
+      }
+    },
+    {
+      "name": "fhir",
+      "qewd": {
+        "serverName": "ROQR FHIR API Service"
+      }
+    },
+    {
+      "name": "responder",
+      "qewd": {
+        "serverName": "ROQR Responder Service"
+      }
+    }
+  ],
+  "jwt": {
+    "secret": "Uk9RUiBzdGFuZHMgZm9yIGZoaVIgT24gUWV3ZCBhbmQgZG9ja2VS"
+  }
+}

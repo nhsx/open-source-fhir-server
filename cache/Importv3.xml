@@ -1,0 +1,872 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801_3_18281U)" ts="2019-04-18 08:12:43">
+<Class name="SynLib.ODS.Importv3">
+<Super>%RegisteredObject</Super>
+<TimeChanged>65121,28940.219658</TimeChanged>
+<TimeCreated>65106,62507.819849</TimeCreated>
+
+<Method name="GetGPS">
+<Description>
+Do ##class(SynLib.ODS.Importv3).GetGPS()
+Do ##class(SynLib.ODS.Importv3).ImportPractitioner27("C:\Users\Paul\Desktop\egpcur.csv")
+Do ##class(SynLib.ODS.Importv3).LoadCSV("C:\Users\Paul\Desktop\epraccur.csv")
+Do ##class(SynLib.ODS.Importv3).ImportOrganization("epraccur")
+Do ##class(SynLib.ODS.Importv3).Test()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	K ^TGPS
+	S tResponse=..GET("http://127.0.0.1:8080/fhir/STU3/Practitioner",.tStatus)
+	Kill ^||TRESP,^||TOUT,^||TERR
+	S ^||TRESP=tResponse
+	
+	Do DECODE^VPRJSON($NAME(^||TRESP),$NAME(^||TOUT),$NAME(^||TERR))
+	;^||TOUT("entry",6,"resource","id")="9a6a91a9-3b74-4ac4-aa65-db0657631fcd"
+	S id=""
+	f  s id=$o(^||TOUT("entry",id)) q:id=""  D
+	.S g=^||TOUT("entry",id,"resource","id")
+	.s ^TGPS(g)=""
+	.Q
+	zw ^TGPS
+]]></Implementation>
+</Method>
+
+<Method name="ALIZADEH">
+<Description>
+^documents("Patient","dba2af6f-22f2-439e-ad6a-d60c3393c566","name",0,"family")=ALIZADEH
+^docindex("Patient","name","family","alizadeh ","dba2af6f-22f2-439e-ad6a-d60c3393c566")=
+Do ##class(SynLib.ODS.Importv3).ALIZADEH()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	Set id=""
+	//s name="alizadeh "
+	//s id=$o(^docindex("Patient","name","family",name,""))
+	//w !,id
+	S tResponse=..GET("http://127.0.0.1:8080/fhir/STU3/Patient?family=ALIZADEH",.tStatus)
+	
+	Kill ^||TRESP,^||TOUT,^||TERR
+	S ^||TRESP=tResponse
+	
+	Do DECODE^VPRJSON($NAME(^||TRESP),$NAME(^||TOUT),$NAME(^||TERR))
+	
+	;zw ^||TOUT
+	;W !,$GET(^||TOUT("id"))
+	
+	Q $GET(^||TOUT("entry",1,"resource","id"))
+]]></Implementation>
+</Method>
+
+<Method name="AddPatientRef">
+<Description>
+Do ##class(SynLib.ODS.Importv3).AddPatient()</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pId</FormalSpec>
+<Implementation><![CDATA[
+	S i=""
+	f  s i=$o(^||TJSON(i)) q:i=""  d
+	.i ^||TJSON(i)["PatientResourceId" d
+	..s ref=^(i)
+	..S $P(ref,"/",2)=(pId_""",")
+	..S ^||TJSON(i)=ref
+	..q
+	.q
+]]></Implementation>
+</Method>
+
+<Method name="AddGP">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	S i=""
+	s gp=$o(^TGPS(""))
+	f  s i=$o(^||TJSON(i)) q:i=""  d
+	.;w !,^||TJSON(i)
+	.i ^||TJSON(i)["Practitioner/" d
+	..s ref=^(i)
+	..S $P(ref,"/",2)=(gp_""",")
+	..S ^||TJSON(i)=ref
+	..q
+	.q
+]]></Implementation>
+</Method>
+
+<Method name="Encounters">
+<Description>
+Encounters
+Do ##class(SynLib.ODS.Importv3).Encounters()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	d $system.Process.SetZEOF(1)
+	s tStatement = ##class(%SQL.Statement).%New()
+	s tSC=tStatement.%PrepareClassQuery("%Library.File","FileSet")
+	s rs=tStatement.%Execute("C:\Users\Paul\Desktop\Test-Patients\encounters","*.json",,1)
+	
+	while rs.%Next() {
+		s tFile=rs.%Get("Name")
+		w !,tFile
+		k ^||TJSON
+		
+		s json=""
+		
+		o tFile:"R"
+		for {
+			u tFile
+			r tStr
+			q:$zeof
+			d ..JSON(tStr)
+			s json=json_tStr
+		}
+		c tFile
+		
+		d ..AddGP()
+		
+		S tId=..ALIZADEH()
+		
+		;w !,tId
+		
+		d ..AddPatientRef(tId)
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		r *y
+		
+		d ..POSTPUT("?","Encounter")
+		
+		r *y
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Test">
+<Description>
+Post Rob O's test patients into qEWD
+Do ##class(SynLib.ODS.Importv3).Test()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	d $system.Process.SetZEOF(1)
+	s tStatement = ##class(%SQL.Statement).%New()
+	s tSC=tStatement.%PrepareClassQuery("%Library.File","FileSet")
+	s rs=tStatement.%Execute("C:\Users\Paul\Desktop\Test-Patients\patients","*.json",,1)
+	while rs.%Next() {
+		s tFile=rs.%Get("Name")
+		w !,tFile
+		i $p(tFile,".",2)'="txt",$p(tFile,".",2)'="json" continue
+		k ^||TJSON
+		w !,"loading!"
+		Open tFile:"R"
+		For {
+			Use tFile
+			R tStr
+			Q:$zeof
+			D ..JSON(tStr)
+		}
+		Close tFile
+		
+		D ..AddGP()
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		r *y
+		d ..POSTPUT("?","Patient")
+		r *y
+	}
+]]></Implementation>
+</Method>
+
+<Method name="JSON">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pJSON</FormalSpec>
+<Implementation><![CDATA[
+	S i=$i(^||TJSON)
+	S ^||TJSON(i)=pJSON
+]]></Implementation>
+</Method>
+
+<Method name="ListConsultants">
+<Description>
+Do ##class(SynLib.ODS.Importv2).ListConsultants()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	// ^ODSINDX2(pResource,pODSCode)
+	Set tODSCode=""
+	For {
+		Set tODSCode=$Order(^ODSINDX2("Practitioner",tODSCode))
+		Quit:tODSCode=""
+		I $E(tODSCode)="C" W !,tODSCode
+	}
+]]></Implementation>
+</Method>
+
+<Method name="ImportHospitalConsultantPractitionerRoles">
+<Description>
+Do ##class(SynLib.ODS.Importv2).ImportHospitalConsultantPractitionerRoles()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	K ^LOG("conroles")
+	S ^LOG("conroles","start")=$Horolog
+	
+	S tPractitionerCode=""
+	For {
+		S tPractitionerCode=$Order(^CSVDATA("econcur",tPractitionerCode))
+		Q:tPractitionerCode=""
+		S R=^CSVDATA("econcur",tPractitionerCode)
+		S tGMC=$P(R,"~",1),tSurname=$P(R,"~",2),tInitials=$P(R,"~",3),tParentOrg=$P(R,"~",4)
+		
+		Set tName=tSurname_" "_tInitials
+		
+		Set tReference=$Get(^ODSINDX2("Practitioner",tPractitionerCode))
+		If tReference="" W !,"Missing Practitioner Ref:",tPractitionerCode Continue
+		
+		Set tRefOrg=$G(^ODSINDX2("Organization",tParentOrg))
+		If tRefOrg="" W !,"Missing Parent Org Ref: ",tParentOrg Continue
+		
+		S tRef="Practitioner/"_$P(tReference,"/",6) // ** TO DO - Do a GET here instead ***
+		S tRefOrg="Organization/"_$Piece(tRefOrg,"/",6)
+		
+		W !,tRef
+		W !,tRefOrg
+		
+		Kill ^||TJSON
+		
+		Do ..JSON("{""resourceType"": ""PractitionerRole"",")
+		Do ..JSON("""id"": """_tGMC_""",")
+		
+		Do ..JSON("""practitioner"": {")
+		Do ..JSON("""reference"": """_tRef_""",")
+		Do ..JSON("""display"": """_tName_"""")
+		Do ..JSON("},")
+		
+		Do ..JSON("""identifier"": [{")
+		Do ..JSON("""value"": """_tPractitionerCode_"""")
+		Do ..JSON("}],")
+		
+		// Parent Organization
+		Do ..JSON("""organization"": {")
+		Do ..JSON("""reference"": """_tRefOrg_""",")
+		
+		S tOrgName=$P($Get(^CSVDATA("etr",tParentOrg)),"~",5)
+		
+		Do ..JSON("""display"": """_tOrgName_"""")
+		Do ..JSON("}")
+		
+		Do ..JSON(",")
+        Do ..JSON("""code"": [")
+        Do ..JSON("{")
+        Do ..JSON("""coding"": [")
+        Do ..JSON("{")
+        Do ..JSON("""system"": ""https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-SDSJobRoleName-1"",")
+        
+        Set tRoleCode="R0050"
+        Set tRoleDescription="Consultant"
+        
+        Do ..JSON("""code"": """_tRoleCode_""",")
+        Do ..JSON("""display"": """_tRoleDescription_"""")
+        Do ..JSON("}]}]")
+        
+		Do ..JSON("}")
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		
+		;R *Y
+		
+		Do ..POSTPUT(tPractitionerCode, "PractitionerRole")
+		
+		;R *Y
+	}
+	
+	S ^LOG("conroles","end")=$Horolog
+]]></Implementation>
+</Method>
+
+<Method name="ImportHospitalConsultants">
+<Description>
+Do ##class(SynLib.ODS.Importv2).ImportHospitalConsultants("D:\tmp\SYNODSImport\Unzip\econcur.csv")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pFile</FormalSpec>
+<Implementation><![CDATA[
+	K ^CSVDATA("econcur"),^LOG("con")
+	
+	Set ^LOG("con","start")=$H
+		
+	Set tSQL = ""
+	For i = 1:1:9 {
+		Set tSQL=tSQL_"Field"_i_" VARCHAR(100)"_$S(i<27:",",1:"")
+	}
+	
+	Do ##class(%SQL.Util.Procedures).CSV(2,tSQL,pFile)
+	If %sqlcontext.%SQLCODE<0 {
+		#dim tEx As %Exception.SQL
+		Set tEx = ##class(%Exception.SQL).CreateFromSQLCODE(%sqlcontext.%SQLCODE, %sqlcontext.%Message)
+	}
+	
+	Set tRecordSet = %sqlcontext.NextResult()
+	While tRecordSet.%Next() {
+		Set tGMC=tRecordSet.%Get("Field1")
+		Set tPractitionerCode=tRecordSet.%Get("Field2") // prefixed with 'C'
+		Set tSurname=tRecordSet.%Get("Field3")
+		Set tInitials=tRecordSet.%Get("Field4")
+		Set tParent=tRecordSet.%Get("Field8")
+		
+		S ^CSVDATA("econcur",tPractitionerCode)=tGMC_"~"_tSurname_"~"_tInitials_"~"_tParent
+		
+		Kill ^||TJSON
+		
+		Do ..JSON("{""resourceType"": ""Practitioner"",")
+		Do ..JSON("""id"": """_tGMC_""",")
+		
+        Do ..JSON("""meta"": {")
+        Do ..JSON("""profile"": [")
+        Do ..JSON("""https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1""]")
+		DO ..JSON("},")
+		Do ..JSON("""identifier"": [{")
+		Do ..JSON("""system"": ""https://fhir.nhs.uk/Id/sds-user-id"",")
+		Do ..JSON("""value"": """_tPractitionerCode_"""")
+		Do ..JSON("}],")
+		
+		Do ..JSON("""name"": [{")
+		Do ..JSON("""family"": """_tSurname_""",")
+		Do ..JSON("""given"":[ """_tInitials_"""]")
+		Do ..JSON("}]")
+		Do ..JSON("}")
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		
+		;R *Y
+		
+		Do ..POSTPUT(tPractitionerCode, "Practitioner")
+		
+		;R *Y
+	}
+	
+	Set ^LOG("con","end")=$H
+]]></Implementation>
+</Method>
+
+<Method name="BOB">
+<Description>
+Do ##class(SynLib.ODS.Importv3).BOB()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	d $system.Process.SetZEOF(1)
+	s f="c:\temp\bob.csv"
+	o f:"r"
+	f  u f r str q:$zeof  u 0 w !,str S ^BOB(str)=""
+	c f
+]]></Implementation>
+</Method>
+
+<Method name="ImportPractitioner27">
+<Description>
+Do ##class(SynLib.ODS.Importv2).ImportPractitioner27("D:\tmp\SYNODSImport\Unzip\egpcur.csv")
+Do ##class(SynLib.ODS.Importv3).ImportPractitioner27("C:\Users\Paul\Desktop\egpcur.csv")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pFile</FormalSpec>
+<Implementation><![CDATA[
+	K ^LOG("gp's")
+	S ^LOG("gp's","start")=$H
+	
+	Set tSQL = ""
+	For i = 1:1:27 {
+		Set tSQL=tSQL_"Field"_i_" VARCHAR(100)"_$S(i<27:",",1:"")
+	}
+	
+	Do ##class(%SQL.Util.Procedures).CSV(2,tSQL,pFile)
+	If %sqlcontext.%SQLCODE<0 {
+		#dim tEx As %Exception.SQL
+		Set tEx = ##class(%Exception.SQL).CreateFromSQLCODE(%sqlcontext.%SQLCODE, %sqlcontext.%Message)
+	}
+	
+	S tTot=0
+	
+	Set tRecordSet = %sqlcontext.NextResult()
+	While tRecordSet.%Next() {
+		S tODSCode=tRecordSet.%Get("Field1")
+		
+		S tName=tRecordSet.%Get("Field2")
+		S tAdd1=tRecordSet.%Get("Field5")
+		S tAdd2=tRecordSet.%Get("Field6")
+		S tAdd3=tRecordSet.%Get("Field7")
+		S tAdd4=tRecordSet.%Get("Field8")
+		S tAdd5=tRecordSet.%Get("Field9")
+		S tPostCode=tRecordSet.%Get("Field10")
+		S tStatus=tRecordSet.%Get("Field13")
+		S tTel=tRecordSet.%Get("Field18")
+		
+		S tCounty=tAdd5
+		If tAdd5="" Set tCounty=tAdd4
+		
+		; If $d(^ODSINDX2("Practitioner",tODSCode)) w !,"DONE" s tTot=tTot+1 CONTINUE
+		IF $D(^BOB(tODSCode)) w !,"in bob" continue
+		
+		Kill ^||TJSON
+		
+		// based on C:\Users\Paul\Desktop\ccri-fhir-Practitioner.txt
+		Do ..JSON("{""resourceType"": ""Practitioner"",")
+		;Do ..JSON("""id"": """_tODSCode_""",")
+		
+        Do ..JSON("""meta"": {")
+        Do ..JSON("""profile"": [")
+        Do ..JSON("""https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Practitioner-1""]")
+		DO ..JSON("},")
+		Do ..JSON("""identifier"": [{")
+		Do ..JSON("""system"": ""https://fhir.nhs.uk/Id/sds-user-id"",")
+		Do ..JSON("""value"": """_tODSCode_"""")
+		Do ..JSON("}],")
+		
+		Set tStatus=$Select(tStatus="A":"true",1:"false")
+		Do ..JSON("""active"":"_tStatus_",")
+
+		Set tFamily=$Piece(tName," ",1,$Length(tName," ")-1)
+		Set tGiven=$Piece(tName," ",$Length(tName," "))
+
+		Do ..JSON("""name"": [{")
+		Do ..JSON("""family"": """_tFamily_""",")
+		Do ..JSON("""given"":[ """_tGiven_"""]")
+		Do ..JSON("}],")
+		
+        Do ..JSON("""telecom"": [")
+        Do ..JSON("{")
+        Do ..JSON("""system"": ""phone"",")
+        Do ..JSON("""value"": """_tTel_""",")
+        Do ..JSON("""use"": ""work""")
+	    Do ..JSON("}")
+        Do ..JSON("],")
+        
+        Do ..JSON("""address"": [")
+		Do ..JSON("{")
+		Do ..JSON("""use"": ""work"",")
+		Do ..JSON("""line"": [")
+		Do ..JSON(""""_tAdd1_""",")
+		Do ..JSON(""""_tAdd2_"""")
+		Do ..JSON("],")
+		Do ..JSON("""city"": """_tAdd4_""",")
+		Do ..JSON("""district"": """_tCounty_""",")
+		Do ..JSON("""postalCode"": """_tPostCode_"""}]")
+        
+		Do ..JSON("}")
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		
+		R *Y
+		
+		Do ..POSTPUT(tODSCode, "Practitioner")
+		
+		READ *Y
+	}
+	
+	S ^LOG("gp's","end")=$H
+	w !,tTot
+]]></Implementation>
+</Method>
+
+<Method name="ImportOrganization">
+<Description>
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("eccg")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("etr")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("ets")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("epraccur")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("ectsite")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("ect")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("eccgsite")
+Do ##class(SynLib.ODS.Importv2).ImportOrganization("alwoodley")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pFile</FormalSpec>
+<Implementation><![CDATA[
+	K ^LOG(pFile)
+	S ^LOG(pFile,"start")=$H
+	
+	S tODSCode=""
+	For {
+		Set tODSCode=$Order(^CSVDATA(pFile,tODSCode))
+		Quit:tODSCode=""
+		
+		;I tODSCode'="07J" CONTINUE
+		
+		S R=^CSVDATA(pFile,tODSCode)
+		S tStatus=$P(R,"~",1),tJoinedDate=$P(R,"~",2),tLeftDate=$P(R,"~",3)
+		S tParentOrg=$P(R,"~",4),tName=$P(R,"~",5),tAdd1=$P(R,"~",6)
+		S tAdd2=$P(R,"~",7),tAdd3=$P(R,"~",8),tAdd4=$P(R,"~",9)
+		S tAdd5=$P(R,"~",10),tPostCode=$P(R,"~",11),tCounty=$P(R,"~",12)
+		S tStartDate=$P(R,"~",13),tEndDate=$P(R,"~",14)
+		
+		Kill ^||TJSON
+		Do ..JSON("{""resourceType"": ""Organization"",")
+		//Do ..JSON("""id"": """_tODSCode_""",")
+		
+		// Start date e.g 20181001 2019-01-28
+		Set tStartDate=$E(tStartDate,1,4)_"-"_$E(tStartDate,5,6)_"-"_$E(tStartDate,7,8) // Open Date
+		If tEndDate'="" Set tEndDate=$E(tEndDate,1,4)_"-"_$E(tEndDate,5,6)_"-"_$E(tEndDate,7,8) // Close Date
+				
+		Do ..JSON("""extension"": [{")
+		Do ..JSON("""valuePeriod"":{")
+		
+		If tEndDate="" {
+			Do ..JSON("""start"": """_tStartDate_"""}}],")
+		}
+		
+		If tEndDate'="" {
+			Do ..JSON("""start"": """_tStartDate_""",")
+			Do ..JSON("""end"": """_tEndDate_"""}}],")
+		}
+		
+		Set tStatus=$Select(tStatus="A":"true",1:"false")
+		
+		Do ..JSON("""active"":"_tStatus_",")
+		Do ..JSON("""name"":"""_tName_""",")
+		
+		Do ..JSON("""address"": [{")
+		Do ..JSON("""line"": [")
+		Do ..JSON(""""_tAdd1_""",")
+		Do ..JSON(""""_tAdd2_"""],")
+		Do ..JSON("""city"": """_tAdd3_""",")
+		Do ..JSON("""district"": """_tCounty_""",")
+		Do ..JSON("""postalCode"": """_tPostCode_"""}],")
+		
+		// Org2Org
+		If tParentOrg'="",$Data(^ODSINDX2("Organization",tParentOrg)) {
+			Set tRef=$P(^ODSINDX2("Organization",tParentOrg),"/",6)
+			Do ..JSON("""partOf"": {")
+			Do ..JSON("""reference"": ""Organization/"_tRef_"""")
+			Do ..JSON("},")
+		}
+		
+		Do ..JSON("""identifier"": [{")
+		Do ..JSON("""system"": ""https://fhir.nhs.uk/Id/ods-organization-code"",")
+		Do ..JSON("""value"": """_tODSCode_"""")
+		Do ..JSON("}]}")
+		
+		/*
+		;If tEndDate'="" {
+			F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+			R *Y
+		;}
+		*/
+		
+	
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		R *Y
+			
+		D ..POSTPUT(tODSCode, "Organization")
+		R *Y
+	}
+	
+	S ^LOG(pFile,"end")=$H
+]]></Implementation>
+</Method>
+
+<Method name="LoadCSV">
+<Description>
+Load the csv data into globals
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\egpcur.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\epraccur.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\eccg.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\ectsite.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\ect.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\eccgsite.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\ets.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("D:\tmp\SYNODSImport\Unzip\etr.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("C:\Users\Paul\Desktop\eccg.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("C:\Users\Paul\Desktop\SYN FHIR\alwoodley.csv")
+Do ##class(SynLib.ODS.Importv2).LoadCSV("C:\Users\Paul\Desktop\epraccur.csv")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pFile</FormalSpec>
+<Implementation><![CDATA[
+	S tFile=$P($Piece(pFile,"\",$Length(pFile,"\")),".")
+	Kill ^CSVDATA(tFile)
+	
+	Set tSQL = ""
+	For i = 1:1:27 {
+		Set tSQL=tSQL_"Field"_i_" VARCHAR(100)"_$S(i<27:",",1:"")
+	}
+	Do ##class(%SQL.Util.Procedures).CSV(2,tSQL,pFile)
+	If %sqlcontext.%SQLCODE<0 {
+		#dim tEx As %Exception.SQL
+		Set tEx = ##class(%Exception.SQL).CreateFromSQLCODE(%sqlcontext.%SQLCODE, %sqlcontext.%Message)
+	}
+	
+	Set tRecordSet = %sqlcontext.NextResult()
+
+	While tRecordSet.%Next() {
+		Set tODSCode=tRecordSet.%Get("Field1")
+		Set tStatus=tRecordSet.%Get("Field13")
+		Set tJoinedDate=tRecordSet.%Get("Field16")
+		Set tLeftDate=tRecordSet.%Get("Field17")
+		Set tParentOrg=tRecordSet.%Get("Field15")
+		Set tName=tRecordSet.%Get("Field2")
+		Set tAdd1=tRecordSet.%Get("Field5") // THE HEALTH CENTRE
+		Set tAdd2=tRecordSet.%Get("Field6") // LAWSON STREET
+		Set tAdd3=tRecordSet.%Get("Field7") // STOCKTON-ON-TEES
+		Set tAdd4=tRecordSet.%Get("Field8") // CLEVELAND
+		Set tAdd5=tRecordSet.%Get("Field9") // <COUNTY>
+		Set tPostCode=tRecordSet.%Get("Field10") // TS18 1HU
+		Set tOpenDate=tRecordSet.%Get("Field11") // OpenDate
+		Set tCloseDate=tRecordSet.%Get("Field12") // CloseDate
+		
+		Set tCounty=tAdd5
+		If tAdd5="" Set tCounty=tAdd4
+		
+		// Status not supported in Organization files
+		If tStatus="" {
+			S tStatus="A"
+			If tCloseDate'="" S tStatus="C"
+		}
+		
+		Set R=tStatus_"~"_tJoinedDate_"~"_tLeftDate_"~"_tParentOrg_"~"_tName_"~"
+		Set R=R_tAdd1_"~"_tAdd2_"~"_tAdd3_"~"_tAdd4_"~"_tAdd5_"~"_tPostCode_"~"_tCounty_"~"
+		Set R=R_tOpenDate_"~"_tCloseDate
+		
+		Set ^CSVDATA(tFile,tODSCode)=R
+		
+		Write !,tODSCode
+	}
+]]></Implementation>
+</Method>
+
+<Method name="ImportPractitionerRoles">
+<Description>
+PractitionerRoles
+Do ##class(SynLib.ODS.Importv2).ImportPractitionerRoles()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	K ^LOG("gproles")
+	S ^LOG("gproles","start")=$H
+	
+	Set tODSCode=""
+	For {
+		S tODSCode=$Order(^ODSINDX2("Practitioner",tODSCode))
+		Quit:tODSCode=""
+		
+		// Avoid consultants (FOR NOW)
+		I $E(tODSCode)="C" Continue
+		
+		W !,tODSCode
+		
+		Set R=$Get(^CSVDATA("egpcur",tODSCode))
+		S tStatus=$P(R,"~",1),tJoinedDate=$P(R,"~",2),tLeftDate=$P(R,"~",3)
+		S tParentOrg=$P(R,"~",4),tName=$P(R,"~",5),tAdd1=$P(R,"~",6)
+		S tAdd2=$P(R,"~",7),tAdd3=$P(R,"~",8),tAdd4=$P(R,"~",9)
+		S tAdd5=$P(R,"~",10),tPostCode=$P(R,"~",11),tCounty=$P(R,"~",12)
+		
+		Set tReference=$Get(^ODSINDX2("Practitioner",tODSCode))
+		If tReference="" W !,"Missing Practitioner Ref:",tODSCode Continue
+		
+		Set tRefOrg=$G(^ODSINDX2("Organization",tParentOrg))
+		If tRefOrg="" W !,"Missing Parent Org Ref: ",tParentOrg Continue
+		
+		S tRef="Practitioner/"_$P(tReference,"/",6) // ** TO DO - Do a GET here instead ***
+		S tRefOrg="Organization/"_$Piece(tRefOrg,"/",6)
+
+		Kill ^||TJSON
+		
+		Do ..JSON("{""resourceType"": ""PractitionerRole"",")
+		Do ..JSON("""id"": """_tODSCode_""",")
+		
+		Do ..JSON("""practitioner"": {")
+		Do ..JSON("""reference"": """_tRef_""",")
+		Do ..JSON("""display"": """_tName_"""")
+		Do ..JSON("},")
+		
+		Do ..JSON("""identifier"": [{")
+		Do ..JSON("""value"": """_tODSCode_"""")
+		Do ..JSON("}],")
+		
+		// Status' A = Active, B = Retired, C = Closed, P = Proposed
+		Set tStatus=$Select(tStatus="A":"true",1:"false")
+		Do ..JSON("""active"":"_tStatus_",")
+		
+		Do ..JSON("""period"": {")
+		
+		Set tJoinedDate=$E(tJoinedDate,1,4)_"-"_$E(tJoinedDate,5,6)_"-"_$E(tJoinedDate,7,8)
+		Set tLeftDate=$E(tLeftDate,1,4)_"-"_$E(tLeftDate,5,6)_"-"_$E(tLeftDate,7,8)
+		
+		If tLeftDate="" {
+			Do ..JSON("""start"": """_tJoinedDate_"""")
+		}
+		
+		If tLeftDate'="--" {
+			Do ..JSON("""start"": """_tJoinedDate_""",")
+			Do ..JSON("""end"": """_tLeftDate_"""")
+		}
+		
+		Do ..JSON("},")
+		
+		// Parent Organization
+		Do ..JSON("""organization"": {")
+		Do ..JSON("""reference"": """_tRefOrg_""",")
+		
+		S tOrgName=$P($Get(^CSVDATA("epraccur",tParentOrg)),"~",5)
+		
+		Do ..JSON("""display"": """_tOrgName_"""")
+		Do ..JSON("}")
+		
+		Do ..JSON(",")
+        Do ..JSON("""code"": [")
+        Do ..JSON("{")
+        Do ..JSON("""coding"": [")
+        Do ..JSON("{")
+        Do ..JSON("""system"": ""https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-SDSJobRoleName-1"",")
+        
+        Set tRoleCode="R0260"
+        Set tRoleDescription="General Medical Practitioner"
+        
+        Do ..JSON("""code"": """_tRoleCode_""",")
+        Do ..JSON("""display"": """_tRoleDescription_"""")
+        Do ..JSON("}]}]")
+        
+		Do ..JSON("}")
+		
+		F i=1:1:$o(^||TJSON(""),-1) W !,^||TJSON(i)
+		;R *Y
+		
+		Do ..POSTPUT(tODSCode, "PractitionerRole")
+	}
+	
+	S ^LOG("gproles","end")=$H
+]]></Implementation>
+</Method>
+
+<Method name="GET">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pUri,pStatus</FormalSpec>
+<Implementation><![CDATA[
+	Set httprequest=##class(%Net.HttpRequest).%New()
+	Set x=httprequest.SetHeader("Accept","application/json, text/plain, */*")
+	
+	Do httprequest.AcceptGzipSet(0)
+	
+	Set tSC=httprequest.Get(pUri)
+	
+	Do httprequest.HttpResponse.Data.Rewind()
+    Set tLen=1024,O=""
+    While (httprequest.HttpResponse.Data.AtEnd = 0) {
+		S O=O_httprequest.HttpResponse.Data.Read(.tLen)
+	}
+	
+	Set tStatus=httprequest.HttpResponse.StatusCode
+	
+	Set pStatus=0
+	I tStatus=200 Set pStatus=1
+	I tStatus=500 Set pStatus=1
+	
+	QUIT O
+]]></Implementation>
+</Method>
+
+<Method name="POSTPUT">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pODSCode,pResource</FormalSpec>
+<Implementation><![CDATA[
+	Set tPut=0
+	//Set tUri=^SynFHIR.BaseURL_pResource
+	
+	Set tUri="http://127.0.0.1:8080/fhir/STU3/"_pResource
+	
+	/*
+	If $Get(^ODSINDX2(pResource,pODSCode))'="" {
+		Set tZ=^ODSINDX2(pResource,pODSCode)
+		Set tZ=$Replace(tZ,^SynFHIR.BaseURL,"")
+		Set tUri=tUri_"/"_$P(tZ,"/",2)
+		Set tPut=1
+	}
+	*/
+	
+	Set httprequest=##class(%Net.HttpRequest).%New()
+	
+	F i=1:1:$Order(^||TJSON(""),-1) {
+		Do httprequest.EntityBody.Write(^||TJSON(i))
+	}
+	
+	Set tUsrPass= "_system:1qaz1qaz"
+	Set tBasic=$SYSTEM.Encryption.Base64Encode("Basic "_tUsrPass)
+	
+	Set x=httprequest.SetHeader("Authorization", tBasic)
+	Set x=httprequest.SetHeader("Accept","application/json, text/plain, */*")
+	Set x=httprequest.SetHeader("ContentType","application/json; charset=utf-8")
+	
+	Do httprequest.AcceptGzipSet(0)
+	
+	Set:'tPut tSC=httprequest.Post(tUri)
+	If tPut Set tSC=httprequest.Put(tUri)
+	
+	Do httprequest.HttpResponse.Data.Rewind()
+    Set tLen=1024
+    While (httprequest.HttpResponse.Data.AtEnd = 0) {
+		Write !,httprequest.HttpResponse.Data.Read(.tLen)
+	}	
+	
+	W !,tUri
+	W !,"Status Code: ",httprequest.HttpResponse.StatusCode,!
+	W !,"Test ",httprequest.HttpResponse.GetHeader("LOCATION")
+	
+	Set tStatus=httprequest.HttpResponse.StatusCode
+	Set tLocation=httprequest.HttpResponse.GetHeader("LOCATION")
+	
+	If tStatus=200!(tStatus=201) Set ^ODSINDX2(pResource,pODSCode)=tLocation
+	
+	If tStatus>201 S ^ZERROR(pODSCode,pResource)=$H_"~"_$Get(tStatus) ;R *Y
+	;R *Y
+]]></Implementation>
+</Method>
+
+<Method name="POST">
+<Description>
+Rotherham (could not get id from get)
+http://localhost:57772/dev/yhcrbus/ (^ODSINDX2 is populated with a https address?)</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pODSCode,pResource</FormalSpec>
+<Implementation><![CDATA[
+		
+	Set tPut=0
+	
+	;Set tResponse=..GET("http://localhost:57788/fhirps/"_pResource_"?identifier="_pODSCode, .tStatus)
+	;Set tUri="http://localhost:57788/fhirps/"_pResource
+	
+	Set tResponse=..GET("http://localhost:57791/fhirbus/"_pResource_"?identifier="_pODSCode, .tStatus)
+	Set tUri="http://localhost:57791/fhirbus/"_pResource
+	
+	Kill ^||TRESP,^||TOUT,^||TERR
+	S ^||TRESP=tResponse
+	Do DECODE^VPRJSON($NAME(^||TRESP),$NAME(^||TOUT),$NAME(^||TERR))
+	
+	Set tPut=0
+	If $Get(^||TOUT("entry",1,"resource","id"))'="" S tUri=tUri_"/"_^||TOUT("entry",1,"resource","id") S tPut=1
+	
+	I $D(^||TOUT("entry",1,"resource","issue",1,"diagnostics")) S ^BAD(pODSCode)="" Quit
+	
+	;If tBad S ^BAD(pODSCode)="" Quit
+	
+	Set httprequest=##class(%Net.HttpRequest).%New()
+	
+	F i=1:1:$Order(^||TJSON(""),-1) {
+		Do httprequest.EntityBody.Write(^||TJSON(i))
+	}
+	
+	Set tUsrPass= "_system:1qaz1qaz"
+	Set tBasic=$SYSTEM.Encryption.Base64Encode("Basic "_tUsrPass)
+	
+	Set x=httprequest.SetHeader("Authorization", tBasic)
+	Set x=httprequest.SetHeader("Accept","application/json, text/plain, */*")
+	Set x=httprequest.SetHeader("ContentType","application/json; charset=utf-8")
+	
+	Do httprequest.AcceptGzipSet(0)
+	
+	Set:'tPut tSC=httprequest.Post(tUri)
+	If tPut Set tSC=httprequest.Put(tUri)
+	
+	Do httprequest.HttpResponse.Data.Rewind()
+    Set tLen=1024
+    While (httprequest.HttpResponse.Data.AtEnd = 0) {
+		Write !,httprequest.HttpResponse.Data.Read(.tLen)
+	}	
+	
+	W !,tUri
+	W !,"Status Code: ",httprequest.HttpResponse.StatusCode,!
+	W !,"Test ",httprequest.HttpResponse.GetHeader("LOCATION")
+	
+	Set tStatus=httprequest.HttpResponse.StatusCode
+	Set tLocation=httprequest.HttpResponse.GetHeader("LOCATION")
+	
+	If tStatus=200!(tStatus=201) Set ^ODSINDX2(pResource,pODSCode)=tLocation
+	
+	If tStatus>201 S ^ZERROR(pODSCode,pResource)=$H_"~"_$Get(tStatus) ;R *Y
+	;R *Y
+]]></Implementation>
+</Method>
+</Class>
+</Export>
