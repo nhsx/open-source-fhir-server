@@ -221,7 +221,6 @@ var query =
             return this.modifiers['exact'].call(this, value, expression);
         },
         period:function(value,expression) {
-            //See note on case-sensitivity: https://www.hl7.org/fhir/search.html#token
             return this.modifiers['eq'].call(this, value, expression);
         },
         id:function(value,expression) {

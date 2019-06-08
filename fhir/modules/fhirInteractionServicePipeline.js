@@ -32,10 +32,16 @@
 var _ = require('underscore');
 var serverRegistry = require('../registries/server.js').server;
 var resourceRegistry = require('../registries/resources.js');
+var dispatcher = require('../../configuration/messaging/dispatcher.js').dispatcher;
 
 var fhirInteractionServicePipeline = {
+    createRequestMessage: function() {
+        return dispatcher.createRequestMessage();
+    },
+    createServerErrorMessage: function(request, stack) {
+        return dispatcher.error.serverError(request, stack);
+    },
     _baseOperation: function(fhirRequest, request) {
-        //TODO: Attach error, messageMap and response
         //Attach server registry...
         request.server = serverRegistry;
     },
@@ -46,19 +52,38 @@ var fhirInteractionServicePipeline = {
         request.operation = "CREATE";
         request.pipeline = ["fhir"];
         request.routes = [
-           {path: "/services/v1/adapters/repo/create"},
-           {path: "/services/v1/repo/create"},
-           {path: "/services/v1/repo/index"},
-           {path: "/services/v1/adapters/repo/read"},
-           {path: "/services/v1/repo/read"},
-           {path: "/services/v1/adapters/repo/respond"},
-           {path: "/services/v1/responder/create"}
+            {
+                paths:{path: "/services/v1/adapters/repo/create"}
+            },
+            {
+                paths:{path: "/services/v1/repo/create"}
+            },
+            {
+                paths:[
+                        {path:"/services/v1/publisher/publish",awaitReply:false},
+                        {path: "/services/v1/repo/index"}
+                    ]
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/read"}
+            },
+            {
+                paths:{path: "/services/v1/repo/read"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/respond"},
+            },
+            {
+                paths:{path: "/services/v1/responder/create"},
+            }
         ];
-        //TODO: Extend routes to include subscription pipeline
+
+        //async path {path:/"services/v1/audit/create", type:"async"}
+
         request.data = fhirRequest.req.body;
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
-    },
+    }, 
     read: function(fhirRequest, request) {
         this._baseOperation(fhirRequest, request);
 
@@ -104,7 +129,8 @@ var fhirInteractionServicePipeline = {
             request.resourceType = resource;
         } else {
             //Throw exception - unknown/unsupported READ
-            throw errorMessage.serverError("Unsupported READ operation");
+            //throw errorMessage.serverError("Unsupported READ operation");
+            throw dispatcher.error.serverError("Unsupported READ operation");
         }
     },
     update:{},

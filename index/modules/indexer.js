@@ -99,7 +99,7 @@ var indexer =
         },
         period: function(data) {
             console.log('Period Indexer: ' + JSON.stringify(data,null,2));
-    
+
             var index = {};
             index.global = data.global;
             index.subscripts = [];

@@ -32,6 +32,7 @@
 var responseMessage = require('../../../configuration/messages/response.js').response;
 var errorMessage = require('../../../configuration/messages/error.js').error;
 var indexer = require('../../modules/indexer.js').indexer;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Index Read: " + JSON.stringify(args,null,2));
@@ -54,7 +55,7 @@ module.exports = function(args, finished) {
     try
     {
         if(typeof registry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
         };
 
         var db = this.db;
@@ -134,11 +135,9 @@ module.exports = function(args, finished) {
         //Sort indexData so that it is returned in alphabetical order...
         indexer.sort(indexData);
 
-        finished(responseMessage.getResponse(request,indexData));
+        finished(dispatcher.getResponseMessage(request,indexData));
 
     } catch(ex) {
-        finished(
-            errorMessage.serverError(request, ex.stack || ex.toString())
-          );
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

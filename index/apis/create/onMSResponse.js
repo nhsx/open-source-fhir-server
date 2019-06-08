@@ -29,20 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index CREATE");
-    console.log("index CREATE in: " + JSON.stringify(message,null,2));
-    //Is there anything to forward?
-    if(message.serviceMode !== "pipeline" || message.routes.length === 0) return false;
-    //Will forward this request to the first route which is expected to be able to handle it...
-    //It may be that a pipeline, for example, requires a resource to be fetched from a repo rather than knowing indices have been created...(see FHIR create pipeline)
-    var request = messageMap.request.getRequestMessage(message);
-    //Forward request...
-    console.log("index CREATE message out: " + JSON.stringify(request,null,2));
-    forward(request,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    console.log("index CREATE message in: " + JSON.stringify(message,null,2));
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

@@ -1,15 +1,15 @@
 [
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"POST",
-    "handler":"create",
+    "method":"GET",
+    "handler":"read",
     "on_microservice":"fhir",
     "authenticate":false
   },
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"GET",
-    "handler":"read",
+    "method":"POST",
+    "handler":"create",
     "on_microservice":"fhir",
     "authenticate":false
   },
@@ -90,7 +90,6 @@
     ],
     "authenticate":false
   },
-
   {
     "uri":"/services/v1/adapters/repo/search",
     "method":"POST",
@@ -234,6 +233,17 @@
       "repoadapter",
       "repo",
       "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/publisher/publish",
+    "method": "POST",
+    "handler": "publish",
+    "on_microservice": "publisher",
+    "from_microservices":[
+      "tests",
+      "repo"
     ],
     "authenticate": false
   },

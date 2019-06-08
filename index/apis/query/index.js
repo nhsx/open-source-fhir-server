@@ -59,7 +59,6 @@ module.exports = function(args, finished)
         }
 
         var db = this.db;
-        
         qry.forEach(function(q) {
             var documentType = q.documentType || '';
             if(documentType === '') {

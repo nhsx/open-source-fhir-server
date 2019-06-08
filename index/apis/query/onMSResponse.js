@@ -29,18 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index QUERY");
     console.log("index QUERY in: " + JSON.stringify(message,null,2));
-    //Is there anything to forward?
-    if(message.serviceMode === "standalone" || message.routes.length === 0) return false;
-    //Will forward this request to the first route which is expected to be able to handle it...
-    var resultRequest = messageMap.request.getRequestMessage(message);
-    //Forward request
-    console.log("index QUERY message out: " + JSON.stringify(resultRequest,null,2));
-    forward(resultRequest,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

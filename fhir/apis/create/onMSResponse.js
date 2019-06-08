@@ -29,17 +29,11 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
     //Forward message to local FHIR Server Adapters
-    console.log("FHIR API Service CREATE");
-    console.log("FHIR API Service CREATE message in: " + JSON.stringify(message,null,2));
-    //This service always operates in pipeline mode so no need to check whether it should be forwarded...
-    var localRepoAdapterCreateRequest = messageMap.request.getRequestMessage(message);
-    //Forward request...
-    console.log("FHIR API Service message out: " + JSON.stringify(localRepoAdapterCreateRequest,null,2));
-    forward(localRepoAdapterCreateRequest,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+   console.log("FHIR API Service CREATE message in: " + JSON.stringify(message,null,2));
+   var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+   if(!dispatched) return false;
 }
