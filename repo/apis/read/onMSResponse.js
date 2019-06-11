@@ -29,17 +29,11 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 //Forward to repoadapter respond...
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("repo READ message in: " + JSON.stringify(message,null,2));
-    //This service can operate in both pipeline and standalone modes...
-    if(message.serviceMode === 'standalone' || message.routes.length === 0) return false;
-    //Forward to repo adapter responder...
-    var reponderRequest = messageMap.request.getRequestMessage(message);
-    console.log("repo READ message out: " + JSON.stringify(reponderRequest,null,2));
-    forward(reponderRequest,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

@@ -32,7 +32,7 @@
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index QUERY in: " + JSON.stringify(message,null,2));
+    console.log("index DELETE message in: " + JSON.stringify(message,null,2));
     var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
     if(!dispatched) return false;
 }

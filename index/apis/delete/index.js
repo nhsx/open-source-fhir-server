@@ -31,8 +31,18 @@
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index QUERY in: " + JSON.stringify(message,null,2));
-    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
-    if(!dispatched) return false;
+module.exports = function(args, finished) {
+    
+    var request = args.req.body;
+    request.pipeline = request.pipeline || [];
+    request.pipeline.push("index");
+
+    try
+    {
+        //path to delete ==
+        
+    } 
+    catch(ex) {
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
+    }
 }

@@ -32,6 +32,7 @@
 var responseMessage = require('../../../configuration/messages/response.js').response;
 var errorMessage = require('../../../configuration/messages/error.js').error;
 var indexer = require('../../modules/indexer.js').indexer;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Index Read: " + JSON.stringify(args,null,2));
@@ -54,91 +55,93 @@ module.exports = function(args, finished) {
     try
     {
         if(typeof registry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
         };
 
         var db = this.db;
         registry.searchParameters.forEach(function(registryEntry) {
-            var globals = [];
-            if(Array.isArray(registryEntry.indexType)) {
-                registryEntry.indexType.forEach(function(idxType) {
-                    if(indexType !== '') {
-                        if(indexType === idxType) globals.push(idxType);
-                    } else {
-                        globals.push(idxType);
-                    }
-                });
-            } else {
-                globals.push(registryEntry.indexType);
-            }
-
-            if(indexType === '' || (indexType !== '' && globals.indexOf(indexType) > -1)) 
+            if(registryEntry.type !== 'virtual') 
             {
-                globals.forEach(function(global) 
-                {
-                    var indexedProperties = [];
-                    if(Array.isArray(registryEntry.searchProperty))
-                    {
-                        registryEntry.searchProperty.forEach(function(property) {
-                            if(registryEntry.indexPropertyIndexTypes[property] === global)
-                            {
-                                indexedProperties.push(property);
-                            }
-                        });
-                    } else {
-                        var indexedProperty = registryEntry.searchProperty || registryEntry.property;
-                        indexedProperties.push(indexedProperty);
-                    }
-                    
-                    var path;
-                    indexedProperties.forEach(function(indexedProperty) {
-                        path = indexer.resolvers[global].call(
-                            indexer, 
-                            {
-                                documentType: indexData.documentType,
-                                documentId: indexData.documentId,
-                                indexedProperty: indexedProperty
-                            }
-                        );
+                var globals = [];
+                if(Array.isArray(registryEntry.indexType)) {
+                    registryEntry.indexType.forEach(function(idxType) {
+                        if(indexType !== '') {
+                            if(indexType === idxType) globals.push(idxType);
+                        } else {
+                            globals.push(idxType);
+                        }
                     });
-
-                    var documents = db.use(global);
-                    path.paths.forEach(function(path) {
-                        console.log("Path: " + path);
-                        var pathArray = path.split(',');
-                        documents.$(pathArray).forEachChild(function(value, node) {
-                            
-                            var global =  node._node.global;
-                            var subscripts = node._node.subscripts;
-
-                            node.forEachChild(function(id) {
-                                if(id===indexData.documentId)
+                } else {
+                    globals.push(registryEntry.indexType);
+                }
+    
+                if(indexType === '' || (indexType !== '' && globals.indexOf(indexType) > -1)) 
+                {
+                    globals.forEach(function(global) 
+                    {
+                        var indexedProperties = [];
+                        if(Array.isArray(registryEntry.searchProperty))
+                        {
+                            registryEntry.searchProperty.forEach(function(property) {
+                                if(registryEntry.indexPropertyIndexTypes[property] === global)
                                 {
-                                    subscripts.push(id);
-                                    indexData.indices.push(
-                                        {
-                                            indexType: global,
-                                            path: subscripts,
-                                            value: documents.$(subscripts).value
-                                        }
-                                    )
-                                    return true;
+                                    indexedProperties.push(property);
                                 }
                             });
+                        } else {
+                            var indexedProperty = registryEntry.indexProperty || registryEntry.searchProperty || registryEntry.property;
+                            indexedProperties.push(indexedProperty);
+                        }
+                        
+                        var path;
+                        indexedProperties.forEach(function(indexedProperty) {
+                            path = indexer.resolvers[global].call(
+                                indexer, 
+                                {
+                                    documentType: indexData.documentType,
+                                    documentId: indexData.documentId,
+                                    indexedProperty: indexedProperty
+                                }
+                            );
                         });
-                    }); 
-                });
+    
+                        var documents = db.use(global);
+                        path.paths.forEach(function(path) {
+                            console.log("Path: " + path);
+                            var pathArray = path.split(',');
+                            documents.$(pathArray).forEachChild(function(value, node) {
+                                
+                                var global =  node._node.global;
+                                var subscripts = node._node.subscripts;
+    
+                                node.forEachChild(function(id) {
+                                    if(id===indexData.documentId)
+                                    {
+                                        subscripts.push(id);
+                                        indexData.indices.push(
+                                            {
+                                                indexType: global,
+                                                path: subscripts,
+                                                value: documents.$(subscripts).value
+                                            }
+                                        )
+                                        return true;
+                                    }
+                                });
+                            });
+                        }); 
+                    });
+                }
             }
+            
         });
 
         //Sort indexData so that it is returned in alphabetical order...
         indexer.sort(indexData);
 
-        finished(responseMessage.getResponse(request,indexData));
+        finished(dispatcher.getResponseMessage(request,indexData));
 
     } catch(ex) {
-        finished(
-            errorMessage.serverError(request, ex.stack || ex.toString())
-          );
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

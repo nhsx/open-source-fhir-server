@@ -29,18 +29,12 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 //forward to index query
 //which in turns forward to search query (results) 
 //which in turns forwards to batch
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("repo CREATE message in: " + JSON.stringify(message,null,2));
-    //This service can operate in both pipeline and standalone modes...
-    if(message.serviceMode === 'standalone' || message.routes.length === 0) return false;
-    //Forward to index service so that the resource can be indexed...NOTE: the receiving service is expected to be able to handle this request but it could easily be mocked or even a log service which simply stores/forwards...
-    var indexCreateRequest = messageMap.request.getRequestMessage(message);
-    console.log("repo CREATE message out: " + JSON.stringify(indexCreateRequest,null,2));
-    forward(indexCreateRequest,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

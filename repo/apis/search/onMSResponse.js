@@ -29,20 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-//forward to index query
-//which in turns forward to search query (results) 
-//which in turns forwards to batch
 module.exports = function(message, jwt, forward, sendBack) {
-    console.log("repo SEARCH");
     console.log("repo SEARCH message in: " + JSON.stringify(message,null,2));
-    //Is there anything to forward?
-    if(message.serviceMode === 'standalone' || message.routes.length === 0) return false;
-    //Forward to index query service after fetching the request...
-    var indexQueryRequest = messageMap.request.getRequestMessage(message);
-    console.log("repo SEARCH message out: " + JSON.stringify(indexQueryRequest,null,2));
-    forward(indexQueryRequest,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

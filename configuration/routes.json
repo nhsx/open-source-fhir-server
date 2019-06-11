@@ -1,15 +1,15 @@
 [
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"POST",
-    "handler":"create",
+    "method":"GET",
+    "handler":"read",
     "on_microservice":"fhir",
     "authenticate":false
   },
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"GET",
-    "handler":"read",
+    "method":"POST",
+    "handler":"create",
     "on_microservice":"fhir",
     "authenticate":false
   },
@@ -17,6 +17,20 @@
     "uri":"/fhir/stu3/:resource/:resourceId",
     "method":"GET",
     "handler":"read",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/:resource/:resourceId",
+    "method":"DELETE",
+    "handler":"delete",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/:resource/:resourceId",
+    "method":"PUT",
+    "handler":"update",
     "on_microservice":"fhir",
     "authenticate":false
   },
@@ -54,6 +68,17 @@
     "authenticate":false
   },
   {
+    "uri":"/services/v1/adapters/repo/delete",
+    "method":"POST",
+    "handler":"delete",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "fhir"
+    ],
+    "authenticate":false
+  },
+  {
     "uri": "/api/v1/tests/repo/create",
     "method": "POST",
     "handler": "repoCreate",
@@ -64,6 +89,18 @@
     "uri": "/services/v1/repo/create",
     "method": "POST",
     "handler": "create",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests",
+      "repo",
+      "repoadapter"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/delete",
+    "method": "POST",
+    "handler": "delete",
     "on_microservice": "repo",
     "from_microservices":[
       "tests",
@@ -90,7 +127,6 @@
     ],
     "authenticate":false
   },
-
   {
     "uri":"/services/v1/adapters/repo/search",
     "method":"POST",
@@ -218,6 +254,17 @@
     "authenticate": false
   },
   {
+    "uri": "/services/v1/repo/index/:documentId/delete",
+    "method": "POST",
+    "handler": "delete",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests",
+      "repo"
+    ],
+    "authenticate": false
+  },
+  {
     "uri": "/api/v1/tests/repo/index/query",
     "method": "POST",
     "handler": "repoIndexQuery",
@@ -234,6 +281,17 @@
       "repoadapter",
       "repo",
       "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/publisher/publish",
+    "method": "POST",
+    "handler": "publish",
+    "on_microservice": "publisher",
+    "from_microservices":[
+      "tests",
+      "repo"
     ],
     "authenticate": false
   },

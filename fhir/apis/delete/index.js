@@ -29,10 +29,20 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+var fisp = require('../../modules/fhirInteractionServicePipeline.js').fhirInteractionServicePipeline;
 
-module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index QUERY in: " + JSON.stringify(message,null,2));
-    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
-    if(!dispatched) return false;
-}
+module.exports = function(args, finished) {
+
+    var request = fisp.createRequestMessage();
+
+    try
+    {
+        //Map incoming request onto internal message object
+        fisp["update"](args, request) || undefined;
+        //Respond (forwards to msresponse)...
+        finished(request);
+    } 
+    catch(ex) {
+        finished(fisp.createServerErrorMessage(request, ex.stack || ex.toString()));
+    }
+};

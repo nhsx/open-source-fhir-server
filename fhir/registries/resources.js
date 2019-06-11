@@ -79,7 +79,7 @@ var resources =
                 indexType:'reference'
             },
             {
-                indexProperty:'period',
+                indexProperty:'date',
                 property:'period',
                 searchProperty:'date',
                 type:'period',
@@ -103,9 +103,9 @@ var resources =
             {
                 indexProperty:'status',
                 property:'status',
+                searchProperty:'status',
                 type:'string',
-                indexType:'string',
-                allowMultiple:false
+                indexType:'string'
             }
         ],
         searchResultParameters:

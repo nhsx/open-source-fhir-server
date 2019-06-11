@@ -29,16 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("Repo BATCH message in: + " + JSON.stringify(message, null, 2));
-    //Should this service forward the message on? 
-    if(message.serviceMode === 'standalone' || message.routes.length === 0) return false;
-    //Batch can forward responses to many services.. The expectation is that they can process a request from this service, however...
-    var request = messageMap.request.getRequestMessage(message);
-    console.log("repo BATCH message out: " + JSON.stringify(request,null,2));
-    forward(request,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

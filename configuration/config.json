@@ -26,6 +26,12 @@
       }
     },
     {
+      "name": "publisher",
+      "qewd": {
+        "serverName": "ROQR Subscription Notification Service"
+      }
+    },
+    {
       "name": "search",
       "qewd": {
         "serverName": "ROQR Search Service"

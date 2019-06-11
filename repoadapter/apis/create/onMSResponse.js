@@ -29,17 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
     console.log('REPO ADAPTER Service onMSResponse message in: ' + JSON.stringify(message));
-    //This service should always operates in pipeline mode but has very limited functionality as a standalone, however, check whether it should forward...
-    if(message.serviceMode !== "pipeline" || message.routes.length === 0) return false;
-    //Create the local repo request...
-    var localRepoCreateRequest = messageMap.request.getRequestMessage(message);
-    //Forward...
-    console.log("REPO ADAPTER Service CREATE message out: " + JSON.stringify(localRepoCreateRequest,null,2));
-    forward(localRepoCreateRequest, jwt, function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

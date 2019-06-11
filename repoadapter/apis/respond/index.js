@@ -42,7 +42,7 @@ module.exports = function(args, finished) {
 
     try
     {
-        //Validate presences of data and data.results
+        //Validate presence of data and data.results
         //Strip everything from the internal ROQR message and just forward the results...
         finished(responseMessage.getResponse(request,request.data.results));
     } 

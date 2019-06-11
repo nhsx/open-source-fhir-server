@@ -29,17 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
     console.log('FHIR API service SEARCH message in: ' + JSON.stringify(message, null ,2));
-    //This service should always operates in pipeline mode but has very limited functionality as a standalone, however, check whether it should forward...
-    if(message.serviceMode !== "pipeline" || message.routes.length === 0) return false;
-    //Create the adapter equest (could be a search or read)...
-    var searchRequest = messageMap.request.getRequestMessage(message);
-    //Forward...
-    console.log("FHIR API service SEARCH message out: " + JSON.stringify(searchRequest,null,2));
-    forward(searchRequest, jwt, function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

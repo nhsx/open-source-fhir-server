@@ -29,6 +29,42 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+
 module.exports = function(args, finished) {
-    finished(args);
+
+    console.log("Local Repo Delete: " + JSON.stringify(args,null,2));
+
+    var request = args.req.body;
+    request.pipeline = request.pipeline || [];
+    request.pipeline.push("repo");
+    
+
+    try
+    {
+    
+        var resourceId = request.resourceId;
+        var resourceType = request.resource;
+
+        if (typeof resourceType === 'undefined' || resourceType === '') {
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
+        }
+      
+        if (typeof resourceId === 'undefined' || resourceId.length === 0) {
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resourceType + ' cannot be deleted - \'resource id\' cannot be null'));
+        }
+        //Delete this resource (if it exists)...
+        var resource = this.db.use(resourceType, resourceId);
+        if(!resource.exists)
+        {
+            finished(dispatcher.error.notFound(request,'processing','fatal', 'Resource ' + resourceType + '/' + resourceId + ' not found'));
+        }
+        resource.delete();
+        //Before dispatching to create, set checkid to false (this will bypass a validation rule which ensures created resources do not have and id)
+        request.checkId = false;
+        finished(dispatcher.getResponseMessage(request,request.data));
+    }
+    catch (ex) { 
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
+    }
 }

@@ -30,98 +30,449 @@
 */
 
 var uuid = require('uuid');
+var _ = require('underscore');
 
-var registry = 
+var registry = {
+    Encounter:
     {
         searchParameters:[
             {
-                property:"id",
-                searchProperty:"_id",
-                type:"string",
-                indexType:"id"
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
             },
             {
-                property:"lastUpdated",
-                searchProperty:"_lastUpdated",
-                type:"datetime",
-                indexType:"datetime"
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
             },
             {
-                property:"city",
-                searchProperty:"address-city",
-                type:"string",
-                indexType:"string"
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
             },
             {
-                property:"district",
-                searchProperty:"address-state",
-                type:"string",
-                indexType:"string"
+                indexProperty:'class',
+                property:'class',
+                searchProperty:'class',
+                type:'token',
+                indexType:'token'
             },
             {
-                property:"postalCode",
-                searchProperty:"address-postalcode",
-                type:"string",
-                indexType:"string"
+                indexProperty:'condition',
+                property:'condition',
+                searchProperty:'diagnosis',
+                type:'reference',
+                indexType:'reference'
             },
             {
-                property:"name",
-                type:"name",
-                indexType:"name"
-            },        
-            {
-                property:"identifier",
-                searchProperty:"identifier",
-                type:"token",
-                indexType:"token"
+                indexProperty:'episodeOfCare',
+                property:'episodeOfCare',
+                searchProperty:'episode-of-care',
+                type:'reference',
+                indexType:'reference'
             },
             {
-                property:"tag",
-                searchProperty:"_tag",
-                type:"token",
-                indexType:"token"
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
             },
             {
-                property:"gender",
-                type:"string",
-                indexType:"string"
+                indexProperty:'location',
+                property:'location',
+                searchProperty:'location',
+                type:'reference',
+                indexType:'reference'
             },
             {
-                property:"birthDate",
-                type:"datetime",
-                indexType:"datetime"
+                //This form allows complex types to be 'split' into separate indexTypes... participant-type is a codeableConcept/token (type) and participant is a reference (individual)
+                //The participant index handler knows where to pick out the codeable concept and reference from the participant object.
+                property:'participant',
+                searchProperty:['participant-type','participant'],
+                type:'participant',
+                indexType:['token','reference'],
+                indexPropertyIndexTypes:{
+                    'participant-type':'token',
+                    'participant':'reference'
+                }
             },
             {
-                property:"managingOrganization",
-                type:"reference",
-                indexType:"reference"
+                indexProperty:'partOf',
+                property:'partOf',
+                searchProperty:'part-of',
+                type:'reference',
+                indexType:'reference'
             },
             {
-                property:"generalPractitioner",
-                type:"reference",
-                indexType:"reference"
+                indexProperty:'period',
+                property:'period',
+                searchProperty:'date',
+                type:'period',
+                indexType:'period'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'type',
+                property:'type',
+                searchProperty:'type',
+                type:'codeableConcept',
+                indexType:'token',
+                allowMultiple:false
             }
         ],
         searchResultParameters:
         {
-            _id:"id",
-            _lastUpdated:"lastUpdated",
-            family:"name[0].family",
-            given:"name[0].given[0]",
-            birthDate:"birthDate",
-            gender:"gender"
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'Encounter:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{
+                'Observation:encounter':{resourceType:'Observation',reference:'Encounter'}
+            }
         }
-    }
+    },  
+    Patient:{
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty: 'city',
+                property:'city',
+                searchProperty:'address-city',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'district',
+                property:'district',
+                searchProperty:'address-state',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'postalCode',
+                property:'postalCode',
+                searchProperty:'address-postalcode',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                property:'name',
+                type:'name',
+                indexType:'name',
+            },
+            //Type: virtual parameters (as below) serve as a means to map search params onto other indicies - they are NOT indexed
+            {
+                property:'name',
+                type:'virtual',
+                searchProperty:'family'
+            }, 
+            {
+                property:'name',
+                type:'virtual',
+                searchProperty:'given'
+            },  
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'gender',
+                property:'gender',
+                searchProperty:'gender',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'birthDate',
+                property:'birthDate',
+                searchProperty:'birthDate',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'managingOrganization',
+                property:'managingOrganization',
+                type:'reference',
+                indexType:'reference',
+                searchProperty:'organization'
+            },
+            {
+                indexProperty:'generalPractitioner',
+                property:'generalPractitioner',
+                type:'reference',
+                indexType:'reference',
+                searchProperty:'general-practitioner'
+            }
+        ],
+        searchResultParameters:
+        {
+            _id:'id',
+            _lastUpdated:'lastUpdated',
+            family:'name[0].family',
+            given:'name[0].given[0]',
+            birthDate:'birthDate',
+            gender:'gender'
+        },
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                family:'name[0].family',
+                given:'name[0].given[0]',
+                birthDate:'birthDate',
+                gender:'gender'
+            },
+            include:{
+                'Patient:general-practitioner':{resourceType:'Practitioner',reference:'generalPractitioner'},
+                'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
+            },
+            revinclude:{
+                'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'}
+            }
+        }
+    },
+    Practitioner: {
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'postalCode',
+                property:'postalCode',
+                searchProperty:'address-postalcode',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                property:'name',
+                type:'name',
+                indexType:'name',
+            },
+            //Type: virtual parameters (as below) serve as a means to map search params onto other indicies - they are NOT indexed
+            {
+                property:'name',
+                type:'virtual',
+                searchProperty:'family'
+            }, 
+            {
+                property:'name',
+                type:'virtual',
+                searchProperty:'given'
+            },  
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            }
+        ],
+        sort:{
+            _id:'id',
+            _lastUpdated:'lastUpdated',
+            family:'name[0].family',
+            given:'name[0].given[0]'
+        },
+        include:{},
+        revinclude:{}
+    },
+    Organization: {
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'postalCode',
+                property:'postalCode',
+                searchProperty:'address-postalcode',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'name',
+                property:'name',
+                searchProperty:'name',
+                type:'string',
+                indexType:'string',
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                name:'name',
+                'address-postalcode':'address[0].postalCode',
+                identifier:'identifier[0].value'
+            },
+            include:{},
+            revinclude:{
+                'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
+            }
+        }
+    },
+    Subscription:
+        {
+            searchParameters:
+            [
+                {
+                    indexProperty:'id',
+                    property:'id',
+                    searchProperty:'_id',
+                    type:'string',
+                    indexType:'id'
+                },
+                {
+                    indexProperty:'lastUpdated',
+                    property:'lastUpdated',
+                    searchProperty:'_lastUpdated',
+                    type:'datetime',
+                    indexType:'datetime'
+                },
+                {
+                    indexProperty: 'tag',
+                    property:'tag',
+                    searchProperty:'_tag',
+                    type:'token',
+                    indexType:'token'
+                }, 
+                {
+                    indexProperty: 'status',
+                    property:'status',
+                    type:'string',
+                    indexType:'string'
+                },
+                {
+                    indexProperty: 'payload',
+                    property:'payload',
+                    type:'string',
+                    indexType:'string'
+                },
+                {
+                    indexProperty: 'type',
+                    property:'type',
+                    type:'string',
+                    indexType:'string'
+                },
+                {
+                    indexProperty:'endpoint',
+                    property:'endpoint',
+                    searchProperty:'url',
+                    type:'uri',
+                    indexType:'uri'
+                }
+            ],
+        }
+    };
 
-module.exports = function(message, jwt, forward, sendBack) {
+module.exports = function(message, jwt, forward, sendBack) {    
+    console.log("Document Type: " + JSON.stringify(registry[message.req.body.data.query.documentType], null, 2));
+
     console.log("repo Index QUERY");
     console.log("repo Index QUERY message in: " + JSON.stringify(message,null,2));
 
     message.req.body.service = "INDEX";
-    message.req.body.operation = "QUERY"
-    message.req.body.serviceMode = "standalone"
-    message.req.body.pipeline = ["tests"],
-    message.req.body.registry = registry;
+    message.req.body.operation = "QUERY";
+    message.req.body.serviceMode = "standalone";
+    message.req.body.pipeline = ["tests"];
+
+    if(_.isArray(message.req.body.data.query))
+    {
+        message.req.body.registry = registry[message.req.body.data.query[0].documentType];
+    } else {
+        message.req.body.registry = registry[message.req.body.data.query.documentType];
+    }
 
     var indexQueryRequest = {
         path:"/services/v1/repo/index/query",

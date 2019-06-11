@@ -82,8 +82,4 @@ module.exports = function(args, finished) {
     }
 
     finished({args});
-
-
-    //query needs to process a batch against multiple resource types
-
 }

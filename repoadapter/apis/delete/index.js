@@ -29,10 +29,29 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-module.exports = function(message, jwt, forward, sendBack) {
-    console.log("index QUERY in: " + JSON.stringify(message,null,2));
-    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
-    if(!dispatched) return false;
+module.exports = function(args, finished) {
+    console.log("REPO ADAPTER DELETE: " + JSON.stringify(args));
+    //Simply extract the message body from args and let onMSResponse forward the message do the local repo services...
+    var request = args.req.body;
+    request.pipeline = request.pipeline || [];
+    request.pipeline.push("repoadapter");
+
+    try
+    {
+        if(typeof request.registry === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Resource Type')); 
+        }
+
+        if(typeof request.data === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+        }
+
+        finished(request);
+    } 
+    catch(ex) {
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
+    }
 }

@@ -33,7 +33,7 @@ var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispa
 
 module.exports = function(message, jwt, forward, sendBack) {
     //Forward message to local FHIR Server Adapters
-   console.log("FHIR API Service CREATE message in: " + JSON.stringify(message,null,2));
+   console.log("FHIR API Service DELETE message in: " + JSON.stringify(message,null,2));
    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
    if(!dispatched) return false;
 }
