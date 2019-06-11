@@ -30,9 +30,7 @@
 */
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-//forward to index query
-//which in turns forward to search query (results) 
-//which in turns forwards to batch
+
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("repo DELETE message in: " + JSON.stringify(message,null,2));
     var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
