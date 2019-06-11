@@ -29,57 +29,29 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
-    console.log("Search RESULTS " + JSON.stringify(args,null,2));
-
+    console.log("REPO ADAPTER DELETE: " + JSON.stringify(args));
+    //Simply extract the message body from args and let onMSResponse forward the message do the local repo services...
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
+    request.pipeline.push("repoadapter");
 
-    //Convert query responses into batch requests...
     try
     {
-        //validate request...
-
-        //Set request.bundleReturnType to instruct batch operation to return the type of bundle required, rather than a default of batch-response...
-        request.bundleType = "searchset"
-
-        var batchRequest = {
-            resourceType:"Bundle",
-            id:uuid.v4(),
-            type:"batch",
-            entry: []
-        };
-
-        //for each query in request.data.query
-        var query = request.data.query;
-        if(!Array.isArray(query)) {
-            query = [request.data.query];
+        if(typeof request.registry === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Resource Type')); 
         }
-        //for each result in query.results
-        query.forEach(function(q) {
-            var results = q.results;
-            results.forEach(function(result) {
-                batchRequest.entry.push(
-                    {
-                        request:{
-                            method:"GET",
-                            url:q.documentType + "/" + result
-                        }
-                    }
-                );
-            });
-        });
-        
-        finished(responseMessage.getResponse(request,{query,batchRequest}));
+
+        if(typeof request.data === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+        }
+
+        finished(request);
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
-
-    finished({args});
 }

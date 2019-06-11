@@ -29,17 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("repo ADD message in: " + JSON.stringify(message, null, 2));
-    //Is there 'owt to include?
-    if(message.serviceMode === "standalone" || message.routes.length === 0) return false;
-    //Will forward this request to the next route which is expected to be able to handle it...
-    var request = messageMap.request.getRequestMessage(message);
-    //Forward request...
-    console.log("repo ADD message out: " + JSON.stringify(request,null,2));
-    forward(request,jwt,function(responseObj) {
-        sendBack(responseObj);
-    });
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

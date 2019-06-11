@@ -28,9 +28,6 @@
  ----------------------------------------------------------------------------------------------------------------------------
  MVP pre-Alpha release: 4 June 2019
 */
-
-var errorMessage = require('../../../configuration/messages/error.js').error;
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
 var fisp = require('../../modules/fhirInteractionServicePipeline.js').fhirInteractionServicePipeline;
 
 module.exports = function(args, finished) {

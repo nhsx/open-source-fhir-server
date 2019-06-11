@@ -78,7 +78,8 @@ var fhirInteractionServicePipeline = {
             }
         ];
 
-        //async path {path:/"services/v1/audit/create", type:"async"}
+        //async path {path:"/services/v1/audit/create", awaitReply:"false"}
+        //async path {path:"/services/v1/version/create" awaitReply:"false"}
 
         request.data = fhirRequest.req.body;
         //Attach the registry entry for this resource...
@@ -94,10 +95,10 @@ var fhirInteractionServicePipeline = {
             //This is straightforward read...
             request.operation = "READ";
             request.routes = [
-                {path: "/services/v1/adapters/repo/read"},
-                {path: "/services/v1/repo/read"},
-                {path: "/services/v1/adapters/repo/respond"},
-                {path: "/services/v1/responder/create"}
+                {paths: {path: "/services/v1/adapters/repo/read"}},
+                {paths: {path: "/services/v1/repo/read"}},
+                {paths: {path: "/services/v1/adapters/repo/respond"}},
+                {paths: {path: "/services/v1/responder/create"}}
             ];
             request.resource = fhirRequest.resource;
             request.resourceId = fhirRequest.resourceId;
@@ -105,22 +106,22 @@ var fhirInteractionServicePipeline = {
             //Search
             request.operation = "SEARCH";
             request.routes = [
-                {path: "/services/v1/adapters/repo/search"},
-                {path: "/services/v1/repo/search"},
-                {path: "/services/v1/repo/index/query"},
-                {path: "/services/v1/search/results"},
-                {path: "/services/v1/repo/batch"},
-                {path: "/services/v1/search"},
-                {path: "/services/v1/search/:searchSetId/sort"},
-                {path: "/services/v1/search/:searchSetId"},
-                {path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"},
-                {path: "/services/v1/search/:searchSetId/include"},
-                {path: "/services/v1/repo/index/query"},
-                {path: "/services/v1/search/results"},
-                {path: "/services/v1/repo/batch"},
-                {path: "/services/v1/search/:searchSetId/add"},
-                {path: "/services/v1/adapters/repo/respond"},
-                {path: "/services/v1/responder/create"}
+                {paths:{path: "/services/v1/adapters/repo/search"}},
+                {paths:{path: "/services/v1/repo/search"}},
+                {paths:{path: "/services/v1/repo/index/query"}},
+                {paths:{path: "/services/v1/search/results"}},
+                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/search"}},
+                {paths:{path: "/services/v1/search/:searchSetId/sort"}},
+                {paths:{path: "/services/v1/search/:searchSetId"}},
+                {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
+                {paths:{path: "/services/v1/search/:searchSetId/include"}},
+                {paths:{path: "/services/v1/repo/index/query"}},
+                {paths:{path: "/services/v1/search/results"}},
+                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/search/:searchSetId/add"}},
+                {paths:{path: "/services/v1/adapters/repo/respond"}},
+                {paths:{path: "/services/v1/responder/create"}}
             ]
             request.data = fhirRequest.req.query;
             var resource = fhirRequest.resource;
@@ -129,12 +130,58 @@ var fhirInteractionServicePipeline = {
             request.resourceType = resource;
         } else {
             //Throw exception - unknown/unsupported READ
-            //throw errorMessage.serverError("Unsupported READ operation");
             throw dispatcher.error.serverError("Unsupported READ operation");
         }
     },
-    update:{},
-    delete:{}
+    update: function(fhirRequest, request)
+    {
+        //Delete everything first, then create it again...
+        //TODO: async path {path:"/services/v1/audit/create", awaitReply:"false"}
+        //TODO: async path {path:"/services/v1/version/create" awaitReply:"false"}
+        this._baseOperation(fhirRequest, request);
+        
+        request.serviceMode = "pipeline";
+        request.operation = "UPDATE";
+        request.pipeline = ["fhir"];
+        request.routes = [
+            {
+                paths:{path: "/services/v1/adapters/repo/delete"}
+            },
+            {
+                paths:{path: "/services/v1/repo/delete"}
+            },
+            /*{
+                paths:{path: "/services/v1/index/:documentId/delete"}
+            }*/
+            {
+                paths:{path: "/services/v1/repo/create"}
+            },
+            {
+                paths:[
+                        {path:"/services/v1/publisher/publish",awaitReply:false},
+                        {path: "/services/v1/repo/index"}
+                    ]
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/read"}
+            },
+            {
+                paths:{path: "/services/v1/repo/read"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/respond"},
+            },
+            {
+                paths:{path: "/services/v1/responder/create"},
+            }
+        ];
+        request.resource = fhirRequest.resource;
+        request.resourceId = fhirRequest.resourceId;
+        request.data = fhirRequest.req.body;
+        //Attach the registry entry for this resource...
+        request.registry = resourceRegistry.resources[fhirRequest.resource];
+    },
+    delete:{} //Read then delete...
 }
 
 module.exports = {

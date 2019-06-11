@@ -29,57 +29,20 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var fisp = require('../../modules/fhirInteractionServicePipeline.js').fhirInteractionServicePipeline;
 
 module.exports = function(args, finished) {
-    console.log("Search RESULTS " + JSON.stringify(args,null,2));
 
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
+    var request = fisp.createRequestMessage();
 
-    //Convert query responses into batch requests...
     try
     {
-        //validate request...
-
-        //Set request.bundleReturnType to instruct batch operation to return the type of bundle required, rather than a default of batch-response...
-        request.bundleType = "searchset"
-
-        var batchRequest = {
-            resourceType:"Bundle",
-            id:uuid.v4(),
-            type:"batch",
-            entry: []
-        };
-
-        //for each query in request.data.query
-        var query = request.data.query;
-        if(!Array.isArray(query)) {
-            query = [request.data.query];
-        }
-        //for each result in query.results
-        query.forEach(function(q) {
-            var results = q.results;
-            results.forEach(function(result) {
-                batchRequest.entry.push(
-                    {
-                        request:{
-                            method:"GET",
-                            url:q.documentType + "/" + result
-                        }
-                    }
-                );
-            });
-        });
-        
-        finished(responseMessage.getResponse(request,{query,batchRequest}));
+        //Map incoming request onto internal message object
+        fisp["update"](args, request) || undefined;
+        //Respond (forwards to msresponse)...
+        finished(request);
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(fisp.createServerErrorMessage(request, ex.stack || ex.toString()));
     }
-
-    finished({args});
-}
+};

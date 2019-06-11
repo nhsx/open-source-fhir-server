@@ -47,6 +47,10 @@ var dispatcher =  {
             message.operation = "CREATE"
             request.body = message;
         },
+        "/services/v1/adapters/repo/delete":function(request,message,route) {
+            message.operation = "DELETE"
+            request.body = message;
+        },
         "/services/v1/adapters/repo/read":function(request,message,route) {
             message.operation = "READ";
             request.body = message;
@@ -71,6 +75,10 @@ var dispatcher =  {
         "/services/v1/repo/create":function(request,message,route) {
             message.checkId = message.checkId || true;
             message.operation = "CREATE";
+            request.body= message;
+        },
+        "/services/v1/repo/delete":function(request,message,route) {
+            message.operation = "DELETE";
             request.body= message;
         },
         "/services/v1/repo/index":function(request,message,route) {

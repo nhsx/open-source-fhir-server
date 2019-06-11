@@ -29,57 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-module.exports = function(args, finished) {
-    console.log("Search RESULTS " + JSON.stringify(args,null,2));
-
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
-
-    //Convert query responses into batch requests...
-    try
-    {
-        //validate request...
-
-        //Set request.bundleReturnType to instruct batch operation to return the type of bundle required, rather than a default of batch-response...
-        request.bundleType = "searchset"
-
-        var batchRequest = {
-            resourceType:"Bundle",
-            id:uuid.v4(),
-            type:"batch",
-            entry: []
-        };
-
-        //for each query in request.data.query
-        var query = request.data.query;
-        if(!Array.isArray(query)) {
-            query = [request.data.query];
-        }
-        //for each result in query.results
-        query.forEach(function(q) {
-            var results = q.results;
-            results.forEach(function(result) {
-                batchRequest.entry.push(
-                    {
-                        request:{
-                            method:"GET",
-                            url:q.documentType + "/" + result
-                        }
-                    }
-                );
-            });
-        });
-        
-        finished(responseMessage.getResponse(request,{query,batchRequest}));
-    } 
-    catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
-    }
-
-    finished({args});
+module.exports = function(message, jwt, forward, sendBack) {
+    console.log('REPO ADAPTER Service onMSResponse message in: ' + JSON.stringify(message));
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }
