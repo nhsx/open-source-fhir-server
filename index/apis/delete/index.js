@@ -29,6 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
@@ -39,8 +40,30 @@ module.exports = function(args, finished) {
 
     try
     {
-        //path to delete ==
-        
+        var documentId = args.req.body.documentId || undefined;
+        var documentType = args.req.body.documentType || undefined;
+        var registry = request.registry;
+
+        if(typeof documentId === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index - document id cannot be null or undefined'));  
+        }
+
+        if(typeof registry === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index for document id ' + documentId + ': No search parameters configured'));  
+        }
+
+        var db = this.db;
+        var indexTypes = _.uniq(_.sortBy(_.pluck(_.filter(registry.searchParameters,function(sp) { return sp.type !== 'virtual';}),"indexType"),true));
+        indexTypes.forEach(function(indexType) {
+            var index = db.use(indexType);
+            index.forEachLeafNode(function(data,leafNode) {
+                if(data!=='' && data===documentId) {
+                    index.$(leafNode._node.subscripts).delete();
+                }
+            });
+        });
+
+        finished(dispatcher.getResponseMessage(request,request.data));
     } 
     catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));

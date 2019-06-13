@@ -15,6 +15,7 @@ module.exports = function(args, finished)
                 where query result length === 1 instantiate a REQUEST HTTP object and forward to endpoint (create notifier type handlers but for now only REST)
                
     */
-    console.log("publisher: " + JSON.stringify(args.req.body, null, 2));
+    console.log("publisher: " + args.req.body.resourceId);
+    console.log("publisher: " + args.req.body.resource);
     finished({OK:1});
 }

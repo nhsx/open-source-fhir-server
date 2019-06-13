@@ -59,13 +59,13 @@ var fhirInteractionServicePipeline = {
                 paths:{path: "/services/v1/repo/create"}
             },
             {
-                paths:[
-                        {path:"/services/v1/publisher/publish",awaitReply:false},
-                        {path: "/services/v1/repo/index"}
-                    ]
+                paths: {path: "/services/v1/repo/index"}
             },
             {
-                paths:{path: "/services/v1/adapters/repo/read"}
+                paths:[
+                    {path:"/services/v1/publisher/publish",awaitReply:false},
+                    {path: "/services/v1/adapters/repo/read"}
+                ]
             },
             {
                 paths:{path: "/services/v1/repo/read"}
@@ -150,9 +150,12 @@ var fhirInteractionServicePipeline = {
             {
                 paths:{path: "/services/v1/repo/delete"}
             },
-            /*{
-                paths:{path: "/services/v1/index/:documentId/delete"}
-            }*/
+            {
+                paths:{path: "/services/v1/repo/index/:documentId/delete"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/create"}
+            },
             {
                 paths:{path: "/services/v1/repo/create"}
             },
@@ -181,7 +184,7 @@ var fhirInteractionServicePipeline = {
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
     },
-    delete:{} //Read then delete...
+    delete:{}
 }
 
 module.exports = {

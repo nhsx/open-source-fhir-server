@@ -133,7 +133,7 @@ module.exports = function(args, finished) {
                     });
                 }
             }
-            
+
         });
 
         //Sort indexData so that it is returned in alphabetical order...

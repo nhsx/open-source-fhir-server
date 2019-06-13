@@ -44,6 +44,7 @@ var dispatcher =  {
             request.body = message;
         },
         "/services/v1/adapters/repo/create":function(request,message,route) {
+            message.checkId = message.checkId;
             message.operation = "CREATE"
             request.body = message;
         },
@@ -73,7 +74,7 @@ var dispatcher =  {
             request.body= message;
         },
         "/services/v1/repo/create":function(request,message,route) {
-            message.checkId = message.checkId || true;
+            message.checkId = message.checkId;
             message.operation = "CREATE";
             request.body= message;
         },
@@ -83,6 +84,13 @@ var dispatcher =  {
         },
         "/services/v1/repo/index":function(request,message,route) {
             message.operation = "INDEX";
+            request.body = message;
+        },
+        "/services/v1/repo/index/:documentId/delete":function(request,message,route) {
+            message.operation = "DELETE";
+            message.documentId = message.resourceId || undefined;
+            message.documentType = message.resource || undefined;
+            request.path = request.path.replace(':documentId',message.documentId);
             request.body = message;
         },
         "/services/v1/repo/index/query":function(request,message,route) {
