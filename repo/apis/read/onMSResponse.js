@@ -35,5 +35,6 @@ var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispa
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("repo READ message in: " + JSON.stringify(message,null,2));
     var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    console.log("Dispatched: " + dispatched);
     if(!dispatched) return false;
 }

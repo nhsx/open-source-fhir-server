@@ -29,12 +29,12 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
  
 module.exports = function(args, finished) {
     //acts as a pass through for now but may need to decorate the response that comes back from the local repo
     console.log("Repo Adapter Respond: " + JSON.stringify(args,null,2));
+
     
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
@@ -44,10 +44,12 @@ module.exports = function(args, finished) {
     {
         //Validate presence of data and data.results
         //Strip everything from the internal ROQR message and just forward the results...
-        finished(responseMessage.getResponse(request,request.data.results));
+        finished(dispatcher.getResponseMessage(request, request.data.results || request.data));
     } 
     catch(ex) 
     {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }
+
+

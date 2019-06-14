@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("REPO ADAPTER READ: " + JSON.stringify(args));
@@ -42,9 +41,9 @@ module.exports = function(args, finished) {
     try
     {
         //This is simply a pass through...
-        finished(responseMessage.getResponse(request,request));
+        finished(dispatcher.getResponseMessage(request,request));
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

@@ -29,107 +29,128 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var registry = {
+var registry = 
+{
     searchParameters: [
         {
-            property:"id",
-            searchProperty:"_id",
-            type:"string",
-            indexType:"id"
+            indexProperty:'id',
+            property:'id',
+            searchProperty:'_id',
+            type:'string',
+            indexType:'id'
         },
         {
-            property:"lastUpdated",
-            searchProperty:"_lastUpdated",
-            type:"datetime",
-            indexType:"datetime"
+            indexProperty:'lastUpdated',
+            property:'lastUpdated',
+            searchProperty:'_lastUpdated',
+            type:'datetime',
+            indexType:'datetime'
         },
         {
-            property:"city",
-            searchProperty:"address-city",
-            type:"string",
-            indexType:"string"
+            indexProperty: 'city',
+            property:'city',
+            searchProperty:'address-city',
+            type:'string',
+            indexType:'string'
         },
         {
-            property:"district",
-            searchProperty:"address-state",
-            type:"string",
-            indexType:"string"
+            indexProperty:'district',
+            property:'district',
+            searchProperty:'address-state',
+            type:'string',
+            indexType:'string'
         },
         {
-            property:"postalCode",
-            searchProperty:"address-postalcode",
-            type:"string",
-            indexType:"string"
+            indexProperty:'postalCode',
+            property:'postalCode',
+            searchProperty:'address-postalcode',
+            type:'string',
+            indexType:'string'
         },
         {
-            property:"name",
-            type:"name",
-            indexType:"name",
+            property:'name',
+            type:'name',
+            indexType:'name',
         },
         //Type: virtual parameters (as below) serve as a means to map search params onto other indicies - they are NOT indexed
         {
-            property:"name",
-            type:"virtual",
-            searchProperty:"family"
+            property:'name',
+            type:'virtual',
+            searchProperty:'family'
         }, 
         {
-            property:"name",
-            type:"virtual",
-            searchProperty:"given"
+            property:'name',
+            type:'virtual',
+            searchProperty:'given'
         },  
         {
-            property:"identifier",
-            searchProperty:"identifier",
-            type:"token",
-            indexType:"token"
+            indexProperty: 'identifier',
+            property:'identifier',
+            searchProperty:'identifier',
+            type:'token',
+            indexType:'token'
         },
         {
-            property:"tag",
-            searchProperty:"_tag",
-            type:"token",
-            indexType:"token"
+            indexProperty: 'tag',
+            property:'tag',
+            searchProperty:'_tag',
+            type:'token',
+            indexType:'token'
         },
         {
-            property:"gender",
-            searchProperty:"gender",
-            type:"string",
-            indexType:"string"
+            indexProperty: 'gender',
+            property:'gender',
+            searchProperty:'gender',
+            type:'string',
+            indexType:'string'
         },
         {
-            property:"birthDate",
-            searchProperty:"birthDate",
-            type:"datetime",
-            indexType:"datetime"
+            indexProperty:'birthDate',
+            property:'birthDate',
+            searchProperty:'birthDate',
+            type:'datetime',
+            indexType:'datetime'
         },
         {
-            property:"managingOrganization",
-            type:"reference",
-            indexType:"reference",
-            searchProperty:"organization"
+            indexProperty:'managingOrganization',
+            property:'managingOrganization',
+            type:'reference',
+            indexType:'reference',
+            searchProperty:'organization'
         },
         {
-            property:"generalPractitioner",
-            type:"reference",
-            indexType:"reference",
-            searchProperty:"general-practitioner"
+            indexProperty:'generalPractitioner',
+            property:'generalPractitioner',
+            type:'reference',
+            indexType:'reference',
+            searchProperty:'general-practitioner'
         }
     ],
     searchResultParameters:
     {
+        _id:'id',
+        _lastUpdated:'lastUpdated',
+        family:'name[0].family',
+        given:'name[0].given[0]',
+        birthDate:'birthDate',
+        gender:'gender'
+    },
+    searchResultParameters:
+    {
         sort:{
-            _id:"id",
-            _lastUpdated:"lastUpdated",
-            family:"name[0].family",
-            given:"name[0].given[0]",
-            birthDate:"birthDate",
-            gender:"gender"
+            _id:'id',
+            _lastUpdated:'lastUpdated',
+            family:'name[0].family',
+            given:'name[0].given[0]',
+            birthDate:'birthDate',
+            gender:'gender'
         },
         include:{
-            "general-practitioner":"generalPractitioner",
-            organization:"managingOrganization"
+            'Patient:general-practitioner':{resourceType:'Practitioner',reference:'generalPractitioner'},
+            'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
         },
         revinclude:{
-            "Encounter:patient":{resourceType:"Encounter",reference:"Patient"}
+            'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'}
         }
     }
 }

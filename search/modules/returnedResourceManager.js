@@ -120,22 +120,33 @@ var returnedResourceManager = {
                     var incParameter = registry.searchResultParameters.include[include] || undefined;
                     //property  e.g. generalPractitioner
                     if(typeof incParameter !== 'undefined') {
+                        var included = [];
                         searchSet.entry.forEach(function(entry) {
                             if(traverse(entry.resource).has([incParameter.reference]))
                             {
-                                var referencedResourceId = entry.resource[incParameter.reference].reference.split("/")[1];
-                                var query = {
-                                    documentType:incParameter.resourceType,
-                                    parameters: [
-                                        {
-                                            indexType:"id",
-                                            documentType:incParameter.resourceType.toLowerCase(),
-                                            node:"id",
-                                            value: referencedResourceId
+                                var property = entry.resource[incParameter.reference]
+                                if(!_.isArray(property)) {
+                                    property = [property] //FHIR and its f******g arrays!!!!
+                                };
+                                property.forEach(function(prop) {
+                                    if(!_.contains(included, prop.reference))
+                                    {
+                                        var referencedResourceId = prop.reference.split("/")[1];
+                                        var query = {
+                                            documentType:incParameter.resourceType,
+                                            parameters: [
+                                                {
+                                                    indexType:"id",
+                                                    documentType:incParameter.resourceType.toLowerCase(),
+                                                    node:"id",
+                                                    value: referencedResourceId
+                                                }
+                                            ]
                                         }
-                                    ]
-                                }
-                                queries.push(query);
+                                        included.push(prop.reference);
+                                        queries.push(query);
+                                    }
+                                }); 
                             }
                         });
                     }

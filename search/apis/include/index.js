@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
@@ -59,7 +58,7 @@ module.exports = function(args, finished) {
         //if searchset is undefined...
         var searchSet = this.db.use("Bundle", request.searchSetId);
         if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
         } else {
             //This generates a set of queries derived from the initial query (which contains include and revincludes)
             //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
@@ -73,9 +72,9 @@ module.exports = function(args, finished) {
             query.shift();
             
             request.mode = "include";
-            finished(responseMessage.getResponse(request,{query}));
+            finished(dispatcher.getResponseMessage(request,{query}));
         }
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

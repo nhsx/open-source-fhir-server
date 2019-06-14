@@ -29,6 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var server = {
+    url:"http://localhost:8080/fhir/stu3/"
+};
+
 module.exports = function(message, jwt, forward, sendBack) {
     console.log("search ADD");
     console.log("search ADD message in: " + JSON.stringify(message,null,2));
@@ -37,6 +41,7 @@ module.exports = function(message, jwt, forward, sendBack) {
     message.req.body.operation = "ADD"
     message.req.body.serviceMode = "standalone"
     message.req.body.pipeline = ["tests"];
+    message.req.body.server = server;
 
     var path = "/services/v1/search/" + message.searchSetId + "/add"
 

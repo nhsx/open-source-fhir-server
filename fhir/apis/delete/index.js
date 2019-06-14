@@ -38,7 +38,7 @@ module.exports = function(args, finished) {
     try
     {
         //Map incoming request onto internal message object
-        fisp["update"](args, request) || undefined;
+        fisp["delete"](args, request) || undefined;
         //Respond (forwards to msresponse)...
         finished(request);
     } 

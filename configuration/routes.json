@@ -159,6 +159,7 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "index",
       "repo",
       "search"
     ],
@@ -416,7 +417,7 @@
   {
     "uri": "/services/v1/search/:searchSetId/revinclude",
     "method": "POST",
-    "handler": "revinclude",
+    "handler": "include",
     "on_microservice": "search",
     "from_microservices":[
       "tests",

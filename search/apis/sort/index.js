@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
@@ -49,23 +48,23 @@ module.exports = function(args, finished) {
     {        
         //Check registry
         if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': No search result parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': No search result parameters configured'));  
         }
 
         if(typeof query === 'undefined')
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': No query provided - query cannot be empty or undefined'));
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': No query provided - query cannot be empty or undefined'));
         }
 
         //check query and sort params
         //if sort params check against registry...
         if (searchSetId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
 
         var searchSet = this.db.use("Bundle", searchSetId);
         if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         }
         searchSet = searchSet.getDocument(true);
 
@@ -86,15 +85,15 @@ module.exports = function(args, finished) {
                 sortParameters.forEach(function(parameter) {
                     var isValid = (typeof registry.searchResultParameters[parameter.name] !== 'undefined');
                         if(!isValid) {
-                            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': Sort Parameter ' + parameter.name + ' is not supported'));
+                            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': Sort Parameter ' + parameter.name + ' is not supported'));
                         }
                     });
             }
 
             results = returnedResourceManager.sort(registry, searchSet, sortParameters);
-            finished(responseMessage.getResponse(request,{query:q,results}));
+            finished(dispatcher.getResponseMessage(request,{query:q,results}));
         });
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
 }

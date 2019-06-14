@@ -32,8 +32,7 @@
 
 var moment = require('moment');
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 function isEmptyObject(obj) {
     for (var prop in obj) {
@@ -56,15 +55,15 @@ module.exports = function(args, finished) {
     {
         //Return error object to be sent to responder service in ms response...
         if (typeof resource === 'undefined' || resource === '' || isEmptyObject(resource)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
     
         if (typeof resource.resourceType === 'undefined' || resource.resourceType === '') {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
       
         if (checkId && typeof resource.id !== 'undefined' && resource.id.length > 0) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
         }
 
         //Add an id property to the resource before persisting...
@@ -78,11 +77,11 @@ module.exports = function(args, finished) {
         //Persist resource...
         var doc = this.db.use(resource.resourceType);
         doc.$(resource.id).setDocument(resource);
-        finished(responseMessage.getResponse(request,{results: resource}));
+        finished(dispatcher.getResponseMessage(request,{results: resource}));
     }
     catch (ex) { 
         finished(
-          errorMessage.serverError(request, ex.stack || ex.toString())
+          dispatcher.error.serverError(request, ex.stack || ex.toString())
         );
     }
 }

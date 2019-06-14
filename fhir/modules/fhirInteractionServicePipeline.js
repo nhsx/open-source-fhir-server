@@ -184,7 +184,36 @@ var fhirInteractionServicePipeline = {
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
     },
-    delete:{}
+    delete: function(fhirRequest, request) {
+        this._baseOperation(fhirRequest, request);
+
+        //TODO: async path {path:"/services/v1/audit/create", awaitReply:"false"}
+        request.serviceMode = "pipeline";
+        request.operation = "DELETE";
+        request.pipeline = ["fhir"];
+        request.routes = [
+            {
+                paths:{path: "/services/v1/adapters/repo/delete"}
+            },
+            {
+                paths:{path: "/services/v1/repo/delete"}
+            },
+            {
+                paths:{path: "/services/v1/repo/index/:documentId/delete"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/respond"},
+            },
+            {
+                paths:{path: "/services/v1/responder/create"},
+            }
+        ];
+        request.resource = fhirRequest.resource;
+        request.resourceId = fhirRequest.resourceId;
+        request.data = fhirRequest.req.body;
+        //Attach the registry entry for this resource...
+        request.registry = resourceRegistry.resources[fhirRequest.resource];
+    }
 }
 
 module.exports = {

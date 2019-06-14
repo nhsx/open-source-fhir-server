@@ -31,8 +31,7 @@
 
 var moment = require('moment');
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 function isEmptyObject(obj) {
     for (var prop in obj) {
@@ -58,21 +57,21 @@ module.exports = function(args, finished) {
 
         var data = request.data || undefined;
         if (typeof data === 'undefined' || data === '' || isEmptyObject(data)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
         } 
 
         var query = data.query || undefined;
         if (typeof query === 'undefined' || query === '' || isEmptyObject(query)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
         } 
 
         var bundle = data.bundle || undefined;
         if (typeof bundle === 'undefined' || bundle === '' || isEmptyObject(bundle)) {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
 
         if (typeof bundle.resourceType === 'undefined' || bundle.resourceType === '' || (typeof bundle.resourceType !== 'undefined' && bundle.resourceType !== 'Bundle')) {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
         }
 
         //Add an id property to the resource before persisting...
@@ -96,9 +95,9 @@ module.exports = function(args, finished) {
         //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
         request.searchSetId = bundle.id;
 
-        finished(responseMessage.getResponse(request,{query, bundle}));
+        finished(dispatcher.getResponseMessage(request,{query, bundle}));
     }
     catch (ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

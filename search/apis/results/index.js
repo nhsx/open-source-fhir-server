@@ -30,8 +30,7 @@
 */
 
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Search RESULTS " + JSON.stringify(args,null,2));
@@ -75,11 +74,9 @@ module.exports = function(args, finished) {
             });
         });
         
-        finished(responseMessage.getResponse(request,{query,batchRequest}));
+        finished(dispatcher.getResponseMessage(request,{query,batchRequest}));
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
-
-    finished({args});
 }

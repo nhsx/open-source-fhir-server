@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
@@ -49,13 +48,13 @@ module.exports = function(args, finished) {
     {
         //TODO: check query and pagination parameters
         if (searchSetId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
 
         var query = request.data.query;
         var searchSet = this.db.use("Bundle", searchSetId);
         if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         } else {
             searchSet = searchSet.getDocument(true);
             query.pageSize = pageSize;
@@ -71,9 +70,9 @@ module.exports = function(args, finished) {
             }
 
             var results = searchSet;
-            finished(responseMessage.getResponse(request,{query,results}));
+            finished(dispatcher.getResponseMessage(request,{query,results}));
         }
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
 }

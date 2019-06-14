@@ -13,10 +13,10 @@ module.exports = function(args,finished) {
     {
         //if request is an error, return operation outcome and http error status, else return data as is...
         //Todo: validate contents of request...
-        if(request.error) 
+        if(request.data.error) 
         {
             //Convert data to an operation outcome...
-            finished(responder.createErrorResponse(request.error));
+            finished(responder.createErrorResponse(request.data.error));
         } else {
             finished(request.data);
         }

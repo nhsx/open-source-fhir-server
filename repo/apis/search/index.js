@@ -30,8 +30,7 @@
 */
 
 var _ = require('underscore');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args,finished) {
     //takes search message and re-formats/transforms to index query message...
@@ -71,8 +70,8 @@ module.exports = function(args,finished) {
             }
         });
         //Replace the request's searchQuery with the indexQuery
-        finished(responseMessage.getResponse(request,{query:indexQuery}));
+        finished(dispatcher.getResponseMessage(request,{query:indexQuery}));
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

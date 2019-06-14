@@ -30,8 +30,7 @@
 */
 
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Search Add: " + JSON.stringify(args,null,2));
@@ -46,18 +45,18 @@ module.exports = function(args, finished) {
     {
         //Same checks as paginate/sort 
         if (searchSetId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
 
         var mode = request.mode || '';
         if(mode === '')
         {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'Adding resources to an existing searchset/bundle requires a mode of include or revinclude to be specified')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Adding resources to an existing searchset/bundle requires a mode of include or revinclude to be specified')); 
         }
 
         var searchSet = this.db.use("Bundle", searchSetId);
         if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         } else {
             searchSet = searchSet.getDocument(true);
             //This is the bundle that must be added to the search set...
@@ -78,9 +77,9 @@ module.exports = function(args, finished) {
             });
 
             var results = searchSet;
-            finished(responseMessage.getResponse(request,{query,results}));
+            finished(dispatcher.getResponseMessage(request,{query,results}));
         }
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }    
 }

@@ -30,8 +30,7 @@
 */
 
 var _ = require('underscore');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
  
 module.exports = function(args, finished) {
     console.log("Repo Adapter Search: " + JSON.stringify(args,null,2));
@@ -89,7 +88,7 @@ module.exports = function(args, finished) {
         }
         if(query.parameters.length === 0)
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
         }
 
         //Set pagination parameters...
@@ -99,10 +98,10 @@ module.exports = function(args, finished) {
             query.sort = queryParameters["_sort"].split(",");
         }
         //Set include parameters...
-        finished(responseMessage.getResponse(request,{query: query}));
+        finished(dispatcher.getResponseMessage(request,{query: query}));
     } 
     catch(ex) 
     {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

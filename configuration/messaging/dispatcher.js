@@ -253,12 +253,18 @@ var dispatcher =  {
     },
     error: {
         _baseError: function(request, code, severity, diagnostics, status, text) {
-            return {
-                error:
-                {
+            var response = {
+                messageId: request.messageId,
+                responseId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response = _.extend(response, request);
+            response.data = {
+                error:{
                     responseId: uuid.v4(),
                     requestId:request.requestId,
                     pipeline:request.pipeline,
+                    serviceMode:request.serviceMode,
                     operation:request.operation,
                     requestedOn:request.requestedOn,
                     respondedOn:moment().utc().format(),
@@ -269,6 +275,7 @@ var dispatcher =  {
                     text:text
                 }
             };
+            return response;
         },
         badRequest: function(request, code, severity, diagnostics)
         {
@@ -280,19 +287,27 @@ var dispatcher =  {
         },
         serverError: function(request, stack)
         {
-            return {
-                error: {
+            var response = {
+                messageId: request.messageId,
+                responseId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response = _.extend(response, request);
+            response.data = {
+                error:{
                     responseId: uuid.v4(),
                     requestId:request.requestId,
                     pipeline:request.pipeline,
+                    serviceMode:request.serviceMode,
                     operation:request.operation,
-                    requestedOn: request.requestedOn,
-                    respondedOn: moment().utc().format(),
+                    requestedOn:request.requestedOn,
+                    respondedOn:moment().utc().format(),
                     status:500,
                     text:'Internal Server Error',
                     stack: stack
                 }
-            }
+            };
+            return response;
         }
     }
 }
