@@ -54,6 +54,10 @@ module.exports = function(args, finished) {
     try
     {
         //TODO: Check for server registry...
+        var server = request.server || undefined;
+        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)){
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid server registry object'));
+        }
 
         var data = request.data || undefined;
         if (typeof data === 'undefined' || data === '' || isEmptyObject(data)) {
@@ -82,6 +86,9 @@ module.exports = function(args, finished) {
           bundle.meta.versionId = "1";
           bundle.meta.lastUpdated = moment().utc().format();
         }
+        //Add a self link so that the context of this search is persisted...
+        bundle.link = [];
+        bundle.link.push({relation:"self", url:server.url + query[0].raw});
         //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
         bundle.total = bundle.entry.length.toString();
         //For each entry, set the mode to match...

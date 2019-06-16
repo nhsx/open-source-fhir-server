@@ -44,8 +44,14 @@ module.exports = function(args, finished) {
     request.pipeline = request.pipeline || [];
     request.pipeline.push("search");
 
+    var server = request.server || undefined;
+
     try
     {
+        if(typeof server === 'undefined') {
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Invalid Search configuration - server base url cannot be null or undefined')); 
+        }
+
         //TODO: check query and pagination parameters
         if (searchSetId === '') {
             finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
@@ -57,6 +63,7 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         } else {
             searchSet = searchSet.getDocument(true);
+            query.page = page;
             query.pageSize = pageSize;
             query.current = page;
  
@@ -65,12 +72,12 @@ module.exports = function(args, finished) {
                 query.previous = returnedResourceManager.paginate.previousPage(page).toString();
                 query.next= returnedResourceManager.paginate.nextPage(searchSet, page, pageSize).toString();
                 query.last = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();
-                
+                //Attach Paging Links before trimming...
+                returnedResourceManager.paginate.attachLinks(searchSet, query, server);
+                //Now trim n return...
                 searchSet = returnedResourceManager.paginate.trim(searchSet, page, pageSize);
             }
-
-            var results = searchSet;
-            finished(dispatcher.getResponseMessage(request,{query,results}));
+            finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
         }
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));

@@ -46,6 +46,7 @@ module.exports = function(args,finished) {
     {
         //validate request (TODO...)
         var indexQuery = {};
+        indexQuery.raw = request.data.query.raw;
         indexQuery.documentType = request.data.query.resourceType;
         indexQuery.page = request.data.query.page;
         indexQuery.pageSize = request.data.query.pageSize;

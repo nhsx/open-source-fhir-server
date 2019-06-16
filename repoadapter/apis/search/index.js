@@ -46,6 +46,7 @@ module.exports = function(args, finished) {
         var registry = request.registry;
         var queryParameters = request.data;
         var query = {
+            raw: request.resourceType + "?",
             resourceType:request.resourceType,
             parameters: [],
             pageSize:'*',
@@ -56,6 +57,8 @@ module.exports = function(args, finished) {
         }
         //map queryParameters onto search/indexed properties...
         for(p in queryParameters){
+            //raw query string is a simple concatenation of each key/value pair...
+            query.raw = query.raw + p + "=" + queryParameters[p];
             if(p !== '_count' && p !=='_sort') {
                 if(p !== '_include' && p !=='_revinclude') {
                     var parameterName = p;

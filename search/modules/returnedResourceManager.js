@@ -85,14 +85,29 @@ var returnedResourceManager = {
             var entries = searchSet.entry;
             
             var rangeStart = this.rangeStart(page);
-            var rangeEnd = this.rangeEnd(page,pageSize)
+            var rangeEnd = this.rangeEnd(page,pageSize);
 
-            console.log("RangeStart: " + rangeStart);
-            console.log("RangeEnd: " + rangeEnd);
-    
             searchSet.entry = entries.slice(rangeStart,rangeEnd);
             
             return searchSet;
+        },
+        attachLinks:function(searchSet, query, server) {
+            var isPaged = (query.pageSize !== "*");
+            var pageSize = isPaged ? query.pageSize : searchSet.total.toString();
+            var baseUrl = server.url + "?_getpages=" + searchSet.id + "&_count=" + pageSize + "&";  
+            //If this is a paged result set...
+            if(isPaged) {
+                searchSet.link.push(this._getLink("first",baseUrl,"1"));
+                searchSet.link.push(this._getLink("next",baseUrl,query.next));
+                searchSet.link.push(this._getLink("previous",baseUrl,query.previous));
+                searchSet.link.push(this._getLink("last",baseUrl,query.last));
+            }
+        },
+        _getLink:function(relation,baseUrl,offset) {
+            return {
+                relation:relation,
+                url:baseUrl + "_getpagesoffset=" + offset
+            }
         }
     },
     includes:
