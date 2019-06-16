@@ -58,7 +58,7 @@ module.exports = function(args, finished) {
         //map queryParameters onto search/indexed properties...
         for(p in queryParameters){
             //raw query string is a simple concatenation of each key/value pair...
-            query.raw = query.raw + p + "=" + queryParameters[p];
+            query.raw = query.raw + p + "=" + queryParameters[p] + "&";
             if(p !== '_count' && p !=='_sort') {
                 if(p !== '_include' && p !=='_revinclude') {
                     var parameterName = p;
@@ -93,14 +93,15 @@ module.exports = function(args, finished) {
         {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
         }
-
         //Set pagination parameters...
         query.pageSize = queryParameters["_count"] || '*';
         //Set sort parameters...
         if(typeof queryParameters["_sort"] !== 'undefined') {
             query.sort = queryParameters["_sort"].split(",");
         }
-        //Set include parameters...
+        //Tidy up query.raw....
+        query.raw = query.raw.substring(0,query.raw.length-1);
+        //Dispatch the query...
         finished(dispatcher.getResponseMessage(request,{query: query}));
     } 
     catch(ex) 
