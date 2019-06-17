@@ -54,7 +54,14 @@ module.exports = function(args, finished) {
             entry: []
         };
 
-        //for each query in request.data.query
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
+        }
+        //Convert the query to an array if needed - this may be a result set for different resource types...
         var query = request.data.query;
         if(!Array.isArray(query)) {
             query = [request.data.query];
@@ -73,8 +80,11 @@ module.exports = function(args, finished) {
                 );
             });
         });
-        
-        finished(dispatcher.getResponseMessage(request,{query,batchRequest}));
+        //Add query and batch request to service response...
+        data.query = query;
+        data.batchRequest = batchRequest;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
     } 
     catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));

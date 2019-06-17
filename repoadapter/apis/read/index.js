@@ -41,7 +41,7 @@ module.exports = function(args, finished) {
     try
     {
         //This is simply a pass through...
-        finished(dispatcher.getResponseMessage(request,request));
+        finished(dispatcher.getResponseMessage(request,request.data));
     } 
     catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));

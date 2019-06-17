@@ -62,6 +62,14 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Batch requests to the local FHIR store (repo) must contain a valid query in addition to a batchrequest')); 
         }
 
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
+        }
+
         var db = this.db;
 
         var bundle = {};
@@ -90,8 +98,11 @@ module.exports = function(args, finished) {
                 bundle.entry.push({resource: resource});
             }
         });
-
-        finished(dispatcher.getResponseMessage(request,{query,bundle}));
+        //Add query and bundle to service response...
+        data.query = query;
+        data.bundle = bundle;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }

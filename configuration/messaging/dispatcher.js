@@ -65,6 +65,10 @@ var dispatcher =  {
             request.resource = request.resource;
             request.body = message;
         },
+        "/services/v1/adapters/repo/searchset":function(request,message,route) {
+            message.operation = "SEARCHSET"; 
+            request.body = message;
+        },
         "/services/v1/publisher/publish":function(request,message,route) {
             message.operation = "PUBLISH";
             request.body = message;

@@ -35,6 +35,8 @@ var traverse = require('traverse');
 
 var responseMessage = require('../../../configuration/messages/response.js').response;
 var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+
 
 var indexer = require('../../modules/indexer.js').indexer;
 
@@ -65,16 +67,16 @@ module.exports = function(args, finished) {
 
         //Return error object to be sent to responder service in ms response...
         if (typeof resource === 'undefined' || resource === '' || isEmptyObject(resource)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
 
         if(typeof resource.id === 'undefined' || resource.id === '')
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': Resource has no id')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': Resource has no id')); 
         }
     
         if (typeof resource.resourceType === 'undefined' || resource.resourceType === '') {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
 
         //Add resource id and resource type to inbound request...
@@ -82,7 +84,7 @@ module.exports = function(args, finished) {
         request.resource = resource.resourceType;
          
         if(typeof registry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
         }
       
         var indexData = {
@@ -182,11 +184,9 @@ module.exports = function(args, finished) {
         
         //Sort indexData so that it is returned in alphabetical order...
         indexer.sort(indexData);
-        finished(responseMessage.getResponse(request,indexData));
+        finished(dispatcher.getResponseMessage(request,indexData));
     }
     catch (ex) { 
-        finished(
-          errorMessage.serverError(request, ex.stack || ex.toString())
-        );
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

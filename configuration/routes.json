@@ -1,5 +1,12 @@
 [
   {
+    "uri":"/fhir/stu3/",
+    "method":"GET",
+    "handler":"searchset",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
     "uri":"/fhir/stu3/:resource",
     "method":"GET",
     "handler":"read",
@@ -138,6 +145,17 @@
       "fhir",
       "index",
       "search"
+    ],
+    "authenticate":false
+  },
+  {
+    "uri":"/services/v1/adapters/repo/searchset",
+    "method":"POST",
+    "handler":"searchset",
+    "on_microservice":"repoadapter",
+    "from_microservices":[
+      "tests",
+      "fhir"
     ],
     "authenticate":false
   },

@@ -58,6 +58,14 @@ module.exports = function(args, finished)
             qry = [request.data.query];
         }
 
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this query - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
+        }
+
         var db = this.db;
         qry.forEach(function(q) {
             var documentType = q.documentType || '';
@@ -117,8 +125,9 @@ module.exports = function(args, finished)
             }
         });
 
-        finished(dispatcher.getResponseMessage(request,{query:qry}));
-
+        data.query = qry
+        //Respond...
+        finished(dispatcher.getResponseMessage(request,data));
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }

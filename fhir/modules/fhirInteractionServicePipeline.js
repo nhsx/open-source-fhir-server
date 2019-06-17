@@ -213,6 +213,19 @@ var fhirInteractionServicePipeline = {
         request.data = fhirRequest.req.body;
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
+    },
+    searchset: function(fhirRequest, request) {
+        this._baseOperation(fhirRequest, request);
+        
+        request.serviceMode = "pipeline";
+        request.operation = "SEARCHSET";
+        request.pipeline = ["fhir"];
+        request.routes = [
+            {
+                paths:{path: "/services/v1/adapters/repo/searchset"}
+            }
+        ]
+        request.data = fhirRequest.req.query;
     }
 }
 

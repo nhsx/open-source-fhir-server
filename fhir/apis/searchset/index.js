@@ -29,82 +29,20 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var _ = require('underscore');
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
- 
+var fisp = require('../../modules/fhirInteractionServicePipeline.js').fhirInteractionServicePipeline;
+
 module.exports = function(args, finished) {
-    console.log("Repo Adapter Search: " + JSON.stringify(args,null,2));
-    //Convert incoming query into REPO search query...
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("repoadapter");
+
+    var request = fisp.createRequestMessage();
 
     try
     {
-        //validate inbound request (TODO)... especially need the registry here...
-        var registry = request.registry;
-        var queryParameters = request.data;
-        var query = {
-            raw: request.resourceType + "?",
-            resourceType:request.resourceType,
-            parameters: [],
-            pageSize:'',
-            page:'1',
-            sort:[],
-            includes:[],
-            revincludes:[]
-        }
-        //map queryParameters onto search/indexed properties...
-        for(p in queryParameters){
-            //raw query string is a simple concatenation of each key/value pair...
-            query.raw = query.raw + p + "=" + queryParameters[p] + "&";
-            if(p !== '_count' && p !=='_sort') {
-                if(p !== '_include' && p !=='_revinclude') {
-                    var parameterName = p;
-                    //If there is a modifier present then strip out...
-                    var modifier;
-                    if(parameterName.indexOf(':') > -1)
-                    {
-                        var paramAndModifier = parameterName.split(':');
-                        parameterName = paramAndModifier[0];
-                        modifier = paramAndModifier[1];
-                    } 
-                    var searchParameter = _.findWhere(registry.searchParameters, {searchProperty:parameterName});
-                    if(typeof searchParameter !== 'undefined') {
-                        var parameter = {
-                            name:searchParameter.property,
-                            value:queryParameters[p]
-                        };
-                        if(typeof modifier !== 'undefined') 
-                        {
-                            parameter.modifier = modifier;
-                        }
-                        query.parameters.push(parameter);
-                    }
-                } else if(p === '_revinclude') {
-                    query.revincludes.push(queryParameters[p]);
-                } else if(p === '_include') {
-                    query.includes.push(queryParameters[p]);
-                }
-            }
-        }
-        if(query.parameters.length === 0)
-        {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
-        }
-        //Set pagination parameters...
-        query.pageSize = queryParameters["_count"] || '*';
-        //Set sort parameters...
-        if(typeof queryParameters["_sort"] !== 'undefined') {
-            query.sort = queryParameters["_sort"].split(",");
-        }
-        //Tidy up query.raw....
-        query.raw = query.raw.substring(0,query.raw.length-1);
-        //Dispatch the query...
-        finished(dispatcher.getResponseMessage(request,{query: query}));
+        //Map incoming request onto internal message object
+        fisp["searchset"](args, request) || undefined;
+        //Respond (forwards to msresponse)...
+        finished(request);
     } 
-    catch(ex) 
-    {
-        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
+    catch(ex) {
+        finished(fisp.createServerErrorMessage(request, ex.stack || ex.toString()));
     }
-}
+};
