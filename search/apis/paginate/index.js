@@ -35,24 +35,24 @@ var returnedResourceManager = require('../../modules/returnedResourceManager.js'
 module.exports = function(args, finished) {
     console.log("Search Read: " + JSON.stringify(args,null,2));
 
-    var searchSetId = args.searchSetId || '';
-    //paginate/:page/:pageSize
-    var page = args.page || '1';
-    var pageSize = args.pageSize || '*';
-
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
     request.pipeline.push("search");
 
-    var server = request.server || undefined;
-
     try
     {
+        var searchSetId = args.searchSetId || '';
+        //paginate/:page/:pageSize
+        var page = args.page || '1';
+        var pageSize = args.pageSize || '*';
+        var server = request.server || undefined;
+
         if(typeof server === 'undefined') {
             finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Invalid Search configuration - server base url cannot be null or undefined')); 
         }
 
-        //TODO: check query and pagination parameters
+        //TODO: check data, query and pagination parameters
+        //TODO: what if client changes the _count/pageSize???
         if (searchSetId === '') {
             finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
@@ -66,6 +66,9 @@ module.exports = function(args, finished) {
             query.page = page;
             query.pageSize = pageSize;
             query.current = page;
+            //This function will reattach any include/revinclude parameters requested in original query
+            //This is necessary for cached searchsets as the original query is only persisted in bundle.link, specifically where link.relation === 'self'
+            returnedResourceManager.includes.rebuild(searchSet, query);
  
             if(pageSize !== '*') {
                 query.totalPages = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();

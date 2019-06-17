@@ -44,6 +44,7 @@ function isEmptyObject(obj) {
     return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
   }
 
+
 module.exports = function(args, finished) {
     console.log("Search Create: " + JSON.stringify(args,null,2));
 

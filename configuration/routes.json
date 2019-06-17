@@ -8,15 +8,15 @@
   },
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"GET",
-    "handler":"read",
+    "method":"POST",
+    "handler":"create",
     "on_microservice":"fhir",
     "authenticate":false
   },
   {
     "uri":"/fhir/stu3/:resource",
-    "method":"POST",
-    "handler":"create",
+    "method":"GET",
+    "handler":"read",
     "on_microservice":"fhir",
     "authenticate":false
   },
@@ -348,6 +348,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "repoadapter",
       "search"
     ],
     "authenticate": false

@@ -2415,6 +2415,542 @@
 							"response": []
 						},
 						{
+							"name": "Can search Patient by NHS Number and include general practitioner",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a patient...",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"//Nhs number === nhs number searched for",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each patient is set to \"match\"",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - search mode for each patient resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											"//Only one practitioner is included (the search set contains references to the same practitioner resource)",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - only 1 unique Practitioner resource is included\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var practitionerCount = 0;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            practitionerCount++;",
+											"         }",
+											"    });",
+											"    pm.expect(practitionerCount).to.eql(1);  ",
+											"});",
+											"//Entry search mode for practitioner is set to \"include\"",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - search mode for each patient resource === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            pm.expect(entry.search.mode).to.eql('include');  ",
+											"         }",
+											"    });",
+											"});",
+											"//The correct practitioner resource is included",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - Practitioner resource included is referenced by the Patient entries\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var practitionerReferenceId = \"Practitioner/\";",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            practitionerReferenceId = practitionerReferenceId + entry.resource.id;",
+											"         }",
+											"    });",
+											"       jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.resource.generalPractitioner[0].reference).to.eql(practitionerReferenceId);",
+											"         }",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?identifier=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}&_include=Patient:general-practitioner",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:general-practitioner"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search Patient by NHS Number and include Organisation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a patient...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"//Nhs number === nhs number searched for",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each patient is set to \"match\"",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - search mode for each patient resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											"//Only one organisation is included (the search set contains references to the same practitioner resource)",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - only 1 unique Organisation resource is included\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationCount = 0;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationCount++;",
+											"         }",
+											"    });",
+											"    pm.expect(organizationCount).to.eql(1);  ",
+											"});",
+											"//Entry search mode for organisation is set to \"include\"",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - search mode for each patient resource === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            pm.expect(entry.search.mode).to.eql('include');  ",
+											"         }",
+											"    });",
+											"});",
+											"//The correct organisation resource is included",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - Organisation resource included is referenced by the Patient entries\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationReferenceId = \"Organization/\";",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationReferenceId = organizationReferenceId + entry.resource.id;",
+											"         }",
+											"    });",
+											"       jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.resource.managingOrganization.reference).to.eql(organizationReferenceId);",
+											"         }",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?identifier=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}&_include=Patient:organization",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:organization"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search Patient by NHS Number and include Organisation, General Practitioner",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//3 resources are returned and that resource is a patient...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - 3 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(3);",
+											"});",
+											"//Nhs number === nhs number searched for",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each patient is set to \"match\"",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation, General Practitioner - search mode for each patient resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											"//Only one organisation is included (the search set contains references to the same practitioner resource)",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - only 1 unique Organisation resource is included\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationCount = 0;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationCount++;",
+											"         }",
+											"    });",
+											"    pm.expect(organizationCount).to.eql(1);  ",
+											"});",
+											"//Entry search mode for organisation is set to \"include\"",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - search mode for each included resource === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            pm.expect(entry.search.mode).to.eql('include');  ",
+											"         }",
+											"    });",
+											"});",
+											"//The correct organisation resource is included",
+											"pm.test(\"Can search Patient by NHS Number and include Organisation - Organisation resource included is referenced by the Patient entries\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationReferenceId = \"Organization/\";",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationReferenceId = organizationReferenceId + entry.resource.id;",
+											"         }",
+											"    });",
+											"       jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.resource.managingOrganization.reference).to.eql(organizationReferenceId);",
+											"         }",
+											"    });",
+											"});",
+											"//Only one practitioner is included (the search set contains references to the same practitioner resource)",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - only 1 unique Practitioner resource is included\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var practitionerCount = 0;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            practitionerCount++;",
+											"         }",
+											"    });",
+											"    pm.expect(practitionerCount).to.eql(1);  ",
+											"});",
+											"//Entry search mode for practitioner is set to \"include\"",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - search mode for each included resource === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            pm.expect(entry.search.mode).to.eql('include');  ",
+											"         }",
+											"    });",
+											"});",
+											"//The correct practitioner resource is included",
+											"pm.test(\"Can search Patient by NHS Number and include general practitioner - Practitioner resource included is referenced by the Patient entries\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var practitionerReferenceId = \"Practitioner/\";",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Practitioner') {",
+											"            practitionerReferenceId = practitionerReferenceId + entry.resource.id;",
+											"         }",
+											"    });",
+											"       jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.resource.generalPractitioner[0].reference).to.eql(practitionerReferenceId);",
+											"         }",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?identifier=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}&_include=Patient:general-practitioner&_include=Patient:organization",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:general-practitioner"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:organization"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Can search Patient by NHS Number and revinclude Encounter",
 							"event": [
 								{
@@ -2865,13 +3401,14 @@
 							"response": []
 						},
 						{
-							"name": "Can search for female Patient resources and page through results",
+							"name": "Can search for female Patient resources and page through results with page size of 1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
 										"exec": [
+											"var _ = require('lodash');",
 											"//Expect 200 success...",
 											"pm.test(\"Can search for female Patient resources and page through results - 200 returned\", function () {",
 											"    pm.response.to.have.status(200);",
@@ -2889,7 +3426,7 @@
 											"    pm.expect(links.length).to.eql(5);",
 											"});",
 											"//First, Next, Self, Previous, Last are present...",
-											"pm.test(\"Can Search FHIR Patient Resources by NHS Number and revinclude Encounter - all link relations are present in returned bundle\", function () {",
+											"pm.test(\"Can search for female Patient resources and page through results - all link relations are present in returned bundle\", function () {",
 											"    var jsonData = pm.response.json();",
 											"    var links = jsonData.link;",
 											"    links.forEach(function(link) {",
@@ -2900,7 +3437,7 @@
 											"    });",
 											"});",
 											"//Self url === request.url",
-											"pm.test(\"Can Search FHIR Patient Resources by NHS Number and revinclude Encounter - self.url === request.url\", function () {",
+											"pm.test(\"Can search for female Patient resources and page through results - self.url === request.url\", function () {",
 											"    var jsonData = pm.response.json();",
 											"    var links = jsonData.link;",
 											"    var url;",
@@ -2933,6 +3470,15 @@
 											"    var resource = jsonData.entry[0].resource;",
 											"    pm.expect(resource.gender).to.eql(\"female\");",
 											"});",
+											"var jsonData = pm.response.json();",
+											"//Store the applicable links in env variable (for subsequent tests)..",
+											"pm.environment.set(\"patient_search_next_page\", _.find(jsonData.link, function(l) { return l.relation === 'next'; }).url);",
+											"//Capture the result id as will need to check the result only appears ONCE in a paged search...",
+											"var resultIds = [];",
+											"resultIds.push(jsonData.entry[0].resource.id);",
+											"pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"",
+											"",
 											"",
 											""
 										],
@@ -2944,7 +3490,11 @@
 									"script": {
 										"id": "894473ea-c452-4d94-b9f7-75191b290674",
 										"exec": [
-											""
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2991,6 +3541,494 @@
 											"key": "_count",
 											"value": "1"
 										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can get 2nd page of female Patient resources search with page size of 1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can get 2nd page of female Patient resources search - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - 5 links are present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(5);",
+											"});",
+											"//First, Next, Self, Previous, Last are present...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - all link relations are present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    links.forEach(function(link) {",
+											"      pm.expect(link.relation).to.satisfy(function(relation) {",
+											"          return relation === \"first\" || relation === \"next\" || relation === \"self\"",
+											"            || relation === \"previous\" || relation === \"last\";",
+											"      })",
+											"    });",
+											"});",
+											"//Bundle total === 3...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - Bundle total === 3\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(3);",
+											"});",
+											"//1 resource is returned in this page...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"//1 result is a Patient",
+											"pm.test(\"Can get 2nd page of female Patient resources search  - resource returned is a Patient\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"//Patient result returned is a female",
+											"pm.test(\"Can get 2nd page of female Patient resources search - resource returned is female\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.gender).to.eql(\"female\");",
+											"});",
+											"//Previous results are NOT contained in the bundle...",
+											"pm.test(\"Can get 2nd page of female Patient resources search - previous results are NOT present\", function() {",
+											"   var jsonData = pm.response.json();",
+											"   var resource = jsonData.entry[0].resource;",
+											"   pm.expect(pm.environment.get(\"patient_search_result_ids\")).to.not.contain(resource.id);",
+											"});",
+											"//Store the applicable links in env variable (for subsequent tests)..",
+											"var jsonData = pm.response.json();",
+											"pm.environment.set(\"patient_search_next_page\", _.find(jsonData.link, function(l) { return l.relation === 'next'; }).url);",
+											"//Capture the result id as will need to check the result only appears ONCE in a paged search...",
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"resultIds.push(jsonData.entry[0].resource.id);",
+											"pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{patient_search_next_page}}",
+									"host": [
+										"{{patient_search_next_page}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can get 3rd page of female Patient resources search with page size of 1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can get 3rd page of female Patient resources search - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - 5 links are present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(5);",
+											"});",
+											"//First, Next, Self, Previous, Last are present...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - all link relations are present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    links.forEach(function(link) {",
+											"      pm.expect(link.relation).to.satisfy(function(relation) {",
+											"          return relation === \"first\" || relation === \"next\" || relation === \"self\"",
+											"            || relation === \"previous\" || relation === \"last\";",
+											"      })",
+											"    });",
+											"});",
+											"//Bundle total === 3...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - Bundle total === 3\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(3);",
+											"});",
+											"//1 resource is returned in this page...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"//1 result is a Patient",
+											"pm.test(\"Can get 3rd page of female Patient resources search  - resource returned is a Patient\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"//Patient result returned is a female",
+											"pm.test(\"Can get 3rd page of female Patient resources search - resource returned is female\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.gender).to.eql(\"female\");",
+											"});",
+											"//Previous results are NOT contained in the bundle...",
+											"pm.test(\"Can get 3rd page of female Patient resources search - previous results are NOT present\", function() {",
+											"   var jsonData = pm.response.json();",
+											"   var resource = jsonData.entry[0].resource;",
+											"   pm.expect(pm.environment.get(\"patient_search_result_ids\")).to.not.contain(resource.id);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{patient_search_next_page}}",
+									"host": [
+										"{{patient_search_next_page}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for male Patient resources and page through results with page size of 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"var _ = require('lodash');",
+											"//Expect 200 success...",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - 1 resource bundle is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - 5 links are present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(5);",
+											"});",
+											"//First, Next, Self, Previous, Last are present...",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - all link relations are present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    links.forEach(function(link) {",
+											"      pm.expect(link.relation).to.satisfy(function(relation) {",
+											"          return relation === \"first\" || relation === \"next\" || relation === \"self\"",
+											"            || relation === \"previous\" || relation === \"last\";",
+											"      })",
+											"    });",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 3...",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - Bundle total === 3\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(3);",
+											"});",
+											"//1 resource is returned in this page...",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"//1 result is a Patient",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - both resources returned are a Patient\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"        pm.expect(entry.resource.resourceType).to.eql(\"Patient\");",
+											"    });",
+											"});",
+											"//Patient result returned is a male",
+											"pm.test(\"Can search for male Patient resources and page through results with page size of 2 - both resources returned are a male\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.gender).to.eql(\"male\");",
+											"});",
+											"var jsonData = pm.response.json();",
+											"//Store the applicable links in env variable (for subsequent tests)..",
+											"pm.environment.set(\"patient_search_next_page\", _.find(jsonData.link, function(l) { return l.relation === 'next'; }).url);",
+											"//Capture the result id as will need to check the result only appears ONCE in a paged search...",
+											"var resultIds = [];",
+											"jsonData.entry.forEach(function(entry) {",
+											"    resultIds.push(entry.resource.id);",
+											"});",
+											"pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?gender=male&_count=2",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "gender",
+											"value": "male"
+										},
+										{
+											"key": "_count",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can get 2nd page of male Patient resources search with page size of 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - 5 links are present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(5);",
+											"});",
+											"//First, Next, Self, Previous, Last are present...",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - all link relations are present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    links.forEach(function(link) {",
+											"      pm.expect(link.relation).to.satisfy(function(relation) {",
+											"          return relation === \"first\" || relation === \"next\" || relation === \"self\"",
+											"            || relation === \"previous\" || relation === \"last\";",
+											"      })",
+											"    });",
+											"});",
+											"//Bundle total === 3...",
+											"pm.test(\"CCan get 2nd page of male Patient resources search with page size of 2 - Bundle total === 3\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(3);",
+											"});",
+											"//1 resource is returned in this page...",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"//1 result is a Patient",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - resource returned is a Patient\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"//Patient result returned is a female",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - resource returned is male\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.gender).to.eql(\"male\");",
+											"});",
+											"//Previous results are NOT contained in the bundle...",
+											"pm.test(\"Can get 2nd page of male Patient resources search with page size of 2 - previous results are NOT present\", function() {",
+											"   var jsonData = pm.response.json();",
+											"   var resource = jsonData.entry[0].resource;",
+											"   pm.expect(pm.environment.get(\"patient_search_result_ids\")).to.not.contain(resource.id);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{patient_search_next_page}}",
+									"host": [
+										"{{patient_search_next_page}}"
 									]
 								}
 							},

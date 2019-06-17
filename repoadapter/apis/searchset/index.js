@@ -42,14 +42,15 @@ module.exports = function(args, finished) {
 
     try
     {
-        var query = request.args.query
-        //validate the query string params...
-        //expecting: _getpages = searchset id, _count = pageSize, _getpagesoffset = page
-        
-        finished(dispatcher.getResponseMessage(request,{query: query}));
+        //TOD: Validate inbound request to check for the existence of each variable below...
+        var data = request.data;
+        request.searchSetId = data._getpages;
+        data.query = {
+            pageSize: data._count,
+            page: data._getpagesoffset
+        }
 
-
-        //searchset/paginate/1/1
+        finished(dispatcher.getResponseMessage(request,data));
     }
     catch(ex) 
     {

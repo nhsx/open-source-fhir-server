@@ -68,6 +68,7 @@ module.exports = function(args, finished) {
         }
         //This generates a set of queries derived from the initial query (which contains include and revincludes)
         //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
+        
         query.forEach(function(q) {
             var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes)
             referenceQueries.forEach(function(rq) {

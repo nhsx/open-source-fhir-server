@@ -31,6 +31,7 @@
 
 var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+var urlBuilder = require('../../modules/urlBuilder.js').urlBuilder;
  
 module.exports = function(args, finished) {
     console.log("Repo Adapter Search: " + JSON.stringify(args,null,2));
@@ -43,10 +44,11 @@ module.exports = function(args, finished) {
     {
         //validate inbound request (TODO)... especially need the registry here...
         var registry = request.registry;
+        var resourceType = request.resourceType;
         var queryParameters = request.data;
         var query = {
-            raw: request.resourceType + "?",
-            resourceType:request.resourceType,
+            raw: '',
+            resourceType:resourceType,
             parameters: [],
             pageSize:'',
             page:'1',
@@ -54,10 +56,10 @@ module.exports = function(args, finished) {
             includes:[],
             revincludes:[]
         }
+        //create the raw query string from the query data...
+        query.raw = urlBuilder.createUrlFromQuery(resourceType, queryParameters);
         //map queryParameters onto search/indexed properties...
         for(p in queryParameters){
-            //raw query string is a simple concatenation of each key/value pair...
-            query.raw = query.raw + p + "=" + queryParameters[p] + "&";
             if(p !== '_count' && p !=='_sort') {
                 if(p !== '_include' && p !=='_revinclude') {
                     var parameterName = p;
@@ -82,9 +84,9 @@ module.exports = function(args, finished) {
                         query.parameters.push(parameter);
                     }
                 } else if(p === '_revinclude') {
-                    query.revincludes.push(queryParameters[p]);
+                    query.revincludes = queryParameters[p];
                 } else if(p === '_include') {
-                    query.includes.push(queryParameters[p]);
+                    query.includes = queryParameters[p];
                 }
             }
         }
@@ -98,8 +100,6 @@ module.exports = function(args, finished) {
         if(typeof queryParameters["_sort"] !== 'undefined') {
             query.sort = queryParameters["_sort"].split(",");
         }
-        //Tidy up query.raw....
-        query.raw = query.raw.substring(0,query.raw.length-1);
         //Dispatch the query...
         finished(dispatcher.getResponseMessage(request,{query: query}));
     } 

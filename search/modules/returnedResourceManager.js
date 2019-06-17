@@ -60,11 +60,18 @@ var returnedResourceManager = {
     },
     paginate: 
     {        
-        rangeStart:function(page) {
-            return parseInt(page) === 1 ? parseInt(page)-1 : parseInt(page);
-        },
-        rangeEnd:function(page,pageSize) {
-            return this.rangeStart(page)+parseInt(pageSize);
+        range:function(page,pageSize) {
+            page = parseInt(page);
+            pageSize = parseInt(pageSize);
+            var range = {start:0,end:0};
+
+            if(page > 1)
+            {
+               range.start = (page*pageSize)-pageSize;
+            }
+            range.end = range.start+pageSize
+
+            return range;
         },
         firstPage:function() {
             return 1;
@@ -83,11 +90,9 @@ var returnedResourceManager = {
         },
         trim:function(searchSet, page, pageSize) {
             var entries = searchSet.entry;
-            
-            var rangeStart = this.rangeStart(page);
-            var rangeEnd = this.rangeEnd(page,pageSize);
+            var range = this.range(page,pageSize);
 
-            searchSet.entry = entries.slice(rangeStart,rangeEnd);
+            searchSet.entry = entries.slice(range.start,range.end);
             
             return searchSet;
         },
@@ -112,6 +117,31 @@ var returnedResourceManager = {
     },
     includes:
     {
+        rebuild(searchSet, query) {
+            //Rebuilds list of includes/revincludes from a persisted searchset (if necessary)...
+            if(typeof query.includes === 'undefined') 
+            {
+                query.includes = [];
+                query.revincludes = [];
+
+                var queryString = _.find(searchSet.link,function(l) { return l.relation === 'self'}).url;
+                //Get a substring of url as only interested in q string params...
+                queryString = queryString.substring(queryString.indexOf("?")+1);
+                //Split this into an array and then further reduce by fetching  _include ||  _revinclude params...
+                var rawIncludes = _.filter(queryString.split('&'),function(part) {return part.indexOf("_include") > -1 || part.indexOf("_revinclude") > -1});
+                //should give _include=Patient:general-practitioner etc...
+                rawIncludes.forEach(function(rawInclude) {
+                    var include = rawInclude.split('=');
+                    var includeType = include[0];
+                    var includeValue = include[1];
+                    if(includeType === "_include") {
+                        query.includes.push(includeValue);
+                    } else if (includeType === "_revinclude") {
+                        query.revincludes.push(includeValue);
+                    }
+                });
+            }
+        },
         fetch:function(registry, searchset, includes, revincludes) {
             var referenceQueries = [];
             
@@ -129,14 +159,14 @@ var returnedResourceManager = {
         },
         include: 
         {
-            getReferencesToInclude:function(registry,searchSet,includes) {
+            getReferencesToInclude:function(registry,searchset,includes) {
                 var queries = [];
                 includes.forEach(function(include) {
                     var incParameter = registry.searchResultParameters.include[include] || undefined;
                     //property  e.g. generalPractitioner
                     if(typeof incParameter !== 'undefined') {
                         var included = [];
-                        searchSet.entry.forEach(function(entry) {
+                        searchset.entry.forEach(function(entry) {
                             if(traverse(entry.resource).has([incParameter.reference]))
                             {
                                 var property = entry.resource[incParameter.reference]
@@ -166,6 +196,8 @@ var returnedResourceManager = {
                         });
                     }
                 });
+
+                console.log("getReferencesToInclude Queries: " + JSON.stringify(queries,null,2));
                 return queries;
             }
         },
@@ -173,10 +205,10 @@ var returnedResourceManager = {
         {
             getReferencesToInclude:function(registry,searchSet,includes) {
                 var queries = [];
-                includes.forEach(function(include) {
+                includes.forEach(function(inc) {
                     //include will be string in format "xxxx:xxxx"
                     //Fetch the revinclude parameter from the registry...
-                    var revParameter = registry.searchResultParameters.revinclude[include];
+                    var revParameter = registry.searchResultParameters.revinclude[inc];
                     //Using revParameter.reference and the resource id, extract a list of references from the search set...
                     var references = _.map(searchSet.entry, function(entry) { 
                         return revParameter.referenceType + "/" + entry.resource.id || revParameter.reference + "/" + entry.resource.id
