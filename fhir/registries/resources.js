@@ -220,15 +220,6 @@ var resources =
         ],
         searchResultParameters:
         {
-            _id:'id',
-            _lastUpdated:'lastUpdated',
-            family:'name[0].family',
-            given:'name[0].given[0]',
-            birthDate:'birthDate',
-            gender:'gender'
-        },
-        searchResultParameters:
-        {
             sort:{
                 _id:'id',
                 _lastUpdated:'lastUpdated',

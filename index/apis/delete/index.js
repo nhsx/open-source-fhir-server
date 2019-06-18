@@ -41,7 +41,6 @@ module.exports = function(args, finished) {
     try
     {
         var documentId = args.req.body.documentId || undefined;
-        var documentType = args.req.body.documentType || undefined;
         var registry = request.registry;
 
         if(typeof documentId === 'undefined') {

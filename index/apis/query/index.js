@@ -29,8 +29,6 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
-
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var query = require('../../modules/query.js').query;
 

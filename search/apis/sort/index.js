@@ -83,7 +83,7 @@ module.exports = function(args, finished) {
             } else {
                 //Check sort parameters against registry...
                 sortParameters.forEach(function(parameter) {
-                    var isValid = (typeof registry.searchResultParameters[parameter.name] !== 'undefined');
+                    var isValid = (typeof registry.searchResultParameters.sort[parameter.name] !== 'undefined');
                         if(!isValid) {
                             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': Sort Parameter ' + parameter.name + ' is not supported'));
                         }

@@ -1,6 +1,7 @@
 var _ = require('underscore');
-var errorMessage = require('../../../configuration/messages/error.js').error;
+
 var responder = require('../../modules/responder.js').responder;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args,finished) {
     console.log("RESPONDER CREATE: " + JSON.stringify(args,null,2));
@@ -23,6 +24,6 @@ module.exports = function(args,finished) {
     }
     catch(ex)
     {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

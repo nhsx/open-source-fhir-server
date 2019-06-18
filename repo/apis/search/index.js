@@ -38,12 +38,11 @@ module.exports = function(args,finished) {
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
     request.pipeline.push("repo");
-    
-    var searchQuery = request.data.query || undefined;
-    var registry = request.registry || undefined;
 
     try
     {
+        var searchQuery = request.data.query || undefined;
+        var registry = request.registry || undefined;
         //validate request (TODO...)
         var indexQuery = {};
         indexQuery.raw = request.data.query.raw;
@@ -68,6 +67,20 @@ module.exports = function(args,finished) {
                     queryParameter.modifier = searchParameter.modifier;
                 }
                 indexQuery.parameters.push(queryParameter);
+            }
+        });
+        //Convert FHIR sort params into index sort parameters...
+        searchQuery.sort.forEach(function(sortParameter) {
+            var isDesc = sortParameter.startsWith('-');
+            sortParameter = sortParameter.replace('-','');
+            if(typeof registry.searchResultParameters.sort[sortParameter]!== 'undefined') {
+                var querySortParameter = {
+                    name:sortParameter
+                }
+                if(isDesc === true) {
+                    querySortParameter.direction = "desc";
+                }
+                indexQuery.sort.push(querySortParameter);
             }
         });
         //Replace the request's searchQuery with the indexQuery

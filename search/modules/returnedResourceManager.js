@@ -37,7 +37,7 @@ var returnedResourceManager = {
     {
         var sortFunctions = [];
         parameters.forEach(function(parameter) {
-            var path = registry.searchResultParameters[parameter.name];
+            var path = registry.searchResultParameters.sort[parameter.name];
             var f = new Function('entry', 'return entry.resource.' + path);
             sortFunctions.push(f);
         });

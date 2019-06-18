@@ -4033,6 +4033,124 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Can search for male patients and sort by -family",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"var _ = require('lodash');",
+											"//Expect 200 success...",
+											"pm.test(\"Can search for male patients and sort by -name - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for male patients and sort by -name - 1 bundle resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for male patients and sort by -name - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for male patients and sort by -name - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 3...",
+											"pm.test(\"Can search for male patients and sort by -name - Bundle total === 3\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(3);",
+											"});",
+											"//Sorted Reverse Alpha... T,S,B",
+											"pm.test(\"Can search for male patients and sort by -name - results are sorted reverse alphabetically\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry[0].resource.name[0].family).to.eql(\"TARGARYEN\") &&",
+											"        pm.expect(jsonData.entry[1].resource.name[0].family).to.eql(\"STARK\") && ",
+											"            pm.expect(jsonData.entry[2].resource.name[0].family).to.eql(\"BARATHEON\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?gender=male&_sort=-family",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "gender",
+											"value": "male"
+										},
+										{
+											"key": "_sort",
+											"value": "-family"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
