@@ -83,10 +83,13 @@ module.exports = function(args, finished) {
                         }
                         query.parameters.push(parameter);
                     }
-                } else if(p === '_revinclude') {
-                    query.revincludes = queryParameters[p];
-                } else if(p === '_include') {
-                    query.includes = queryParameters[p];
+                } else if(p === '_include' || p === '_revinclude') {
+                    var includeType = p.replace('_', '') + "s";
+                    var incs = queryParameters[p];
+                    if(!_.isArray(incs)) { incs = [incs]; }
+                    incs.forEach(function(inc) {
+                        query[includeType].push(inc);
+                    });
                 }
             }
         }
