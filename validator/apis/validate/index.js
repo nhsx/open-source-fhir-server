@@ -2,7 +2,7 @@
  ----------------------------------------------------------------------------------------------------------------------------
  | ROQR - fhiR On Qewd and dockeR                                                                                           |
  | Developed as part of the Yorkshire and Humber Care Record ("LHCRE")                                                      |
- | https://yhcr.org/wp-content/uploads/2019/05/YHCR_Design_Paper_003__Conceptual_Design_for_a_FHIR_Proxy_Server_v2.0.docx   |                                                              |
+ | https://yhcr.org/wp-content/uploads/2019/05/YHCR_Design_Paper_003__Conceptual_Design_for_a_FHIR_Proxy_Server_v2.0.docx   |                                                          
  |                                                                                                                          |
  | http://www.synanetics.com                                                                                                |
  | Email: support@synanetics.com                                                                                            |

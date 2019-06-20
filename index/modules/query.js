@@ -96,7 +96,7 @@ var query =
     {
         _baseFilter(documents, parameter) {
             console.log('Base Filter: ' + JSON.stringify(parameter,null,2));
-            var results = [];
+
             var selector;
             //Get the initial 'select(or)' path...
             try

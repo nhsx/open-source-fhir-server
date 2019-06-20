@@ -160,20 +160,25 @@ var resources =
                 indexType:'string'
             },
             {
+                indexProperty:'name',
                 property:'name',
+                searchProperty:'name',
                 type:'name',
                 indexType:'name',
             },
-            //Type: virtual parameters (as below) serve as a means to map search params onto other indicies - they are NOT indexed
             {
-                property:'name',
-                type:'virtual',
-                searchProperty:'family'
+                indexProperty:'family',
+                property:'family',
+                searchProperty:'family',
+                type:'string',
+                indexType:'string'
             }, 
             {
-                property:'name',
-                type:'virtual',
-                searchProperty:'given'
+                indexProperty:'given',
+                property:'given',
+                searchProperty:'given',
+                type:'string',
+                indexType:'string'
             },  
             {
                 indexProperty: 'identifier',
@@ -299,6 +304,66 @@ var resources =
         },
         include:{},
         revinclude:{}
+    },
+    PractitionerRole:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'organization',
+                property:'organization',
+                type:'reference',
+                indexType:'reference',
+                searchProperty:'organization'
+            },
+            {
+                indexProperty:'practitioner',
+                property:'practitioner',
+                type:'reference',
+                indexType:'reference',
+                searchProperty:'practitioner'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'role',
+                type:'codeableConcept',
+                indexType:'token',
+                allowMultiple:false
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                identifier:'identifier[0].value'
+            },
+            include:{
+                'PractitionerRole:practitioner':{resourceType:'Practitioner',reference:'practitioner'},
+                'PractitionerRole:organization':{resourceType:'Organization',reference:'organization'}
+            },
+            revinclude:{}
+        }
     },
     Organization: {
         searchParameters: [

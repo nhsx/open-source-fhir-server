@@ -83,12 +83,6 @@ var indexer =
                 data.indexFrom.given.forEach(function(givenName) {
                     index.subscripts.push(
                         {
-                            'family': data.indexFrom.family
-                        },        
-                        {
-                            'given': givenName
-                        },
-                        {
                             'name': givenName + ' ' + data.indexFrom.family
                         }
                     )
@@ -218,8 +212,6 @@ var indexer =
     
             if(typeof data.indexFrom === 'object')
             {
-                var entry = {};
-                var tokenSystem, tokenCode, tokenSystemAndCode, tokenValue, systemValue, textValue
                 //Needs to check for presence of coding array (codeable concept)
                 if(data.indexFrom.coding && data.indexFrom.coding.length > 0)
                 {
@@ -432,6 +424,7 @@ var indexer =
         _tag:'code',
         type:'code',
         class:'code',
+        code:'code',
         "participant-type":'code'
     },
     sort: function(indexData)
