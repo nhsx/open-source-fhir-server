@@ -2427,6 +2427,100 @@
 							"response": []
 						},
 						{
+							"name": "Create an Encounter resource status === arrived",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can Create an Encounter resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can Create an Encounter resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Encounter\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can Create an Encounter resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_encounter_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can Create an Organization resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can Create an Encounter resource - Location header is present and in correct format /Encounter/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Encounter/\" + pm.environment.get(\"fhir_created_encounter_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can Create a Encounter resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var uuid = require('uuid');",
+											"pm.environment.set(\"messageId\", uuid.v4());",
+											"pm.environment.set(\"requestId\", uuid.v4());",
+											"",
+											"var moment = require('moment');",
+											"pm.environment.set(\"requestedOn\", moment().utc().format());"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"resourceType\": \"Encounter\",\n    \"meta\": {\n        \"profile\": [\n            \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Encounter-1\"\n        ]\n    },\n    \"identifier\": [\n        {\n            \"system\": \"https://tools.ietf.org/html/rfc4122\",\n            \"value\": \"db00be4b-2f33-4cc3-8eff-4a57e56b185b\"\n        }\n    ],\n    \"status\": \"arrived\",\n    \"class\": {\n        \"system\": \"http://hl7.org/fhir/v3/ActCode\",\n        \"code\": \"IMP\",\n        \"display\": \"inpatient encounter\"\n    },\n    \"subject\": {\n        \"reference\": \"Patient/{{fhir_created_patient_id}}\",\n        \"identifier\": {\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\"value\":\"{{lastTestNHSNumber}}\"}\n    },\n    \"participant\": [\n        {\n            \"type\": [\n                {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v3/ParticipationType\",\n                            \"code\": \"DIS\",\n                            \"display\": \"discharger\"\n                        }\n                    ]\n                }\n            ],\n            \"individual\": {\n                \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n                \"display\": \"Mrs AA Bhatia\"\n            }\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Encounter",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Encounter"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Can search Patient by _id",
 							"event": [
 								{
@@ -3531,6 +3625,134 @@
 										{
 											"key": "patient:identifier",
 											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for an 'arrived' Encounter by patient NHS Number",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a patient...",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number- 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"//Nhs number === nhs number searched for",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number- nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.identifier.value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Encounter status === 'arrived'",
+											"pm.test(\"Can search for an 'arrived' Encounter by patient NHS Number - status === 'arrived'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.status).to.eql('arrived');",
+											"    ",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Encounter?patient:identifier=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}&status=arrived",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Encounter"
+									],
+									"query": [
+										{
+											"key": "patient:identifier",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										},
+										{
+											"key": "status",
+											"value": "arrived"
 										}
 									]
 								}
@@ -4929,6 +5151,601 @@
 										{
 											"key": "gender",
 											"value": "female"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create an AllergyIntolerance resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create an AllergyIntolerance resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create an AllergyIntolerance resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"AllergyIntolerance\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create an AllergyIntolerance resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_allergy_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create an AllergyIntolerance resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create an AllergyIntolerance resource - Location header is present and in correct format /Patient/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_allergy_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create an AllergyIntolerance resource -  ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"resourceType\": \"AllergyIntolerance\",\n    \"meta\": {\n        \"profile\": [\n            \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1\"\n        ]\n    },\n    \"identifier\": [\n        {\n            \"system\": \"https://fhir.leedsth.nhs.uk/Id/allergy\",\n            \"value\": \"100018\"\n        }\n    ],\n    \"clinicalStatus\": \"active\",\n    \"verificationStatus\": \"unconfirmed\",\n    \"code\": {\n        \"coding\": [\n            {\n                \"system\": \"http://snomed.info/sct\",\n                \"code\": \"160244002\",\n                \"display\": \"No Known Allergies\"\n            }\n        ]\n    },\n    \"patient\": {\n\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\"value\":\"{{lastTestNHSNumber}}\"}\n    },\n    \"assertedDate\": \"2017-10-19T00:00:00+00:00\",\n    \"asserter\": {\n        \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n        \"display\": \"Dr S Smith\"\n    }\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"AllergyIntolerance"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for AllergyIntolerance resources by patient reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - resources returned are AllergyIntolerance resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"AllergyIntolerance\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.patient.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance?patient=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"AllergyIntolerance"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for AllergyIntolerance resources by patient nhs number",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for AllergyIntolerance resources by patient reference - resources returned are AllergyIntolerance resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"AllergyIntolerance\");",
+											"});",
+											"//NHS number matches that of the NHS number searched for",
+											"pm.test(\"Can Search FHIR AllergyIntolerance Resources by NHS Number - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.patient.identifier.value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance?patient=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"AllergyIntolerance"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Patient search revinclude AllergyIntolerance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude AllergyIntolerance - 1 allergy intolerance resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"AllergyIntolerance\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id={{fhir_created_patient_id}}&_revinclude=AllergyIntolerance:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "AllergyIntolerance:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can AllergyIntolerance search include Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can AllergyIntolerance search include Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can AllergyIntolerance search include Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can AllergyIntolerance search include Patient - 1 allergy intolerance resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"AllergyIntolerance\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance?_id={{fhir_created_allergy_id}}&_include=AllergyIntolerance:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"AllergyIntolerance"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_allergy_id}}"
+										},
+										{
+											"key": "_include",
+											"value": "AllergyIntolerance:patient"
 										}
 									]
 								}

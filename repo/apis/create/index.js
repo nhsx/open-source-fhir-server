@@ -69,7 +69,7 @@ module.exports = function(args, finished) {
         //Add an id property to the resource before persisting...
         if (typeof resource.id === 'undefined' || resource.id.length === 0) resource.id = uuid.v4();
         //Set meta/version id...
-        if (typeof resource.meta === 'undefined' || (typeof resource.meta !== 'undefined' && resource.meta.versionId === undefined)) {
+        if (typeof resource.meta === 'undefined' || (typeof resource.meta !== 'undefined' && typeof resource.meta.versionId === 'undefined')) {
           resource.meta = resource.meta || {};
           resource.meta.versionId = '1';
           resource.meta.lastUpdated = moment().utc().format();

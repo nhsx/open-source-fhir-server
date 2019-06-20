@@ -1,5 +1,78 @@
 var resources = 
 {
+    AllergyIntolerance:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            }, 
+            {
+                indexProperty:'assertedDate',
+                property:'assertedDate',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'clinicalStatus',
+                property:'clinicalStatus',
+                searchProperty:'clinical-status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'patient',
+                property:'patient',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'verificationStatus',
+                property:'verificationStatus',
+                searchProperty:'verification-status',
+                type:'string',
+                indexType:'string'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                date:"assertedDate",
+                "clinical-status":"clinicalStatus",
+                "verification-status":"verificationStatus"
+            },
+            include:{
+                'AllergyIntolerance:patient':{resourceType:'Patient',reference:'patient'}
+            }
+        }
+    },
     Encounter:
     {
         searchParameters:[
@@ -238,7 +311,8 @@ var resources =
                 'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
             },
             revinclude:{
-                'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'}
+                'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
+                'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'}
             }
         }
     },
