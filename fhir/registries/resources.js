@@ -212,6 +212,13 @@ var resources =
                 indexType:'datetime'
             },
             {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
                 indexProperty: 'city',
                 property:'city',
                 searchProperty:'address-city',
@@ -315,6 +322,101 @@ var resources =
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'}
             }
         }
+    },
+    Policy:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'end',
+                property:'end',
+                searchProperty:'end',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'name',
+                property:'name',
+                searchProperty:'name',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'from',
+                property:'from',
+                searchProperty:'rule-context-from',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'organization',
+                property:'organization',
+                searchProperty:'rule-context-organization',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'reason',
+                property:'reason',
+                searchProperty:'rule-context-reason',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'role',
+                property:'role',
+                searchProperty:'rule-context-userRole',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'relationship',
+                property:'relationship',
+                searchProperty:'rule-context-userRelationship',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'start',
+                property:'start',
+                searchProperty:'start',
+                type:'datetime',
+                indexType:'datetime'
+            }
+        ]
     },
     Practitioner: {
         searchParameters:[
