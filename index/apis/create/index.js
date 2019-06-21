@@ -14,8 +14,6 @@ function isInt(value) {
     return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
 }
 
-var indexed = [];
-
 module.exports = function(args, finished) {
     console.log("Index Create: " + JSON.stringify(args,null,2));
 
@@ -64,9 +62,11 @@ module.exports = function(args, finished) {
         var indices;
         var indexTypeHandler;
         var isIndexable = false;
+        var indexed = [];
 
         traverse(resource).map(function(node) {
             if(!Array.isArray(node)) {
+                var fullPath = this.path.toString();
                 this.path.forEach(function(path) {
                     registry.searchParameters.forEach(function(registryEntry) {
                         //If this search Parameter IS NOT virtual then proceed...
@@ -92,7 +92,8 @@ module.exports = function(args, finished) {
                                         propertyName: path,
                                         global: registryEntry.indexType,
                                         indexFrom: node,
-                                        indexPropertyName: registryEntry.indexProperty || registryEntry.searchProperty || registryEntry.property
+                                        indexPropertyName: registryEntry.indexProperty || registryEntry.searchProperty || registryEntry.property,
+                                        context: fullPath
                                     }
                                 );
                                 

@@ -194,7 +194,162 @@ var resources =
                 'Observation:encounter':{resourceType:'Observation',reference:'Encounter'}
             }
         }
-    },  
+    },
+    Observation:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'code',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'category',
+                property:'category',
+                searchProperty:'category',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'effectiveDateTime',
+                property:'effectiveDateTime',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'effective',
+                property:'effective',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                date:'effectiveDateTime',
+                identifier:'identifier[0].value'
+            },
+            include:{
+                'Observation:encounter':{resourceType:'Encounter',reference:'context'},
+                'Observation:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{}
+        }
+    },
+    Organization: {
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'postalCode',
+                property:'postalCode',
+                searchProperty:'address-postalcode',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'name',
+                property:'name',
+                searchProperty:'name',
+                type:'string',
+                indexType:'string',
+            },
+            {
+                indexProperty: 'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                name:'name',
+                'address-postalcode':'address[0].postalCode',
+                identifier:'identifier[0].value'
+            },
+            include:{},
+            revinclude:{
+                'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
+            }
+        }
+    },
     Patient:{
         searchParameters: [
             {
@@ -319,7 +474,8 @@ var resources =
             },
             revinclude:{
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
-                'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'}
+                'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
+                'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'}
             }
         }
     },
@@ -539,66 +695,6 @@ var resources =
                 'PractitionerRole:organization':{resourceType:'Organization',reference:'organization'}
             },
             revinclude:{}
-        }
-    },
-    Organization: {
-        searchParameters: [
-            {
-                indexProperty:'id',
-                property:'id',
-                searchProperty:'_id',
-                type:'string',
-                indexType:'id'
-            },
-            {
-                indexProperty:'lastUpdated',
-                property:'lastUpdated',
-                searchProperty:'_lastUpdated',
-                type:'datetime',
-                indexType:'datetime'
-            },
-            {
-                indexProperty:'postalCode',
-                property:'postalCode',
-                searchProperty:'address-postalcode',
-                type:'string',
-                indexType:'string'
-            },
-            {
-                indexProperty:'name',
-                property:'name',
-                searchProperty:'name',
-                type:'string',
-                indexType:'string',
-            },
-            {
-                indexProperty: 'identifier',
-                property:'identifier',
-                searchProperty:'identifier',
-                type:'token',
-                indexType:'token'
-            },
-            {
-                indexProperty: 'tag',
-                property:'tag',
-                searchProperty:'_tag',
-                type:'token',
-                indexType:'token'
-            }
-        ],
-        searchResultParameters:
-        {
-            sort:{
-                _id:'id',
-                _lastUpdated:'lastUpdated',
-                name:'name',
-                'address-postalcode':'address[0].postalCode',
-                identifier:'identifier[0].value'
-            },
-            include:{},
-            revinclude:{
-                'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
-            }
         }
     },
     Subscription:

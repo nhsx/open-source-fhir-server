@@ -5247,6 +5247,278 @@
 							"response": []
 						},
 						{
+							"name": "Create an Encounter resource for Observation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can Create an Encounter resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can Create an Encounter resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Encounter\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can Create an Encounter resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_encounter_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can Create an Organization resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can Create an Encounter resource - Location header is present and in correct format /Encounter/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Encounter/\" + pm.environment.get(\"fhir_created_encounter_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can Create a Encounter resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var uuid = require('uuid');",
+											"pm.environment.set(\"messageId\", uuid.v4());",
+											"pm.environment.set(\"requestId\", uuid.v4());",
+											"",
+											"var moment = require('moment');",
+											"pm.environment.set(\"requestedOn\", moment().utc().format());"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"resourceType\": \"Encounter\",\n    \"meta\": {\n        \"profile\": [\n            \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Encounter-1\"\n        ]\n    },\n    \"identifier\": [\n        {\n            \"system\": \"https://tools.ietf.org/html/rfc4122\",\n            \"value\": \"db00be4b-2f33-4cc3-8eff-4a57e56b185b\"\n        }\n    ],\n    \"status\": \"arrived\",\n    \"class\": {\n        \"system\": \"http://hl7.org/fhir/v3/ActCode\",\n        \"code\": \"IMP\",\n        \"display\": \"inpatient encounter\"\n    },\n    \"subject\": {\n        \"reference\": \"Patient/{{fhir_created_patient_id}}\",\n        \"identifier\": {\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\"value\":\"{{lastTestNHSNumber}}\"}\n    },\n    \"participant\": [\n        {\n            \"type\": [\n                {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v3/ParticipationType\",\n                            \"code\": \"DIS\",\n                            \"display\": \"discharger\"\n                        }\n                    ]\n                }\n            ],\n            \"individual\": {\n                \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n                \"display\": \"Mrs AA Bhatia\"\n            }\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Encounter",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Encounter"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create an Observation resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create an Observation resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create an Observation resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create an Observation resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_observation_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create an Observation resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create an Observation resource - Location header is present and in correct format /Observation/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_observation_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create an Observation resource -  ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"resourceType\": \"Observation\",\n\t\"identifier\": [{\n\t\t\"system\": \"urn:uuid\",\n\t\t\"value\": \"urn:uuid:095c5818-4984-48a2-a47f-230b75c93936\"\n\t},\n\t{\n\t\t\t\t\"system\": \"test\",\n\t\t\"value\": \"1232346\"\n\t}\n\t],\n\t\"status\": \"final\",\n\t\"category\": [{\n\t\t\"coding\": [{\n\t\t\t\"system\": \"http://hl7.org/fhir/observation-category\",\n\t\t\t\"code\": \"vital-signs\",\n\t\t\t\"display\": \"Vital Signs\"\n\t\t}]\n\t}],\n\t\"code\": {\n\t\t\"coding\": [{\n\t\t\t\"system\": \"http://snomed.info/sct\",\n\t\t\t\"code\": \"364589006\",\n\t\t\t\"display\": \"Birth weight\"\n\t\t}]\n\t},\n\t\"subject\": {\n\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\n\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t}\n\n\t},\n\t\"effectiveDateTime\": \"2019-03-09T00:00:00+00:00\",\n\t\"context\": {\n\t\t\"reference\": \"Encounter/{{fhir_created_encounter_id}}\"\n\t},\n\t\"performer\": [{\n\t\t\"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n\t\t\"display\": \"Dr. Julian Bashir\"\n\t}],\n\t\"valueQuantity\": {\n\t\t\"value\": 4,\n\t\t\"unit\": \"kg\",\n\t\t\"system\": \"http://unitsofmeasure.org\",\n\t\t\"code\": \"kg\"\n\t},\n    \"interpretation\": {\n        \"coding\": [\n            {\n                \"system\": \"http://hl7.org/fhir/v2/0078\",\n                \"code\": \"L\",\n                \"display\": \"Low\"\n            }\n        ]\n    }\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create an Observation resource Basophil",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create an Observation resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create an Observation resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create an Observation resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_observation_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create an Observation resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create an Observation resource - Location header is present and in correct format /Observation/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_observation_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create an Observation resource -  ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n                \"resourceType\": \"Observation\",\n                \"status\": \"final\",\n                \"category\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"system\": \"http://hl7.org/fhir/observation-category\",\n                                \"code\": \"laboratory\",\n                                \"display\": \"Laboratory\"\n                            }\n                        ]\n                    }\n                ],\n                \"code\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://snomed.info/sct\",\n                            \"code\": \"1022571000000108\",\n                            \"display\": \"Basophil count\"\n                        }\n                    ]\n                },\n                \"subject\": {\n\t\t\t\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\t\t\t\"identifier\": {\n\t\t\t\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t\t\t\t},\n                \"effectiveDateTime\": \"2019-03-09T00:00:00+00:00\",\n                \"valueQuantity\": {\n                    \"value\": 0.12,\n                    \"unit\": \"10*9/L\",\n                    \"system\": \"http://unitsofmeasure.org\",\n                    \"code\": \"10*9/L\"\n                },\n                \"interpretation\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v2/0078\",\n                            \"code\": \"L\",\n                            \"display\": \"Low\"\n                        }\n                    ]\n                },\n                \"referenceRange\": [\n                    {\n                        \"low\": {\n                            \"value\": 0.02\n                        },\n                        \"high\": {\n                            \"value\": 0.1\n                        }\n                    }\n                ]\n            }\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Can search for AllergyIntolerance resources by patient reference",
 							"event": [
 								{
@@ -5746,6 +6018,773 @@
 										{
 											"key": "_include",
 											"value": "AllergyIntolerance:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Observation resources by patient reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Observation resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Observation resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Observation resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Observation resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Observation resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Observation resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Observation resources by patient reference - resources returned are Observation resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for Observation resources by patient reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation?patient=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Observation resources by patient reference and code",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Observation resources by patient reference and code - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Observation resources by patient reference and code - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Observation resources by patient reference and code - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Observation resources by patient reference and code - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Observation resources by patient reference and code - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Observation resources by patient reference and code - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Observation resources by patient reference and code - resources returned are Observation resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for Observation resources by patient reference and code - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"//test/lab code matches that which is searched for",
+											"pm.test(\"Can search for Observation resources by patient reference and code - lab code matches that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.code.coding[0].code.toString()).to.eql(\"1022571000000108\") &&",
+											"        pm.expect(resource.code.coding[0].system).to.eql(\"http://snomed.info/sct\")",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation?patient=Patient/{{fhir_created_patient_id}}&code=http://snomed.info/sct|1022571000000108",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "code",
+											"value": "http://snomed.info/sct|1022571000000108"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Observation resources by category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Observation resources by category - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Observation resources by category - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Observation resources by category - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Observation resources by category - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Observation resources by category - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Observation resources by category - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Observation resources by category - resources returned are Observation resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//test category is exactly as what was searched for",
+											"pm.test(\"Can search for Observation resources by category - observation category matches that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.category[0].coding[0].code).to.eql(\"laboratory\") &&",
+											"        pm.expect(resource.category[0].coding[0].system).to.eql(\"http://hl7.org/fhir/observation-category\")",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation?category=http://hl7.org/fhir/observation-category|laboratory",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "http://hl7.org/fhir/observation-category|laboratory"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Observation resources by category and include patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Observation resources by category and include patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Observation resources by category and include patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Observation resources by category and include patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Observation resources by category and include patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Observation resources by category and include patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//2 resources are returned in this page...",
+											"pm.test(\"Can search for Observation resources by category and include patient - 2 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Observation resources by category and include patient - 1st resource returned is an Observation resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//test category is exactly as what was searched for",
+											"pm.test(\"Can search for Observation resources by category and include patient - 2nd resource returned is a Patient resource\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation?category=http://hl7.org/fhir/observation-category|laboratory&_include=Observation:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "http://hl7.org/fhir/observation-category|laboratory"
+										},
+										{
+											"key": "_include",
+											"value": "Observation:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Observation resources by category and include Patient, Encounter",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//3 resources are returned in this page...",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - 3 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(3);",
+											"});",
+											"",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - 1st resource returned is an Observation resource\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"//test category is exactly as what was searched for",
+											"pm.test(\"Can search for Observation resources by category and include Patient, Encounter - Encounter and Patient resoures are present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var entries = jsonData.entry;",
+											"    entries.forEach(function(entry) {",
+											"        if(entry.resource.resourceType !== 'Observation') {",
+											"                pm.expect(entry.resource.resourceType).to.satisfy(function(resourceType) {",
+											"                    return resourceType === 'Patient' || resourceType === 'Encounter'",
+											"            });",
+											"        }",
+											"    });",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Observation?category=http://hl7.org/fhir/observation-category|vital-signs&_include=Observation:patient&_include=Observation:encounter",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Observation"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "http://hl7.org/fhir/observation-category|vital-signs"
+										},
+										{
+											"key": "_include",
+											"value": "Observation:patient"
+										},
+										{
+											"key": "_include",
+											"value": "Observation:encounter"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Patient search revinclude Observations",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Patient search revinclude Observations - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Patient search revinclude Observations - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Patient search revinclude Observations - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Patient search revinclude Observations - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can Patient search revinclude Observations - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//3 resources are returned in this page...",
+											"pm.test(\"Can Patient search revinclude Observations - 3 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(3);",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Observations - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Observations - 2 observation resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry[1].resource.resourceType).to.eql(\"Observation\");",
+											"    pm.expect(jsonData.entry[2].resource.resourceType).to.eql(\"Observation\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id={{fhir_created_patient_id}}&_revinclude=Observation:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "Observation:patient"
 										}
 									]
 								}

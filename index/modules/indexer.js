@@ -30,6 +30,7 @@
 */
 
 var moment = require('moment');
+var _ = require('underscore');
 
 var indexer = 
 {
@@ -186,8 +187,8 @@ var indexer =
             var index = {};
             index.global = data.global;
             index.subscripts = [];
-    
-            if(typeof data.indexFrom === 'object')
+            //Context check STOPS references from being indexed as an identifer for a resource... e.g. subject.identifier (wrong)
+            if(data.context.startsWith("identifier") && typeof data.indexFrom === 'object')
             {
                 var tokenData = {
                     propertyName: data.propertyName,
@@ -213,7 +214,7 @@ var indexer =
             if(typeof data.indexFrom === 'object')
             {
                 //Needs to check for presence of coding array (codeable concept)
-                if(data.indexFrom.coding && data.indexFrom.coding.length > 0)
+                if(typeof data.indexFrom.coding !== 'undefined' && data.indexFrom.coding.length > 0)
                 {
                     var context = this;
                     data.indexFrom.coding.forEach(function(codeableConcept) {
@@ -425,6 +426,7 @@ var indexer =
         type:'code',
         class:'code',
         code:'code',
+        category:'code',
         "participant-type":'code'
     },
     sort: function(indexData)
