@@ -5247,6 +5247,584 @@
 							"response": []
 						},
 						{
+							"name": "Can create a Consent resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Consent resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create a Consent resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Consent\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Consent resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_consent_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create an MedicationStatement resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create a Consent resource - Location header is present and in correct format /Consent/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Consent/\" + pm.environment.get(\"fhir_created_consent_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create a Consent resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n                \"resourceType\": \"Consent\",\n                \"identifier\": {\n                    \"system\": \"https://fhir.tpp.co.uk/Consent/Identifier\",\n                    \"value\": \"consent1\"\n                },\n                \"status\": \"active\",\n                \"patient\": {\n                    \"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\t\t\t\"identifier\": {\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\"value\":\"{{lastTestNHSNumber}}\"}\n                },\n                \"dateTime\": \"2019-06-23T23:00:00+00:00\",\n                \"actor\": [\n                    {\n                        \"role\": {\n                            \"coding\": [\n                                {\n                                    \"system\": \"http://hl7.org/fhir/v3/ParticipationType\",\n                                    \"code\": \"PROV\",\n                                    \"display\": \"Healthcare Provider\"\n                                }\n                            ]\n                        },\n                        \"reference\": {\n                            \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n                            \"display\": \"Dr K Rodger\"\n                        }\n                    }\n                ],\n                \"policy\": [\n                    {\n                        \"authority\": \"http://fhir.nhs.uk/Policy/EOLC\"\n                    }\n                ],\n                \"purpose\": [\n                    {\n                        \"system\": \"http://snomed.info/sct\",\n                        \"code\": \"882981000000105\",\n                        \"display\": \"Consent given by legitimate patient representative for sharing end of life care coordination record (finding)\"\n                    }\n                ]\n            }"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Consent",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Consent"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Consent resources by consentor reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Consent resources by consentor reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Consent resources by consentor reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Consent resources by consentor reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Consent resources by consentor reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Consent resources by consentor reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Consent resources by consentor reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Consent resources by consentor reference - resources returned are Consent resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Consent\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for Consent resources by consentor reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.patient.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Consent?consentor=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Consent"
+									],
+									"query": [
+										{
+											"key": "consentor",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Consent resources by patient reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Consent resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Consent resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Consent resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Consent resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Consent resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Consent resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Consent resources by patient reference - resources returned are Consent resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Consent\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for Consent resources by patient reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.patient.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Consent?patient=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Consent"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Patient search revinclude Consent",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Patient search revinclude Consent - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Patient search revinclude Consent - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Patient search revinclude Consent - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Patient search revinclude Consent - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can Patient search revinclude Consent - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can Patient search revinclude Consent - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Consent - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Consent - 1 consent resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Consent\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id={{fhir_created_patient_id}}&_revinclude=Consent:consentor",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "Consent:consentor"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Consent search by status include referenced Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Consent search by status include referenced Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Consent search by status include referenced Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Consent search by status include referenced Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Consent search by status include referenced Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can Consent search by status include referenced Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can Consent search by status include referenced Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can Consent search by status include referenced Patient - 1 MedicationStatement resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Consent\");",
+											"});",
+											"",
+											"pm.test(\"Can Consent search by status include referenced Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Consent?status=active&_include=Consent:consentor",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Consent"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "active"
+										},
+										{
+											"key": "_include",
+											"value": "Consent:consentor"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Create an Encounter resource for Observation",
 							"event": [
 								{
@@ -5341,7 +5919,7 @@
 							"response": []
 						},
 						{
-							"name": "Can create an Observation resource",
+							"name": "Can create an Medication resource",
 							"event": [
 								{
 									"listen": "test",
@@ -5349,35 +5927,35 @@
 										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
 										"exec": [
 											"//Expect 201 created...",
-											"pm.test(\"Can create an Observation resource - 201 returned\", function () {",
+											"pm.test(\"Can create an Medication resource - 201 returned\", function () {",
 											"    pm.response.to.have.status(201);",
 											"});",
 											"//Created resource is returned in body - NOT operation outcome",
-											"pm.test(\"Can create an Observation resource - created resource is returned)\", function () {",
+											"pm.test(\"CCan create an Medication resource - created resource is returned)\", function () {",
 											"    var jsonData = pm.response.json();",
 											"    pm.expect(jsonData.resourceType).to.exist &&",
-											"    pm.expect(jsonData.resourceType).to.eql(\"Observation\");",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Medication\");",
 											"});",
 											"//Service assigned internal ID to resource...",
-											"pm.test(\"Can create an Observation resource - Server assigned physical ID\", function () {",
+											"pm.test(\"Can create an Medication resource - Server assigned physical ID\", function () {",
 											"    var jsonData = pm.response.json();",
 											"        pm.expect(jsonData.id).to.exist;",
 											"    //Set target test patient id...",
-											"    pm.environment.set(\"fhir_created_observation_id\", jsonData.id);",
+											"    pm.environment.set(\"fhir_created_medication_id\", jsonData.id);",
 											"});",
 											"//Meta.versionid is present...",
-											"pm.test(\"Can create an Observation resource - Resource.meta.versionId is present and === 1\", function () {",
+											"pm.test(\"Can create an Medication resource - Resource.meta.versionId is present and === 1\", function () {",
 											"    var jsonData = pm.response.json();",
 											"    pm.expect(jsonData.meta.versionId).to.exist &&",
 											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
 											"});",
 											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
-											"pm.test(\"Can create an Observation resource - Location header is present and in correct format /Observation/[id]/_history/[vid]\", function () {",
+											"pm.test(\"Can create an Medication resource - Location header is present and in correct format /Medication/[id]/_history/[vid]\", function () {",
 											"    ",
 											"    var header = pm.response.headers.get(\"Location\");",
-											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_observation_id\") + \"/_history/1\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_medication_id\") + \"/_history/1\");",
 											"});",
-											"pm.test(\"Can create an Observation resource -  ETag and Last Updated headers are present\", function () {",
+											"pm.test(\"Can create an Medication resource - ETag and Last Updated headers are present\", function () {",
 											"    pm.response.to.have.header(\"ETag\") && ",
 											"        pm.response.to.have.header(\"Last-Modified\");",
 											"});"
@@ -5413,17 +5991,836 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"resourceType\": \"Observation\",\n\t\"identifier\": [{\n\t\t\"system\": \"urn:uuid\",\n\t\t\"value\": \"urn:uuid:095c5818-4984-48a2-a47f-230b75c93936\"\n\t},\n\t{\n\t\t\t\t\"system\": \"test\",\n\t\t\"value\": \"1232346\"\n\t}\n\t],\n\t\"status\": \"final\",\n\t\"category\": [{\n\t\t\"coding\": [{\n\t\t\t\"system\": \"http://hl7.org/fhir/observation-category\",\n\t\t\t\"code\": \"vital-signs\",\n\t\t\t\"display\": \"Vital Signs\"\n\t\t}]\n\t}],\n\t\"code\": {\n\t\t\"coding\": [{\n\t\t\t\"system\": \"http://snomed.info/sct\",\n\t\t\t\"code\": \"364589006\",\n\t\t\t\"display\": \"Birth weight\"\n\t\t}]\n\t},\n\t\"subject\": {\n\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\n\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t}\n\n\t},\n\t\"effectiveDateTime\": \"2019-03-09T00:00:00+00:00\",\n\t\"context\": {\n\t\t\"reference\": \"Encounter/{{fhir_created_encounter_id}}\"\n\t},\n\t\"performer\": [{\n\t\t\"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n\t\t\"display\": \"Dr. Julian Bashir\"\n\t}],\n\t\"valueQuantity\": {\n\t\t\"value\": 4,\n\t\t\"unit\": \"kg\",\n\t\t\"system\": \"http://unitsofmeasure.org\",\n\t\t\"code\": \"kg\"\n\t},\n    \"interpretation\": {\n        \"coding\": [\n            {\n                \"system\": \"http://hl7.org/fhir/v2/0078\",\n                \"code\": \"L\",\n                \"display\": \"Low\"\n            }\n        ]\n    }\n}"
+									"raw": "{\n    \"resourceType\": \"Medication\",\n    \"meta\": {\n        \"profile\": [\n            \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Medication-1\"\n        ]\n    },\n    \"code\": {\n        \"coding\": [\n            {\n                \"system\": \"http://snomed.info/sct\",\n                \"code\": \"13255311000001101\",\n                \"display\": \"Asacol 800mg MR gastro-resistant tablets (Allergan Ltd)\"\n            }\n        ]\n    }\n}"
 								},
 								"url": {
-									"raw": "{{proxy_server_address}}/fhir/stu3/Observation",
+									"raw": "{{proxy_server_address}}/fhir/stu3/Medication",
 									"host": [
 										"{{proxy_server_address}}"
 									],
 									"path": [
 										"fhir",
 										"stu3",
-										"Observation"
+										"Medication"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Medication by code",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Medication by code - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Medication by code - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Medication by code - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Medication by code - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Medication by code - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Medication by code - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Medication by code - resources returned are Medication resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Medication\");",
+											"});",
+											"//test category is exactly as what was searched for",
+											"pm.test(\"Can search for Medication by code - medication code matches that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.category[0].coding[0].code).to.eql(\"13255311000001101\") &&",
+											"        pm.expect(resource.category[0].coding[0].system).to.eql(\"http://snomed.info/sct\")",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Medication?code=http://snomed.info/sct|13255311000001101",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Medication"
+									],
+									"query": [
+										{
+											"key": "code",
+											"value": "http://snomed.info/sct|13255311000001101"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create an MedicationStatement",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create an MedicationStatement resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create an MedicationStatementn resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"MedicationStatement\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create an MedicationStatement resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_medication_statement_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create an MedicationStatement resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create an MedicationStatement resource - Location header is present and in correct format /MedicationStatement/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_medication_statement_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create an MedicationStatement resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"resourceType\": \"MedicationStatement\",\n\t\"meta\": {\n\t\t\"profile\": [\n\t\t\t\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-MedicationStatement-1\"\n\t\t]\n\t},\n\t\"identifier\": [{\n\t\t\"system\": \"https://tools.ietf.org/html/rfc4122\",\n\t\t\"value\": \"154de259-cbd3-4430-aac9-95fdbf19d88e\"\n\t}],\n\t\"status\": \"active\",\n\t\"medicationReference\": {\n\t\t\"reference\": \"Medication/{{fhir_created_medication_id}}\"\n\t},\n\t\"effectiveDataTime\":\"2019-03-09T09:05:00+00:00\",\n\t\"subject\": {\n\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\"value\":\"{{lastTestNHSNumber}}\"}\n\t},\n\t\"taken\": \"y\",\n\t\"dosage\": [{\n\t\t\"text\": \"10mg as necessary\",\n\t\t\"patientInstruction\": \"Not to be taken more frequently than three times a day.\",\n\t\t\"route\": {\n\t\t\t\"coding\": [{\n\t\t\t\t\"system\": \"http://snomed.info/sct\",\n\t\t\t\t\"code\": \"26643006\",\n\t\t\t\t\"display\": \"Oral\"\n\t\t\t}]\n\t\t}\n\t}]\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"MedicationStatement"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for MedicationStatement resources by MedicationStatement Identifier",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for MedicationStatement resources by MedicationStatement Identifier - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement?identifier=https://tools.ietf.org/html/rfc4122|154de259-cbd3-4430-aac9-95fdbf19d88e",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"MedicationStatement"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://tools.ietf.org/html/rfc4122|154de259-cbd3-4430-aac9-95fdbf19d88e"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for MedicationStatement resources by patient reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - resources returned are AllergyIntolerance resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"MedicationStatement\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for MedicationStatement resources by patient reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement?patient=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"MedicationStatement"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for MedicationStatement resources by patient nhs number",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for MedicationStatement resources by patient nhs number - resources returned are MedicationStatement resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"MedicationStatement\");",
+											"});",
+											"//NHS number matches that of the NHS number searched for",
+											"pm.test(\"Can Search FHIR MedicationStatement Resources by NHS Number - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.identifier.value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement?patient=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"MedicationStatement"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Patient search revinclude MedicationStatement",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude MedicationStatement - 1 medication statement resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"MedicationStatement\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id={{fhir_created_patient_id}}&_revinclude=MedicationStatement:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "MedicationStatement:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can MedicationStatement search by status include referenced Medication and Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 2...",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 3 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(3);",
+											"});",
+											"",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 1 MedicationStatement resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"MedicationStatement\");",
+											"});",
+											"",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 1 Medication resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Medication\");",
+											"});",
+											"",
+											"pm.test(\"Can MedicationStatement search by status include referenced Medication and Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[2].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement?status=active&_include=MedicationStatement:medication&_include=MedicationStatement:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"MedicationStatement"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "active"
+										},
+										{
+											"key": "_include",
+											"value": "MedicationStatement:medication"
+										},
+										{
+											"key": "_include",
+											"value": "MedicationStatement:patient"
+										}
 									]
 								}
 							},
@@ -5840,11 +7237,7 @@
 									"script": {
 										"id": "894473ea-c452-4d94-b9f7-75191b290674",
 										"exec": [
-											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
-											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
-											"    resultIds = [];",
-											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
-											"}"
+											""
 										],
 										"type": "text/javascript"
 									}

@@ -73,6 +73,72 @@ var resources =
             }
         }
     },
+    Consent:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'patient',
+                property:'patient',
+                searchProperty:'consentor',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'patient',
+                property:'patient',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                dateTime:'dateTime'
+            },
+            include:{
+                'Consent:patient':{resourceType:'Patient',reference:'patient'},
+                'Consent:consentor':{resourceType:'Patient',reference:'patient'}
+            },
+            revinclude:{}
+        }
+    },
     Encounter:
     {
         searchParameters:[
@@ -584,8 +650,10 @@ var resources =
                 'Patient:organization':{resourceType:'Organization',reference:'managingOrganization'}
             },
             revinclude:{
-                'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
+                'Consent:consentor':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
+                'Consent:patient':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
+                'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
                 'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'}
             }
