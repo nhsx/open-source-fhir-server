@@ -195,6 +195,117 @@ var resources =
             }
         }
     },
+    Medication:{
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'code',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{},
+            revinclude:{
+                'MedicationStatement:medicationReference':{resourceType:'Medication',reference:'medicationReference'}
+                    
+            }
+        }
+    },
+    MedicationStatement:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'effectiveDateTime',
+                property:'effectiveDateTime',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                date:'effectiveDateTime',
+                identifier:'identifier[0].value'
+            },
+            include:{
+                'MedicationStatement:medication':{resourceType:'Medication',reference:'medicationReference'},
+                'MedicationStatement:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{}
+        }
+    },
     Observation:{
         searchParameters:[
             {
@@ -475,7 +586,8 @@ var resources =
             revinclude:{
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
-                'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'}
+                'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
+                'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'}
             }
         }
     },
