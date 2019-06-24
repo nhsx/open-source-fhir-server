@@ -1625,6 +1625,84 @@
 							"response": []
 						},
 						{
+							"name": "Can create a Location resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65282cbb-c6e9-4b48-9692-7a433c4bdcb3",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Location resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create a Location resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Location\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Location resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_location_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create a Location resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create a Location resource - Location header is present and in correct format /Location/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Location/\" + pm.environment.get(\"fhir_created_location_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can Create a Location resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "content-type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n                \"resourceType\": \"Location\",\n                \"meta\": {\n                    \"profile\": [\n                        \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Location-1\"\n                    ]\n                },\n                \"identifier\": [\n                    {\n                        \"use\": \"usual\",\n                        \"system\": \"https://fhir.nhs.uk/Id/ods-site-code\",\n                        \"value\": \"RTG08\"\n                    }\n                ],\n                \"name\": \"Long Eaton Clinic\",\n                \"type\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v3/RoleCode\",\n                            \"code\": \"CSC\",\n                            \"display\": \"community service center\"\n                        }\n                    ]\n                },\n                \"telecom\": [\n                    {\n                        \"system\": \"phone\",\n                        \"value\": \"0115 855 4034\",\n                        \"use\": \"work\"\n                    },\n                    {\n                        \"system\": \"fax\",\n                        \"value\": \"0532 123 4567\",\n                        \"use\": \"work\"\n                    }\n                ],\n                \"address\": {\n                    \"use\": \"home\",\n                    \"type\": \"postal\",\n                    \"line\": [\n                        \"Midland Street\",\n                        \"Long Eaton\"\n                    ],\n                    \"city\": \"Nottingham\",\n                    \"district\": \"Derbyshire\",\n                    \"postalCode\": \"NG10 1RY\"\n                },\n                \"physicalType\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/location-physical-type\",\n                            \"code\": \"bu\",\n                            \"display\": \"Building\"\n                        }\n                    ]\n                },\n                \"managingOrganization\": {\n                    \"reference\": \"Organization/{{fhir_created_organization_id}}\",\n                    \"display\": \"Derby Teaching Hospitals NHS Foundation Trust\"\n                }\n            }"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Location",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Location"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Can create a Practitioner resource",
 							"event": [
 								{
@@ -2515,6 +2593,172 @@
 										"fhir",
 										"stu3",
 										"Encounter"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Location by ODS site code and include Organization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a patient...",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"//ODS Code === ods code searched for",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - ods site code === ods site code searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].value).to.eql(\"RTG08\");",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each Location is set to \"match\"",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - search mode for each patient resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Location') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											"//Only one organisation is included (the search set contains references to the same practitioner resource)",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - only 1 unique Organisation resource is included\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationCount = 0;",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationCount++;",
+											"         }",
+											"    });",
+											"    pm.expect(organizationCount).to.eql(1);  ",
+											"});",
+											"//Entry search mode for organisation is set to \"include\"",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - search mode for each patient resource === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            pm.expect(entry.search.mode).to.eql('include');  ",
+											"         }",
+											"    });",
+											"});",
+											"//The correct organisation resource is included",
+											"pm.test(\"Can search for Location by ODS site code and include Organization - Organisation resource included is referenced by the Patient entries\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var organizationReferenceId = \"Organization/\";",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Organization') {",
+											"            organizationReferenceId = organizationReferenceId + entry.resource.id;",
+											"         }",
+											"    });",
+											"       jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Patient') {",
+											"            pm.expect(entry.resource.managingOrganization.reference).to.eql(organizationReferenceId);",
+											"         }",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Location?identifier=https://fhir.nhs.uk/Id/ods-site-code|RTG08&_include=Location:organization",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Location"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.nhs.uk/Id/ods-site-code|RTG08"
+										},
+										{
+											"key": "_include",
+											"value": "Location:organization"
+										}
 									]
 								}
 							},
@@ -5748,7 +5992,7 @@
 											"    pm.expect(jsonData.entry.length).to.eql(2);",
 											"});",
 											"",
-											"pm.test(\"Can Consent search by status include referenced Patient - 1 MedicationStatement resource is returned\", function () {",
+											"pm.test(\"Can Consent search by status include referenced Patient - 1 Consent resource is returned\", function () {",
 											"    var jsonData = pm.response.json();",
 											"    var resource = jsonData.entry[0].resource;",
 											"    pm.expect(resource.resourceType).to.eql(\"Consent\");",
@@ -6899,7 +7143,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n                \"resourceType\": \"Observation\",\n                \"status\": \"final\",\n                \"category\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"system\": \"http://hl7.org/fhir/observation-category\",\n                                \"code\": \"laboratory\",\n                                \"display\": \"Laboratory\"\n                            }\n                        ]\n                    }\n                ],\n                \"code\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://snomed.info/sct\",\n                            \"code\": \"1022571000000108\",\n                            \"display\": \"Basophil count\"\n                        }\n                    ]\n                },\n                \"subject\": {\n\t\t\t\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\t\t\t\"identifier\": {\n\t\t\t\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t\t\t\t},\n                \"effectiveDateTime\": \"2019-03-09T00:00:00+00:00\",\n                \"valueQuantity\": {\n                    \"value\": 0.12,\n                    \"unit\": \"10*9/L\",\n                    \"system\": \"http://unitsofmeasure.org\",\n                    \"code\": \"10*9/L\"\n                },\n                \"interpretation\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v2/0078\",\n                            \"code\": \"L\",\n                            \"display\": \"Low\"\n                        }\n                    ]\n                },\n                \"referenceRange\": [\n                    {\n                        \"low\": {\n                            \"value\": 0.02\n                        },\n                        \"high\": {\n                            \"value\": 0.1\n                        }\n                    }\n                ]\n            }\n}"
+									"raw": "{\n                \"resourceType\": \"Observation\",\n                \"status\": \"final\",\n                \"category\": [\n                    {\n                        \"coding\": [\n                            {\n                                \"system\": \"http://hl7.org/fhir/observation-category\",\n                                \"code\": \"laboratory\",\n                                \"display\": \"Laboratory\"\n                            }\n                        ]\n                    }\n                ],\n                \"code\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://snomed.info/sct\",\n                            \"code\": \"1022571000000108\",\n                            \"display\": \"Basophil count\"\n                        }\n                    ]\n                },\n                \"subject\": {\n\t\t\t\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\t\t\t\"identifier\": {\n\t\t\t\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t\t\t\t}\n                },\n                \"effectiveDateTime\": \"2019-03-09T00:00:00+00:00\",\n                \"valueQuantity\": {\n                    \"value\": 0.12,\n                    \"unit\": \"10*9/L\",\n                    \"system\": \"http://unitsofmeasure.org\",\n                    \"code\": \"10*9/L\"\n                },\n                \"interpretation\": {\n                    \"coding\": [\n                        {\n                            \"system\": \"http://hl7.org/fhir/v2/0078\",\n                            \"code\": \"L\",\n                            \"display\": \"Low\"\n                        }\n                    ]\n                },\n                \"referenceRange\": [\n                    {\n                        \"low\": {\n                            \"value\": 0.02\n                        },\n                        \"high\": {\n                            \"value\": 0.1\n                        }\n                    }\n                ]\n            }"
 								},
 								"url": {
 									"raw": "{{proxy_server_address}}/fhir/stu3/Observation",
@@ -8178,6 +8422,605 @@
 										{
 											"key": "_revinclude",
 											"value": "Observation:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create a Condition resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Condition resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create a Condition resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Condition\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Condition resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_condition_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create a Condition resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create a Condition resource - Location header is present and in correct format /Condition/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Patient/\" + pm.environment.get(\"fhir_created_condition_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create a Condition resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"resourceType\": \"Condition\",\n\t\"meta\": {\n\t\t\"profile\": [\n\t\t\t\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1\"\n\t\t]\n\t},\n\t\"identifier\": [{\n\t\t\"system\": \"https://fhir.leedsth.nhs.uk/Id/condition\",\n\t\t\"value\": \"10046\"\n\t}],\n\t\"clinicalStatus\": \"recurrence\",\n    \"category\": [\n        {\n            \"coding\": [\n                {\n                    \"system\": \"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1\",\n                    \"code\": \"encounter-diagnosis\",\n                    \"display\": \"Encounter Diagnosis\"\n                }\n            ],\n            \"text\": \"Encounter Diagnosis\"\n        }\n    ],\n\t\"code\": {\n\t\t\"coding\": [{\n\t\t\t\"system\": \"http://snomed.info/sct\",\n\t\t\t\"code\": \"452071000000109\",\n\t\t\t\"display\": \"Problems with sight\"\n\t\t}],\n\t\t\"text\": \"Problems with sight\"\n\t},\n\t\"subject\": {\n\t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\n\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t}\n\t},\n\t\"onsetDateTime\": \"2018-07-31T23:00:00+00:00\",\n\t\"assertedDate\": \"2018-07-31T23:00:00+00:00\",\n\t\"context\": {\n\t\t\"reference\": \"Encounter/{{fhir_created_encounter_id}}\"\n\t},\n\t\"asserter\": {\n\t\t\"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\n\t\t\"display\": \"Dr JE Fildes\"\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Condition",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Condition"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can Patient search revinclude Condition",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Patient search revinclude Condition - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Patient search revinclude Condition - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can Patient search revinclude Condition - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Patient search revinclude Condition - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can Patient search revinclude Condition - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//3 resources are returned in this page...",
+											"pm.test(\"Can Patient search revinclude Condition - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Condition - 1 patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"pm.test(\"Can Patient search revinclude Condition - 1 condition resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry[1].resource.resourceType).to.eql(\"Condition\");",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id={{fhir_created_patient_id}}&_revinclude=Condition:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_patient_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "Condition:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Condition by category and include referenced Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - Category code === that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.category[0].coding[0].code).to.eql(\"encounter-diagnosis\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 1 Condition resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Condition\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by category and include referenced Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Condition?category=https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1|encounter-diagnosis&_include=Condition:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Condition"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1|encounter-diagnosis"
+										},
+										{
+											"key": "_include",
+											"value": "Condition:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Condition by status and include referenced Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - Category code === that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.clinicalStatus).to.eql(\"recurrence\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 1 Condition resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Condition\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by status and include referenced Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Condition?clinical-status=recurrence&_include=Condition:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Condition"
+									],
+									"query": [
+										{
+											"key": "clinical-status",
+											"value": "recurrence"
+										},
+										{
+											"key": "_include",
+											"value": "Condition:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Condition by identifier and include referenced Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - identifier system and value === that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].system).to.eql(\"https://fhir.leedsth.nhs.uk/Id/condition\") && pm.expect(resource.identifier[0].value.toString()).to.eql(\"10046\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 Condition resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Condition\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Condition?identifier=https://fhir.leedsth.nhs.uk/Id/condition|10046&_include=Condition:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Condition"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.leedsth.nhs.uk/Id/condition|10046"
+										},
+										{
+											"key": "_include",
+											"value": "Condition:patient"
 										}
 									]
 								}

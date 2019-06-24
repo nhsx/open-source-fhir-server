@@ -73,6 +73,93 @@ var resources =
             }
         }
     },
+    Condition: {
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'asserter',
+                property:'asserter',
+                searchProperty:'asserter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'assertedDate',
+                property:'assertedDate',
+                searchProperty:'asserted-date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'category',
+                property:'category',
+                searchProperty:'category',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'clinicalStatus',
+                property:'clinicalStatus',
+                searchProperty:'clinical-status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'code',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'Condition:patient':{resourceType:'Patient',reference:'subject'},
+                'Condition:encounter':{resourceType:'Encounter',reference:'context'},
+                'Condition:asserter':{resourceType:'Practitioner',reference:'asserter'}
+            },
+            revinclude:{}
+        }
+    },
     Consent:{
         searchParameters:[
             {
@@ -257,8 +344,69 @@ var resources =
                 'Encounter:patient':{resourceType:'Patient',reference:'subject'}
             },
             revinclude:{
-                'Observation:encounter':{resourceType:'Observation',reference:'Encounter'}
+                'Observation:encounter':{resourceType:'Observation',reference:'Context'},
+                'Condition:encounter':{resourceType:'Condition',reference:'Context'}
             }
+        }
+    },
+    Location:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'name',
+                property:'name',
+                searchProperty:'name',
+                type:'string',
+                indexType:'string',
+            },
+            {
+                indexProperty:'postalCode',
+                property:'postalCode',
+                searchProperty:'address-postalcode',
+                type:'string',
+                indexType:'string'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                name:'name',
+                'address-postalcode':'address[0].postalCode',
+                identifier:'identifier[0].value'
+            },
+            include:{
+                'Location:organization':{resourceType:'Organization',reference:'managingOrganization'}
+            },
+            revinclude:{}
         }
     },
     Medication:{
@@ -651,6 +799,7 @@ var resources =
             },
             revinclude:{
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
+                'Condition:patient':{resourceType:'Condition',reference:'Subject',referenceType:'Patient'},
                 'Consent:consentor':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Consent:patient':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
