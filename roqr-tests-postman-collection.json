@@ -9026,6 +9026,738 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Can create a Procedure resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Procedure resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create a Procedure resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Procedure\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Procedure resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_procedure_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create a Procedure resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create a Procedure resource - Location header is present and in correct format /Procedure/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Procedure/\" + pm.environment.get(\"fhir_created_procedure_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can create a Procedure resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": " {\n \t\"resourceType\": \"Procedure\",\n \t\"meta\": {\n \t\t\"profile\": [\n \t\t\t\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Procedure-1\"\n \t\t]\n \t},\n \t\"identifier\": [{\n \t\t\"system\": \"https://fhir.leedsth.nhs.uk/Id/procedure\",\n \t\t\"value\": \"100009\"\n \t}],\n \t\"status\": \"completed\",\n \t\"notDone\": false,\n\t\"category\": {\n        \"coding\": [\n            {\n                \"system\": \"http://snomed.info/sct\",\n                \"code\": \"387713003\",\n                \"display\": \"Surgical procedure\"\n            }\n        ]\n    },\n    \"code\": {\n        \"coding\": [\n            {\n                \"system\": \"http://snomed.info/sct\",\n                \"code\": \"713348007\",\n                \"display\": \"Thermoplasty of bronchus\"\n            }\n        ]\n    },\n \t\"subject\": {\n \t\t\"reference\": \"Patient/{{fhir_created_patient_id}}\",\n\t\t\"identifier\": {\n\t\t\t\"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\n\t\t\t\"value\": \"{{lastTestNHSNumber}}\"\n\t\t}\n \t},\n \t\"context\": {\n \t\t\"reference\": \"Encounter/{{fhir_created_encounter_id}}\"\n \t},\n \t\"performedDateTime\": \"2019-06-24T09:15:00+00:00\",\n \t\"performer\": [\n            {\n                \"actor\": {\n                    \"reference\": \"Organisation/{{fhir_created_organization_id}}\",\n                    \"display\": \"LEEDS TEACHING HOSPITALS NHS TRUST\"\n                }\n            }\n        ]\n }"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Procedure",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Procedure"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Procedure by identifier and include referenced Patient",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient - identifier system and value === that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].system).to.eql(\"https://fhir.leedsth.nhs.uk/Id/procedure\") && pm.expect(resource.identifier[0].value.toString()).to.eql(\"100009\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 Condition resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Procedure\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Condition by identifier and include referenced Patient - 1 Patient resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Procedure?identifier=https://fhir.leedsth.nhs.uk/Id/procedure|100009&_include=Procedure:patient",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Procedure"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.leedsth.nhs.uk/Id/procedure|100009"
+										},
+										{
+											"key": "_include",
+											"value": "Procedure:patient"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Procedure by identifier and include referenced Patient, Encounter",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - 3 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(3);",
+											"});",
+											"",
+											"pm.test(\"Can search for Procedure by identifier and include referenced Patient, Encounter - identifier system and value === that which was searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].system).to.eql(\"https://fhir.leedsth.nhs.uk/Id/procedure\") && pm.expect(resource.identifier[0].value.toString()).to.eql(\"100009\");",
+											"});",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Procedure?identifier=https://fhir.leedsth.nhs.uk/Id/procedure|100009&_include=Procedure:patient&_include=Procedure:encounter",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Procedure"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.leedsth.nhs.uk/Id/procedure|100009"
+										},
+										{
+											"key": "_include",
+											"value": "Procedure:patient"
+										},
+										{
+											"key": "_include",
+											"value": "Procedure:encounter"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Procedure resources by patient reference",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Procedure resources by patient reference - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Procedure resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 links are present in results...",
+											"pm.test(\"Can search for Procedure resources by patient reference - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Procedure resources by patient reference - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Procedure resources by patient reference - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Procedure resources by patient reference - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Procedure resources by patient reference - resources returned are Observation resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Procedure\");",
+											"});",
+											"",
+											"//Returned resource reference matches that of patient...",
+											"pm.test(\"Can search for Procedure resources by patient reference - patient id === patient id searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.reference).to.eql('Patient/' + pm.environment.get(\"fhir_created_patient_id\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Procedure?patient=Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Procedure"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "Patient/{{fhir_created_patient_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Procedure resources by patient nhs number",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - resources returned are Procedure resources\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Procedure\");",
+											"});",
+											"//NHS number matches that of the NHS number searched for",
+											"pm.test(\"Can search for Procedure resources by patient nhs number - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.subject.identifier.value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Procedure?patient=https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Procedure"
+									],
+									"query": [
+										{
+											"key": "patient",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|{{lastTestNHSNumber}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Encounter resources by id and revinclude Procedures",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//5 links are present in results...",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Bundle total === 1...",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - Bundle total === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total).to.eql(1);",
+											"});",
+											"//1 resources are returned in this page...",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 2 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(2);",
+											"});",
+											"",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 1st resource returned is an Encounter resource\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Encounter\");",
+											"});",
+											"",
+											"",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - Encounter search mode === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var entry = jsonData.entry[0];",
+											"    pm.expect(entry.search.mode).to.eql('match');",
+											"});",
+											"",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - 2nd resource returned is a Proecure resource\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.resourceType).to.eql(\"Procedure\");",
+											"});",
+											"",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - Procedure references correct Encounter\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[1].resource;",
+											"    pm.expect(resource.context.reference).to.eql('Encounter/' + jsonData.entry[0].resource.id);",
+											"});",
+											"",
+											"pm.test(\"Can search for Encounter resources by id and revinclude Procedures - Procedure search mode === 'include'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var entry = jsonData.entry[1];",
+											"    pm.expect(entry.search.mode).to.eql('include');",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
+											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
+											"    resultIds = [];",
+											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Encounter?_id={{fhir_created_encounter_id}}&_revinclude=Procedure:encounter",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Encounter"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "{{fhir_created_encounter_id}}"
+										},
+										{
+											"key": "_revinclude",
+											"value": "Procedure:encounter"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true

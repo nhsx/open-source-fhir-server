@@ -132,6 +132,13 @@ var resources =
                 indexType:'token'
             },
             {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
                 indexProperty:'identifier',
                 property:'identifier',
                 searchProperty:'identifier',
@@ -344,8 +351,10 @@ var resources =
                 'Encounter:patient':{resourceType:'Patient',reference:'subject'}
             },
             revinclude:{
-                'Observation:encounter':{resourceType:'Observation',reference:'Context'},
-                'Condition:encounter':{resourceType:'Condition',reference:'Context'}
+                'Condition:encounter':{resourceType:'Condition',reference:'Context', referenceType:'Encounter'},
+                'MedicationStatement:encounter':{resourceType:'MedicationStatement',reference:'Context',referenceType:'Encounter'},
+                'Observation:encounter':{resourceType:'Observation',reference:'Context',referenceType:'Encounter'},
+                'Procedure:encounter':{resourceType:'Procedure',reference:'Context',referenceType:'Encounter'}
             }
         }
     },
@@ -475,6 +484,13 @@ var resources =
                 searchProperty:'_tag',
                 type:'token',
                 indexType:'token'
+            },
+            {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
             },
             {
                 indexProperty: 'identifier',
@@ -791,7 +807,8 @@ var resources =
                 family:'name[0].family',
                 given:'name[0].given[0]',
                 birthDate:'birthDate',
-                gender:'gender'
+                gender:'gender',
+                identifier:'identifier[0].value'
             },
             include:{
                 'Patient:general-practitioner':{resourceType:'Practitioner',reference:'generalPractitioner'},
@@ -803,8 +820,9 @@ var resources =
                 'Consent:consentor':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Consent:patient':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
+                'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'},
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
-                'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'}
+                'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'}
             }
         }
     },
@@ -1026,6 +1044,100 @@ var resources =
             revinclude:{}
         }
     },
+    Procedure: {
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'category',
+                property:'category',
+                searchProperty:'category',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'code',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'performedDateTime',
+                property:'performedDateTime',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'performedDate',
+                property:'performedDate',
+                searchProperty:'date',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                performedDateTime:'performedDateTime'
+            },
+            include:{
+                'Procedure:patient':{resourceType:'Patient',reference:'subject'},
+                'Procedure:encounter':{resourceType:'Encounter',reference:'context'}
+            },
+            revinclude:{}
+        }
+    },
     Subscription:
         {
             searchParameters:
@@ -1077,6 +1189,15 @@ var resources =
                     indexType:'uri'
                 }
             ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+            },
+            include:{},
+            revinclude:{}
+        }
     }
 }
 
