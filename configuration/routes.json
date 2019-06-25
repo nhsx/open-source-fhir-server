@@ -14,7 +14,7 @@
     "authenticate":false
   },
   {
-    "uri":"/api/v1/auth/validate",
+    "uri":"/services/v1/auth/validate",
     "method":"POST",
     "handler":"validate",
     "on_microservice":"authentication",

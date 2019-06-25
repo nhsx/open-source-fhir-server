@@ -53,7 +53,7 @@ var fhirInteractionServicePipeline = {
         request.pipeline = ["fhir"];
         request.routes = [
             /*{
-                paths:{path:"/api/v1/auth/validate"}
+                paths:{path:"/services/v1/auth/validate"}
             },*/
             {
                 paths:{path: "/services/v1/adapters/repo/create"}

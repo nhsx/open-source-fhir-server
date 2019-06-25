@@ -42,21 +42,22 @@ module.exports = function(args, finished) {
 
     try
     {
-        var grant_type = args.req.headers['grant_type'] || undefined;
-        var clientId = args.req.headers['client_id'] || undefined;
-        var clientSecret = args.req.headers['client_secret'] || undefined;
-        //finished(args);
-        if(typeof grant_type === 'undefined' || typeof clientId === 'undefined' || typeof clientSecret === 'undefined') {
+       var credentials = args.req.body;
+       if(typeof credentials === 'undefined' || _.isEmpty(credentials)) {
             finished(dispatcher.error.unauthorized(request));
+       }
+       
+        //var grant_type = args.req.headers['grant_type'] || undefined;
+        var clientId = credentials.client_id || undefined;
+        var clientSecret = credentials.client_secret || undefined;
+
+        if(typeof clientId === 'undefined' || typeof clientSecret === 'undefined') {
+            finished(dispatcher.error.unauthorized(request)); 
         }
         else {
             var registeredClient = this.db.use('clients', clientId);
-            if(!registeredClient.exists)
-            {
-                finished(dispatcher.error.unauthorized(request));
-            }
-            
             registeredClient = registeredClient.getDocument(true);
+            
             if(registeredClient.revoked === true) {
                 finished(dispatcher.error.unauthorized(request));
             }

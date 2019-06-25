@@ -35,7 +35,7 @@ var moment = require('moment');
 var dispatcher =  {
     messageMap:
     {
-        "/api/v1/auth/validate":function(request, message, route) {
+        "/services/v1/auth/validate":function(request, message, route) {
             message.operation = "TOKEN-VALIDATE";
             request.body = message;
         },

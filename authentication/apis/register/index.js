@@ -64,6 +64,8 @@ module.exports = function(args,finished) {
         registeredClients.$(registeredClient.id).setDocument(registeredClient);
         //Update client id of DTO (data transfer object)...
         client.id = registeredClient.id;
+        //Delete the client secret - the client should have a record of this!
+        delete client.secret;
         //Return DTO...
         finished(dispatcher.getResponseMessage(request,{results: client}));
     } 

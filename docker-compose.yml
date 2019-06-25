@@ -88,7 +88,7 @@ services:
     - microservice=publisher
    ports:
     - 9006:8080
-
+    
  tests:
    image: rtweed/qewd-server
    container_name: tests
@@ -98,3 +98,10 @@ services:
     - microservice=tests
    ports:
     - 6666:8080
+
+ #roqr-dev-proxy:
+   #image: synanetics/roqr-dev-proxy
+   #container_name: roqr-dev-proxy
+   #ports:
+    #- 8082:80
+    #- 8443:443

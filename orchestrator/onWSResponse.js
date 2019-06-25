@@ -26,7 +26,7 @@ module.exports = function(req, res, next) {
         if(req.originalUrl.indexOf("fhir") > -1) {
             var responseHandlers = responders["fhir"];
             var responseHandler = responseHandlers[req.method.toLowerCase()];
-            responseHandler(msg,req,res);
+            responseHandler(msg, req, res);
         } else if(req.originalUrl.indexOf("token") > -1) {
             res.send(msg);
         } else {
