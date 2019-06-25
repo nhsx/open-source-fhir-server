@@ -32,6 +32,7 @@
 
 var moment = require('moment');
 var uuid = require('uuid');
+var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 function isEmptyObject(obj) {
@@ -66,6 +67,11 @@ module.exports = function(args, finished) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
         }
 
+        var server = request.server;
+        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)) {
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Server configuration is not available'));
+        }
+
         //Add an id property to the resource before persisting...
         if (typeof resource.id === 'undefined' || resource.id.length === 0) resource.id = uuid.v4();
         //Set meta/version id...
@@ -74,6 +80,16 @@ module.exports = function(args, finished) {
           resource.meta.versionId = '1';
           resource.meta.lastUpdated = moment().utc().format();
         }
+        //Set source _tag...
+        var source = _.find(server.sources,function(source) { return source.target === 'repo';});
+        resource.meta.tag = resource.meta.tag || [];
+        resource.meta.tag.push(
+          {
+            system:source.tag.system,
+            code:source.tag.code,
+            display:source.tag.display
+          }
+        );
         //Persist resource...
         var doc = this.db.use(resource.resourceType);
         doc.$(resource.id).setDocument(resource);

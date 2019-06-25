@@ -19,6 +19,16 @@ services:
   ports:
    - 8081:8080
 
+ authentication:
+  image: rtweed/qewd-server
+  container_name: authentication
+  volumes: 
+    - ~/Repos/open-source-fhir-server:/opt/qewd/mapped
+  environment:
+    - microservice=authentication
+  ports:
+    - 9000:8080
+
  repoadapter:
    image: rtweed/qewd-server
    container_name: repoadapter

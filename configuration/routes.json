@@ -1,5 +1,30 @@
 [
   {
+    "uri":"/api/v1/auth/token",
+    "method":"POST",
+    "handler":"token",
+    "on_microservice":"authentication",
+    "authenticate":false
+  },
+  {
+    "uri":"/api/v1/auth/register",
+    "method":"POST",
+    "handler":"register",
+    "on_microservice":"authentication",
+    "authenticate":false
+  },
+  {
+    "uri":"/api/v1/auth/validate",
+    "method":"POST",
+    "handler":"validate",
+    "on_microservice":"authentication",
+    "from_microservices":[
+      "tests",
+      "fhir"
+    ],
+    "authenticate":false
+  },
+  {
     "uri":"/fhir/stu3/",
     "method":"GET",
     "handler":"searchset",
@@ -53,7 +78,6 @@
     "method":"POST",
     "handler":"create",
     "on_microservice":"responder",
-    "authenticate":false,
     "from_microservices":[
       "tests",
       "fhir",
@@ -61,7 +85,8 @@
       "repo",
       "repoadapter",
       "search"
-    ]
+    ],
+    "authenticate":false
   },
   {
     "uri":"/services/v1/adapters/repo/create",
@@ -70,6 +95,7 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "fhir",
       "index"
     ],
@@ -82,6 +108,7 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "fhir"
     ],
     "authenticate":false
@@ -100,6 +127,7 @@
     "on_microservice": "repo",
     "from_microservices":[
       "tests",
+      "authentication",
       "repo",
       "repoadapter"
     ],
@@ -112,6 +140,7 @@
     "on_microservice": "repo",
     "from_microservices":[
       "tests",
+      "authentication",
       "repoadapter"
     ],
     "authenticate": false
@@ -130,10 +159,11 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "fhir",
       "index"
     ],
-    "authenticate":false
+    "authenticate": false
   },
   {
     "uri":"/services/v1/adapters/repo/search",
@@ -142,6 +172,7 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "fhir",
       "index",
       "search"
@@ -155,6 +186,7 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "fhir"
     ],
     "authenticate":false
@@ -166,6 +198,7 @@
     "on_microservice": "repo",
     "from_microservices":[
       "tests", 
+      "authentication",
       "repoadapter"
     ],
     "authenticate": false
@@ -177,11 +210,12 @@
     "on_microservice":"repoadapter",
     "from_microservices":[
       "tests",
+      "authentication",
       "index",
       "repo",
       "search"
     ],
-    "authenticate":false
+    "authenticate": false
   },
   {
     "uri": "/api/v1/tests/repo/search",
@@ -197,6 +231,7 @@
     "on_microservice": "repo",
     "from_microservices":[
       "tests", 
+      "authentication",
       "repoadapter"
     ],
     "authenticate": false
@@ -215,6 +250,7 @@
     "on_microservice": "repo",
     "from_microservices":[
       "tests", 
+      "authentication",
       "repoadapter",
       "index",
       "search"
@@ -235,6 +271,7 @@
     "on_microservice": "index",
     "from_microservices":[
       "tests",
+      "authentication",
       "repo"
     ],
     "authenticate": false
@@ -252,7 +289,8 @@
     "handler": "read",
     "on_microservice": "index",
     "from_microservices":[
-      "tests"
+      "tests",
+      "authentication"
     ],
     "authenticate": false
   }, 
@@ -269,7 +307,8 @@
     "handler": "read",
     "on_microservice": "index",
     "from_microservices":[
-      "tests"
+      "tests",
+      "authentication"
     ],
     "authenticate": false
   },
@@ -280,6 +319,7 @@
     "on_microservice": "index",
     "from_microservices":[
       "tests",
+      "authentication",
       "repo"
     ],
     "authenticate": false
@@ -298,6 +338,7 @@
     "on_microservice": "index",
     "from_microservices":[
       "tests",
+      "authentication",
       "repoadapter",
       "repo",
       "search"
@@ -330,6 +371,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "repo"
     ],
     "authenticate": false
@@ -348,6 +390,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "repoadapter",
       "search"
     ],
@@ -367,6 +410,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "search"
     ],
     "authenticate": false
@@ -385,6 +429,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "search"
     ],
     "authenticate": false
@@ -403,6 +448,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "repo",
       "search"
     ],
@@ -422,6 +468,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "search"
     ],
     "authenticate": false
@@ -440,6 +487,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "search"
     ],
     "authenticate": false
@@ -451,6 +499,7 @@
     "on_microservice": "search",
     "from_microservices":[
       "tests",
+      "authentication",
       "index"
     ],
     "authenticate": false

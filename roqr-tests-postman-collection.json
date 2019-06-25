@@ -1625,6 +1625,404 @@
 							"response": []
 						},
 						{
+							"name": "Can create a Policy resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65282cbb-c6e9-4b48-9692-7a433c4bdcb3",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Policy resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can create a Policy resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Policy\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Policy resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_policy_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can Create an Organization resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can Create an Organization resource - Location header is present and in correct format /Policy/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Policy/\" + pm.environment.get(\"fhir_created_policy_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can Create a Policy resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "content-type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"resourceType\": \"Policy\",\n    \"status\": \"active\",\n    \"name\": \"Test Helm Privacy 13\",\n    \"narrative\": \"###text body ###\",\n    \"basis\": \"inclusive\",\n    \"scope\": \"global\",\n    \"action\": \"nothing\",\n    \"rule\": [\n        {\n            \"access\": {\n                \"organization\": {\n                    \"reference\": \"Organization/{{fhir_created_organization_id}}\"\n                }\n            },\n            \"data\": [\n                {\n                    \"resource\": \"Patient\"\n                }\n            ]\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Policy",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Policy"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can create a Terms Policy resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65282cbb-c6e9-4b48-9692-7a433c4bdcb3",
+										"exec": [
+											"//Expect 201 created...",
+											"pm.test(\"Can create a Terms Policy resource - 201 returned\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"//Created resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can Create an Organization resource - created resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Policy\");",
+											"});",
+											"//Service assigned internal ID to resource...",
+											"pm.test(\"Can create a Terms Policy resource - Server assigned physical ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.id).to.exist;",
+											"    //Set target test patient id...",
+											"    pm.environment.set(\"fhir_created_terms_policy_id\", jsonData.id);",
+											"});",
+											"//Meta.versionid is present...",
+											"pm.test(\"Can create a Terms Policy resource - Resource.meta.versionId is present and === 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.meta.versionId).to.exist &&",
+											"        pm.expect(jsonData.meta.versionId).to.eql(1);",
+											"});",
+											"//Location header is present and in correct format /Patient/[id]/_history/[vid]...",
+											"pm.test(\"Can create a Terms Policy resource - Location header is present and in correct format /Policy/[id]/_history/[vid]\", function () {",
+											"    ",
+											"    var header = pm.response.headers.get(\"Location\");",
+											"    pm.expect(header).to.eql(pm.environment.get(\"proxy_server_address\") + \"/fhir/stu3/Policy/\" + pm.environment.get(\"fhir_created_terms_policy_id\") + \"/_history/1\");",
+											"});",
+											"pm.test(\"Can Create a Terms Policy resource - ETag and Last Updated headers are present\", function () {",
+											"    pm.response.to.have.header(\"ETag\") && ",
+											"        pm.response.to.have.header(\"Last-Modified\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "content-type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"action\": \"nothing\",\n    \"basis\": \"inclusive\",\n    \"name\": \"Test Helm Terms 1\",\n    \"resourceType\": \"Policy\",\n    \"rule\": [\n        {\n            \"access\": {\n                \"organization\": {\n                    \"reference\": \"Organization/{{fhir_created_organization_id}}\"\n                }\n            },\n            \"data\": [\n                {\n                    \"resource\": \"Patient\"\n                }\n            ]\n        }\n    ],\n    \"scope\": \"global\",\n    \"status\": \"active\"\n}"
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Policy",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Policy"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Policy by name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Policy by name - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Policy by name - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a policy...",
+											"pm.test(\"Can search for Policy by name - 1 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1) && ",
+											"        pm.expect(jsonData.entry[0].resource.resourceType).to.eql(\"Policy\");",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search for Policy by name - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search for Policy by name - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Policy by name - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each Location is set to \"match\"",
+											"pm.test(\"Can search for Policy by name - search mode for each policy resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Policy') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Policy?name:exact=Test Helm Privacy 13",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Policy"
+									],
+									"query": [
+										{
+											"key": "name:exact",
+											"value": "Test Helm Privacy 13"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can search for Terms Policy by name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can search for Terms Policy by name - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can search for Terms Policy by name - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a policy...",
+											"pm.test(\"Can search for Terms Policy by name - 1 resources are returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1) && ",
+											"        pm.expect(jsonData.entry[0].resource.resourceType).to.eql(\"Policy\");",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can search for Terms Policy by name - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can search for Terms Policy by name - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can search for Terms Policy by name - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											"//Entry search mode for each Location is set to \"match\"",
+											"pm.test(\"Can search for Terms Policy by name - search mode for each policy resource === 'match'\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    jsonData.entry.forEach(function(entry) {",
+											"         if(entry.resource.resourceType === 'Policy') {",
+											"            pm.expect(entry.search.mode).to.eql('match');  ",
+											"         }",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Policy?name:exact=Test Helm Terms 1",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Policy"
+									],
+									"query": [
+										{
+											"key": "name:exact",
+											"value": "Test Helm Terms 1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Can create a Location resource",
 							"event": [
 								{
@@ -17810,6 +18208,316 @@
 		{
 			"name": "publisher-service",
 			"item": []
+		},
+		{
+			"name": "authentication-service",
+			"item": [
+				{
+					"name": "Can register client",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "663d7185-198f-4fc1-8e17-272bb6aae47c",
+								"exec": [
+									"//Get the last NHS number, increment it and persist new value in env vars...",
+									"var uuid = require('uuid');",
+									"pm.environment.set(\"messageId\", uuid.v4());",
+									"pm.environment.set(\"requestId\", uuid.v4());",
+									"",
+									"var moment = require('moment');",
+									"pm.environment.set(\"requestedOn\", moment().utc().format());",
+									"",
+									"var plainTextSecret = '';",
+									"pm.environment.set('registered_client_secret', 'TopSecret!&*123')"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "db9f7fea-81ae-494a-8105-3d1630013a3b",
+								"exec": [
+									"pm.test(\"Can register client - 200 returned\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"//Registered Client is returned",
+									"pm.test(\"Can register client - a registered client is returned\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.results.id).to.exist &&",
+									"        pm.expect(jsonData.data.results.secret).to.exist &&",
+									"            pm.expect(jsonData.data.results.name).to.exist;",
+									"            ",
+									"    pm.environment.set(\"registered_client_id\", jsonData.data.results.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"serviceMode\":\"standalone\",\n    \"messageId\":\"{{messageId}}\",\n    \"requestId\":\"{{requestId}}\",\n    \"requestedOn\":\"{{requestedOn}}\",\n    \"data\":\n    {\n\t\t\"name\":\"A Trusted Client\",\n\t\t\"secret\":\"{{registered_client_secret}}\"\n\t}\n}\n\n"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/api/v1/auth/register",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Can authenticate and receive token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b68ff901-c2f2-4cf6-867e-d057b1146dd2",
+								"exec": [
+									"pm.test(\"Can authenticate and receive token - 200 returned\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"//Registered Client is returned",
+									"pm.test(\"Can authenticate and receive token - login is a success and a JWT token is returned\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.ok).to.eql(true) && ",
+									"        pm.expect(jsonData.token).to.exist",
+									"            ",
+									"    pm.environment.set(\"jwt_token\", jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "grant_type",
+								"value": "client_credentials",
+								"type": "text"
+							},
+							{
+								"key": "client_id",
+								"value": "{{registered_client_id}}",
+								"type": "text"
+							},
+							{
+								"key": "client_secret",
+								"value": "{{registered_client_secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{proxy_server_address}}/api/v1/auth/token",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Can validate a token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f7ec5d73-bd43-4f44-af47-eba71ad106bc",
+								"exec": [
+									"//Get the last NHS number, increment it and persist new value in env vars...",
+									"var nhsNumber = pm.environment.get(\"lastTestNHSNumber\");",
+									"nhsNumber++;",
+									"pm.environment.set(\"lastTestNHSNumber\", nhsNumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/fhir+json",
+								"type": "text"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"resourceType\": \"Patient\",\r\n    \"identifier\": [{\r\n        \"extension\": [{\r\n            \"url\": \"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-NHSNumberVerificationStatus-1\",\r\n            \"valueCodeableConcept\": {\r\n                \"coding\": [{\r\n                    \"system\": \"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-NHSNumberVerificationStatus-1\",\r\n                    \"code\": \"01\",\r\n                    \"display\": \"Number present and verified\"\r\n                }]\r\n            }\r\n        }],\r\n        \"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\r\n        \"value\": \"{{lastTestNHSNumber}}\"\r\n    }],\r\n    \"active\": true,\r\n    \"name\": [{\r\n        \"use\": \"official\",\r\n        \"family\": \"GREYJOY\",\r\n        \"given\": [\r\n            \"EEE\"\r\n        ],\r\n        \"prefix\": [\r\n            \"EEE\"\r\n        ]\r\n    }],\r\n    \"gender\": \"female\",\r\n    \"birthDate\": \"1995-04-05\",\r\n    \"address\": [{\r\n        \"use\": \"home\",\r\n        \"type\": \"physical\"\r\n    }],\r\n    \"maritalStatus\": {\r\n        \"coding\": [{\r\n            \"system\": \"http://hl7.org/fhir/v3/MaritalStatus\",\r\n            \"code\": \"S\",\r\n            \"display\": \"Never Married\"\r\n        }]\r\n    },\r\n    \"generalPractitioner\": [{\r\n        \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\r\n        \"display\": \"Mrs AA Bhatia\"\r\n    }],\r\n    \"managingOrganization\": {\r\n        \"reference\": \"Organization/{{fhir_created_organization_id}}\",\r\n        \"display\": \"HSCIC test Practice\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Patient",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Patient"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Can validation fail for invalid token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f7ec5d73-bd43-4f44-af47-eba71ad106bc",
+								"exec": [
+									"var invalid_jwt = \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjMxNDEzMjE5MzYsImlhdCI6MTU2MTQwNzExNCwiaXNzIjoiMTIzNDU2NTY3NTY3NTY3NTY3NTY3NTYzNDYzNDU2MzQ2IiwiYXBwbGljYXRpb24iOiJhdXRoZW50aWNhdGlvbiIsInRpbWVvdXQiOjE1NjE1Nzk5MTQ4MjIsInFld2QiOiI3ZjZkOGZiMjg3N2ExNWVhNjM3OGU0Yjg4ODk3N2VhMjhjNDBhMzY3NTE4YmE4ODA0YTFmMDA0ZGIyMTQ5ZjkzNmE0OTA1YTA2NWI1YjZhMjk1MzRiY2I3MjAxODhlODkzMTg2OTc4ZWI3ODk0ZGYxZjVjMWVlZGU1ZmRjYWUzYTA4NzhkYjBjY2ZjNDRjZWE2YzI2OTlhOGMyMjA3MDJjZDA5ZWU2MzljOTdkM2JmNmFlY2ZlYTJkODY1ZTRkZjMiLCJhdWQiOiJJQU0iLCJqdGkiOiIyODJmODAzMC05NmE3LTRiODctODYwNi1mOGQyN2E2MjkzZDMifQ.BJz3MnDrMqOLzpZmh5S_CA8GdtxoFjhvI2o-V80aH_o\";",
+									"pm.environment.set(\"jwt_token\",invalid_jwt);",
+									"//Get the last NHS number, increment it and persist new value in env vars...",
+									"var nhsNumber = pm.environment.get(\"lastTestNHSNumber\");",
+									"nhsNumber++;",
+									"pm.environment.set(\"lastTestNHSNumber\", nhsNumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							},
+							{
+								"key": "content-type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"resourceType\": \"Patient\",\r\n    \"identifier\": [{\r\n        \"extension\": [{\r\n            \"url\": \"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-NHSNumberVerificationStatus-1\",\r\n            \"valueCodeableConcept\": {\r\n                \"coding\": [{\r\n                    \"system\": \"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-NHSNumberVerificationStatus-1\",\r\n                    \"code\": \"01\",\r\n                    \"display\": \"Number present and verified\"\r\n                }]\r\n            }\r\n        }],\r\n        \"system\": \"https://fhir.nhs.uk/Id/nhs-number\",\r\n        \"value\": \"{{lastTestNHSNumber}}\"\r\n    }],\r\n    \"active\": true,\r\n    \"name\": [{\r\n        \"use\": \"official\",\r\n        \"family\": \"GREYJOY\",\r\n        \"given\": [\r\n            \"EEE\"\r\n        ],\r\n        \"prefix\": [\r\n            \"EEE\"\r\n        ]\r\n    }],\r\n    \"gender\": \"female\",\r\n    \"birthDate\": \"1995-04-05\",\r\n    \"address\": [{\r\n        \"use\": \"home\",\r\n        \"type\": \"physical\"\r\n    }],\r\n    \"maritalStatus\": {\r\n        \"coding\": [{\r\n            \"system\": \"http://hl7.org/fhir/v3/MaritalStatus\",\r\n            \"code\": \"S\",\r\n            \"display\": \"Never Married\"\r\n        }]\r\n    },\r\n    \"generalPractitioner\": [{\r\n        \"reference\": \"Practitioner/{{fhir_created_practitioner_id}}\",\r\n        \"display\": \"Mrs AA Bhatia\"\r\n    }],\r\n    \"managingOrganization\": {\r\n        \"reference\": \"Organization/{{fhir_created_organization_id}}\",\r\n        \"display\": \"HSCIC test Practice\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Patient",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Patient"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Can fail authentication with a 401 status response",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a37c156a-d9f1-4d40-a50a-afbcd667ce62",
+								"exec": [
+									"pm.test(\"Can fail authentication with a 401 status response - 401 returned\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "grant_type",
+								"type": "text",
+								"value": "client_credentials"
+							},
+							{
+								"key": "client_id",
+								"type": "text",
+								"value": "{{registered_client_id}}"
+							},
+							{
+								"key": "client_secret",
+								"type": "text",
+								"value": "NOTTHESECRET!2312312"
+							}
+						],
+						"url": {
+							"raw": "{{proxy_server_address}}/api/v1/auth/token",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

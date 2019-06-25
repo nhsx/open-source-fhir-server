@@ -919,7 +919,16 @@ var resources =
                 type:'datetime',
                 indexType:'datetime'
             }
-        ]
+        ],
+        searchResultParameters:{
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                name:'name',
+            },
+            include:{},
+            revinclude:{}
+        }
     },
     Practitioner: {
         searchParameters:[
@@ -975,14 +984,16 @@ var resources =
                 indexType:'token'
             }
         ],
-        sort:{
-            _id:'id',
-            _lastUpdated:'lastUpdated',
-            family:'name[0].family',
-            given:'name[0].given[0]'
-        },
-        include:{},
-        revinclude:{}
+        searchResultParameters:{
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated',
+                family:'name[0].family',
+                given:'name[0].given[0]'
+            },
+            include:{},
+            revinclude:{}
+        }
     },
     PractitionerRole:{
         searchParameters:[

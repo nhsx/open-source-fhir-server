@@ -2,6 +2,12 @@
   "qewd_up": true,
   "microservices": [
     {
+      "name": "authentication",
+      "qewd": {
+        "serverName": "ROQR Authentication Service"
+      }
+    },
+    {
       "name": "tests",
       "qewd": {
         "serverName": "ROQR Test API Service"

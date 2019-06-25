@@ -35,6 +35,10 @@ var moment = require('moment');
 var dispatcher =  {
     messageMap:
     {
+        "/api/v1/auth/validate":function(request, message, route) {
+            message.operation = "TOKEN-VALIDATE";
+            request.body = message;
+        },
         "/services/v1/responder/create":function(request, message, route) {
             message.operation = "RESPOND";
             request.body = message;
@@ -311,6 +315,34 @@ var dispatcher =  {
                     stack: stack
                 }
             };
+            return response;
+        },
+        unauthorized: function(request)
+        {
+            var response = {
+                messageId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response.data = {
+                error: {
+                    status:{code: 401},
+                    text:'Authentication failed',
+                }
+            }
+            return response;
+        },
+        forbidden: function()
+        {
+            var response = {
+                messageId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response.data = {
+                error: {
+                    status:{code: 403},
+                    text:'Access to the requested resource requires a valid login',
+                }
+            }
             return response;
         }
     }
