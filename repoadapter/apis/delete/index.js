@@ -49,7 +49,7 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         }
 
-        finished(request);
+        finished(dispatcher.getResponseMessage(request,request.data));
     } 
     catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));

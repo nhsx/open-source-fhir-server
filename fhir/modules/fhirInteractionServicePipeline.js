@@ -52,6 +52,9 @@ var fhirInteractionServicePipeline = {
         request.operation = "CREATE";
         request.pipeline = ["fhir"];
         request.routes = [
+            /*{
+                paths:{path:"/services/v1/auth/validate"}
+            },*/
             {
                 paths:{path: "/services/v1/adapters/repo/create"}
             },
@@ -59,13 +62,13 @@ var fhirInteractionServicePipeline = {
                 paths:{path: "/services/v1/repo/create"}
             },
             {
-                paths:[
-                        {path:"/services/v1/publisher/publish",awaitReply:false},
-                        {path: "/services/v1/repo/index"}
-                    ]
+                paths: {path: "/services/v1/repo/index"}
             },
             {
-                paths:{path: "/services/v1/adapters/repo/read"}
+                paths:[
+                    {path:"/services/v1/publisher/publish",awaitReply:false},
+                    {path: "/services/v1/adapters/repo/read"}
+                ]
             },
             {
                 paths:{path: "/services/v1/repo/read"}
@@ -150,9 +153,12 @@ var fhirInteractionServicePipeline = {
             {
                 paths:{path: "/services/v1/repo/delete"}
             },
-            /*{
-                paths:{path: "/services/v1/index/:documentId/delete"}
-            }*/
+            {
+                paths:{path: "/services/v1/repo/index/:documentId/delete"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/create"}
+            },
             {
                 paths:{path: "/services/v1/repo/create"}
             },
@@ -181,7 +187,55 @@ var fhirInteractionServicePipeline = {
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
     },
-    delete:{} //Read then delete...
+    delete: function(fhirRequest, request) {
+        this._baseOperation(fhirRequest, request);
+
+        //TODO: async path {path:"/services/v1/audit/create", awaitReply:"false"}
+        request.serviceMode = "pipeline";
+        request.operation = "DELETE";
+        request.pipeline = ["fhir"];
+        request.routes = [
+            {
+                paths:{path: "/services/v1/adapters/repo/delete"}
+            },
+            {
+                paths:{path: "/services/v1/repo/delete"}
+            },
+            {
+                paths:{path: "/services/v1/repo/index/:documentId/delete"}
+            },
+            {
+                paths:{path: "/services/v1/adapters/repo/respond"},
+            },
+            {
+                paths:{path: "/services/v1/responder/create"},
+            }
+        ];
+        request.resource = fhirRequest.resource;
+        request.resourceId = fhirRequest.resourceId;
+        request.data = fhirRequest.req.body;
+        //Attach the registry entry for this resource...
+        request.registry = resourceRegistry.resources[fhirRequest.resource];
+    },
+    searchset: function(fhirRequest, request) {
+        this._baseOperation(fhirRequest, request);
+        
+        request.serviceMode = "pipeline";
+        request.operation = "SEARCHSET";
+        request.pipeline = ["fhir"];
+        request.routes = [
+            {paths:{path: "/services/v1/adapters/repo/searchset"}},
+            {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
+            {paths:{path: "/services/v1/search/:searchSetId/include"}},
+            {paths:{path: "/services/v1/repo/index/query"}},
+            {paths:{path: "/services/v1/search/results"}},
+            {paths:{path: "/services/v1/repo/batch"}},
+            {paths:{path: "/services/v1/search/:searchSetId/add"}},
+            {paths:{path: "/services/v1/adapters/repo/respond"}},
+            {paths:{path: "/services/v1/responder/create"}}
+        ]
+        request.data = fhirRequest.req.query;
+    }
 }
 
 module.exports = {

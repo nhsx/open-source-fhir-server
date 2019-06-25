@@ -30,8 +30,7 @@
 */
 
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Search Add: " + JSON.stringify(args,null,2));
@@ -44,43 +43,55 @@ module.exports = function(args, finished) {
 
     try
     {
-        //Same checks as paginate/sort 
         if (searchSetId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
+        //TODO: Validate presence of data, data.bundle, data.query in request
+        //Same checks as paginate/sort 
 
         var mode = request.mode || '';
         if(mode === '')
         {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'Adding resources to an existing searchset/bundle requires a mode of include or revinclude to be specified')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Adding resources to an existing searchset/bundle requires a mode of include or revinclude to be specified')); 
         }
-
-        var searchSet = this.db.use("Bundle", searchSetId);
-        if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
+        //Declare response...
+        var data = {};
+       //If a result set/bundle as been passed to this service then searchset should reference it, else pull searchset from cache...
+        var searchSet = request.data.results || undefined
+        if(typeof searchSet === 'undefined') {
+            searchSet = this.db.use("Bundle", request.searchSetId);
+            if(!searchSet.exists) {
+                finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
+            }
+            else {
+                searchSet = searchSet.getDocument(true);
+            }
         } else {
-            searchSet = searchSet.getDocument(true);
-            //This is the bundle that must be added to the search set...
-            var bundle = request.data.bundle;
-            var query = request.data.query;
-            query.added = [];
-            bundle.entry.forEach(function(entry) {
-                entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
-                entry.search = {mode: mode};
-                searchSet.entry.push(entry);
-
-                query.added.push(
-                    {
-                        reference:entry.resource.resourceType + '/' + entry.resource.id,
-                        mode:mode 
-                    }
-                )
-            });
-
-            var results = searchSet;
-            finished(responseMessage.getResponse(request,{query,results}));
+            //Preserve the initial result set prior to any additions (useful for debugging/logging...)
+            data.initialResults = searchSet;
         }
+        //This is the bundle that must be added to the search set...
+        var bundle = request.data.bundle;
+        var query = request.data.query;
+        query.added = [];
+        bundle.entry.forEach(function(entry) {
+            entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
+            entry.search = {mode: mode};
+            searchSet.entry.push(entry);
+
+            query.added.push(
+                {
+                    reference:entry.resource.resourceType + '/' + entry.resource.id,
+                    mode:mode 
+                }
+            )
+        });
+        //Build service response data...
+        data.query = query;
+        data.results = searchSet;
+        //Dispatch response...
+        finished(dispatcher.getResponseMessage(request,data));
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }    
 }

@@ -35,6 +35,10 @@ var moment = require('moment');
 var dispatcher =  {
     messageMap:
     {
+        "/services/v1/auth/validate":function(request, message, route) {
+            message.operation = "TOKEN-VALIDATE";
+            request.body = message;
+        },
         "/services/v1/responder/create":function(request, message, route) {
             message.operation = "RESPOND";
             request.body = message;
@@ -44,6 +48,7 @@ var dispatcher =  {
             request.body = message;
         },
         "/services/v1/adapters/repo/create":function(request,message,route) {
+            message.checkId = message.checkId;
             message.operation = "CREATE"
             request.body = message;
         },
@@ -64,6 +69,10 @@ var dispatcher =  {
             request.resource = request.resource;
             request.body = message;
         },
+        "/services/v1/adapters/repo/searchset":function(request,message,route) {
+            message.operation = "SEARCHSET"; 
+            request.body = message;
+        },
         "/services/v1/publisher/publish":function(request,message,route) {
             message.operation = "PUBLISH";
             request.body = message;
@@ -73,7 +82,7 @@ var dispatcher =  {
             request.body= message;
         },
         "/services/v1/repo/create":function(request,message,route) {
-            message.checkId = message.checkId || true;
+            message.checkId = message.checkId;
             message.operation = "CREATE";
             request.body= message;
         },
@@ -83,6 +92,13 @@ var dispatcher =  {
         },
         "/services/v1/repo/index":function(request,message,route) {
             message.operation = "INDEX";
+            request.body = message;
+        },
+        "/services/v1/repo/index/:documentId/delete":function(request,message,route) {
+            message.operation = "DELETE";
+            message.documentId = message.resourceId || undefined;
+            message.documentType = message.resource || undefined;
+            request.path = request.path.replace(':documentId',message.documentId);
             request.body = message;
         },
         "/services/v1/repo/index/query":function(request,message,route) {
@@ -245,12 +261,18 @@ var dispatcher =  {
     },
     error: {
         _baseError: function(request, code, severity, diagnostics, status, text) {
-            return {
-                error:
-                {
+            var response = {
+                messageId: request.messageId,
+                responseId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response = _.extend(response, request);
+            response.data = {
+                error:{
                     responseId: uuid.v4(),
                     requestId:request.requestId,
                     pipeline:request.pipeline,
+                    serviceMode:request.serviceMode,
                     operation:request.operation,
                     requestedOn:request.requestedOn,
                     respondedOn:moment().utc().format(),
@@ -261,6 +283,7 @@ var dispatcher =  {
                     text:text
                 }
             };
+            return response;
         },
         badRequest: function(request, code, severity, diagnostics)
         {
@@ -272,19 +295,55 @@ var dispatcher =  {
         },
         serverError: function(request, stack)
         {
-            return {
-                error: {
+            var response = {
+                messageId: request.messageId,
+                responseId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response = _.extend(response, request);
+            response.data = {
+                error:{
                     responseId: uuid.v4(),
                     requestId:request.requestId,
                     pipeline:request.pipeline,
+                    serviceMode:request.serviceMode,
                     operation:request.operation,
-                    requestedOn: request.requestedOn,
-                    respondedOn: moment().utc().format(),
+                    requestedOn:request.requestedOn,
+                    respondedOn:moment().utc().format(),
                     status:500,
                     text:'Internal Server Error',
                     stack: stack
                 }
+            };
+            return response;
+        },
+        unauthorized: function(request)
+        {
+            var response = {
+                messageId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response.data = {
+                error: {
+                    status:{code: 401},
+                    text:'Authentication failed',
+                }
             }
+            return response;
+        },
+        forbidden: function()
+        {
+            var response = {
+                messageId: uuid.v4(),
+                respondedOn:moment().utc().format()
+            };
+            response.data = {
+                error: {
+                    status:{code: 403},
+                    text:'Access to the requested resource requires a valid login',
+                }
+            }
+            return response;
         }
     }
 }

@@ -30,7 +30,7 @@
 */
 
 
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("REPO ADAPTER CREATE: " + JSON.stringify(args));
@@ -42,16 +42,17 @@ module.exports = function(args, finished) {
     try
     {
         if(typeof request.registry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Invalid Resource Type')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Resource Type')); 
         }
 
         if(typeof request.data === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         }
 
-        finished(request);
+
+        finished(dispatcher.getResponseMessage(request,request.data));
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

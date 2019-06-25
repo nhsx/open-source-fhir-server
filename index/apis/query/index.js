@@ -29,9 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var query = require('../../modules/query.js').query;
 
 module.exports = function(args, finished)
@@ -45,17 +43,25 @@ module.exports = function(args, finished)
     try
     {
         if(typeof request.data === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no message data present in request body')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no message data present in request body')); 
         }
 
         var qry = request.data.query || undefined;
         if(typeof qry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no query present in request body'));
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no query present in request body'));
         }
 
         if(!Array.isArray(qry))
         {
             qry = [request.data.query];
+        }
+
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this query - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
         }
 
         var db = this.db;
@@ -67,7 +73,7 @@ module.exports = function(args, finished)
     
             var parameters = q.parameters || undefined;
             if(typeof parameters === 'undefined' || !Array.isArray(parameters) || (Array.isArray(parameters) && parameters.length === 0)) {
-                finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': No search parameters present in request body'));  
+                finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': No search parameters present in request body'));  
             };
     
             //Validate that the document type for each parameter matches the query.documentType...
@@ -75,14 +81,14 @@ module.exports = function(args, finished)
             parameters.forEach(function(parameter)  {
                 if(parameter.documentType.toLowerCase() !== documentType.toLowerCase())
                 {
-                    finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Parameter Document Type (' + parameter.documentType + ') and Query Document Type (' + documentType + ') mismatch at parameter index: ' + paramIndex + ''));
+                    finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Parameter Document Type (' + parameter.documentType + ') and Query Document Type (' + documentType + ') mismatch at parameter index: ' + paramIndex + ''));
                 }
                 paramIndex++;
             });
     
             var registry = request.registry;
             if(typeof registry === 'undefined') {
-                finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': No search parameters configured'));  
+                finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': No search parameters configured'));  
             };
     
             q.results = [];
@@ -117,9 +123,10 @@ module.exports = function(args, finished)
             }
         });
 
-        finished(responseMessage.getResponse(request,{query:qry}));
-
+        data.query = qry
+        //Respond...
+        finished(dispatcher.getResponseMessage(request,data));
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

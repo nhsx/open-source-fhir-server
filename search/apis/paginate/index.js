@@ -29,17 +29,11 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
     console.log("Search Read: " + JSON.stringify(args,null,2));
-
-    var searchSetId = args.searchSetId || '';
-    //paginate/:page/:pageSize
-    var page = args.page || '1';
-    var pageSize = args.pageSize || '*';
 
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
@@ -47,33 +41,48 @@ module.exports = function(args, finished) {
 
     try
     {
-        //TODO: check query and pagination parameters
+        var searchSetId = args.searchSetId || '';
+        //paginate/:page/:pageSize
+        var page = args.page || '1';
+        var pageSize = args.pageSize || '*';
+        var server = request.server || undefined;
+
+        if(typeof server === 'undefined') {
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Invalid Search configuration - server base url cannot be null or undefined')); 
+        }
+
+        //TODO: check data, query and pagination parameters
+        //TODO: what if client changes the _count/pageSize???
         if (searchSetId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
 
         var query = request.data.query;
         var searchSet = this.db.use("Bundle", searchSetId);
         if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         } else {
             searchSet = searchSet.getDocument(true);
+            query.page = page;
             query.pageSize = pageSize;
             query.current = page;
+            //This function will reattach any include/revinclude parameters requested in original query
+            //This is necessary for cached searchsets as the original query is only persisted in bundle.link, specifically where link.relation === 'self'
+            returnedResourceManager.includes.rebuild(searchSet, query);
  
             if(pageSize !== '*') {
                 query.totalPages = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();
                 query.previous = returnedResourceManager.paginate.previousPage(page).toString();
                 query.next= returnedResourceManager.paginate.nextPage(searchSet, page, pageSize).toString();
                 query.last = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();
-                
+                //Attach Paging Links before trimming...
+                returnedResourceManager.paginate.attachLinks(searchSet, query, server);
+                //Now trim n return...
                 searchSet = returnedResourceManager.paginate.trim(searchSet, page, pageSize);
             }
-
-            var results = searchSet;
-            finished(responseMessage.getResponse(request,{query,results}));
+            finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
         }
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
 }

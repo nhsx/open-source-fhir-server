@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
@@ -56,26 +55,31 @@ module.exports = function(args, finished) {
         if(!Array.isArray(query)) {
             query = [request.data.query];
         }
-        //if searchset is undefined...
-        var searchSet = this.db.use("Bundle", request.searchSetId);
-        if(!searchSet.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
-        } else {
-            //This generates a set of queries derived from the initial query (which contains include and revincludes)
-            //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
-            searchSet = searchSet.getDocument(true);
-            query.forEach(function(q) {
-                var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes)
-                referenceQueries.forEach(function(rq) {
-                    query.push(rq);
-                });
-            });
-            query.shift();
-            
-            request.mode = "include";
-            finished(responseMessage.getResponse(request,{query}));
+        //If a result set/bundle as been passed then searchset should reference it, else pull searchset from cache...
+        var searchSet = request.data.results || undefined
+        if(typeof searchSet === 'undefined') {
+            searchSet = this.db.use("Bundle", request.searchSetId);
+            if(!searchSet.exists) {
+                finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
+            }
+            else {
+                searchSet = searchSet.getDocument(true);
+            }
         }
+        //This generates a set of queries derived from the initial query (which contains include and revincludes)
+        //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
+        
+        query.forEach(function(q) {
+            var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes)
+            referenceQueries.forEach(function(rq) {
+                query.push(rq);
+            });
+        });
+        query.shift();
+        
+        request.mode = "include";
+        finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

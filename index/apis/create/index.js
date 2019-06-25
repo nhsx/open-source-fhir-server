@@ -1,45 +1,10 @@
-/*
- ----------------------------------------------------------------------------------------------------------------------------
- | ROQR - fhiR On Qewd and dockeR                                                                                           |
- | Developed as part of the Yorkshire and Humber Care Record ("LHCRE")                                                      |
- | https://yhcr.org/wp-content/uploads/2019/05/YHCR_Design_Paper_003__Conceptual_Design_for_a_FHIR_Proxy_Server_v2.0.docx   |                                                              |
- |                                                                                                                          |
- | http://www.synanetics.com                                                                                                |
- | Email: support@synanetics.com                                                                                            |
- |                                                                                                                          |
- | QEWD                                                                                                                     |
- | http://qewdjs.com                                                                                                        |
- | https://github.com/robtweed/qewd/tree/master/up                                                                          |
- |                                                                                                                          |
- | FHIR/NHS Care Connect                                                                                                    |
- | https://nhsconnect.github.io/CareConnectAPI/                                                                             |
- |                                                                                                                          |
- | Licensed under the Apache License, Version 2.0 (the "License");                                                          |
- | you may not use this file except in compliance with the License.                                                         |
- | You may obtain a copy of the License at                                                                                  |
- |                                                                                                                          |
- |     http://www.apache.org/licenses/LICENSE-2.0                                                                           |
- |                                                                                                                          |
- | Unless required by applicable law or agreed to in writing, software                                                      |
- | distributed under the License is distributed on an "AS IS" BASIS,                                                        |
- | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                                 |
- | See the License for the specific language governing permissions and                                                      |
- |  limitations under the License.                                                                                          |
- ----------------------------------------------------------------------------------------------------------------------------
- MVP pre-Alpha release: 4 June 2019
-*/
-
-var moment = require('moment');
-var uuid = require('uuid');
 var traverse = require('traverse');
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
-
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var indexer = require('../../modules/indexer.js').indexer;
 
 function isEmptyObject(obj) {
-    for (var prop in obj) {
+    for (var {} in obj) {
       return false;
     }
     return true;
@@ -48,8 +13,6 @@ function isEmptyObject(obj) {
 function isInt(value) {
     return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
 }
-
-var indexed = [];
 
 module.exports = function(args, finished) {
     console.log("Index Create: " + JSON.stringify(args,null,2));
@@ -65,16 +28,16 @@ module.exports = function(args, finished) {
 
         //Return error object to be sent to responder service in ms response...
         if (typeof resource === 'undefined' || resource === '' || isEmptyObject(resource)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
 
         if(typeof resource.id === 'undefined' || resource.id === '')
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': Resource has no id')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': Resource has no id')); 
         }
     
         if (typeof resource.resourceType === 'undefined' || resource.resourceType === '') {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
 
         //Add resource id and resource type to inbound request...
@@ -82,7 +45,7 @@ module.exports = function(args, finished) {
         request.resource = resource.resourceType;
          
         if(typeof registry === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
         }
       
         var indexData = {
@@ -91,7 +54,7 @@ module.exports = function(args, finished) {
             indices:[]
         };
         //Remove any FHIR extensions from the resource as these are not searchable and so there is no point in indexing them
-        resource = traverse(resource).map(function(node) {
+        resource = traverse(resource).map(function() {
             if(this.key === 'extension') this.remove();
         });
 
@@ -99,9 +62,11 @@ module.exports = function(args, finished) {
         var indices;
         var indexTypeHandler;
         var isIndexable = false;
+        var indexed = [];
 
         traverse(resource).map(function(node) {
             if(!Array.isArray(node)) {
+                var fullPath = this.path.toString();
                 this.path.forEach(function(path) {
                     registry.searchParameters.forEach(function(registryEntry) {
                         //If this search Parameter IS NOT virtual then proceed...
@@ -127,7 +92,8 @@ module.exports = function(args, finished) {
                                         propertyName: path,
                                         global: registryEntry.indexType,
                                         indexFrom: node,
-                                        indexPropertyName: registryEntry.indexProperty || registryEntry.searchProperty || registryEntry.property
+                                        indexPropertyName: registryEntry.indexProperty || registryEntry.searchProperty || registryEntry.property,
+                                        context: fullPath
                                     }
                                 );
                                 
@@ -182,11 +148,9 @@ module.exports = function(args, finished) {
         
         //Sort indexData so that it is returned in alphabetical order...
         indexer.sort(indexData);
-        finished(responseMessage.getResponse(request,indexData));
+        finished(dispatcher.getResponseMessage(request,indexData));
     }
     catch (ex) { 
-        finished(
-          errorMessage.serverError(request, ex.stack || ex.toString())
-        );
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

@@ -113,6 +113,10 @@ var registry =
         }
     }
 
+var server = {
+    url:"http://localhost:8080/fhir/stu3/"
+}
+
 
 
 module.exports = function(message, jwt, forward, sendBack) {
@@ -123,6 +127,7 @@ module.exports = function(message, jwt, forward, sendBack) {
     message.req.body.serviceMode = "standalone"
     message.req.body.pipeline = ["tests"];
     message.req.body.registry = registry;
+    message.req.body.server = server;
 
     var page = message.page;
     var pageSize = message.pageSize;

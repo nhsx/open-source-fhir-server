@@ -30,8 +30,8 @@
 */
 
 var _ = require('underscore');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+var urlBuilder = require('../../modules/urlBuilder.js').urlBuilder;
  
 module.exports = function(args, finished) {
     console.log("Repo Adapter Search: " + JSON.stringify(args,null,2));
@@ -42,19 +42,22 @@ module.exports = function(args, finished) {
 
     try
     {
-        //TODO: Site specific route to deal with persisted search sets that are being paged through (page will always be 1 in this instance)
         //validate inbound request (TODO)... especially need the registry here...
         var registry = request.registry;
+        var resourceType = request.resourceType;
         var queryParameters = request.data;
         var query = {
-            resourceType:request.resourceType,
+            raw: '',
+            resourceType:resourceType,
             parameters: [],
-            pageSize:'*',
+            pageSize:'',
             page:'1',
             sort:[],
             includes:[],
             revincludes:[]
         }
+        //create the raw query string from the query data...
+        query.raw = urlBuilder.createUrlFromQuery(resourceType, queryParameters);
         //map queryParameters onto search/indexed properties...
         for(p in queryParameters){
             if(p !== '_count' && p !=='_sort') {
@@ -80,29 +83,31 @@ module.exports = function(args, finished) {
                         }
                         query.parameters.push(parameter);
                     }
-                } else if(p === '_revinclude') {
-                    query.revincludes.push(queryParameters[p]);
-                } else if(p === '_include') {
-                    query.includes.push(queryParameters[p]);
+                } else if(p === '_include' || p === '_revinclude') {
+                    var includeType = p.replace('_', '') + "s";
+                    var incs = queryParameters[p];
+                    if(!_.isArray(incs)) { incs = [incs]; }
+                    incs.forEach(function(inc) {
+                        query[includeType].push(inc);
+                    });
                 }
             }
         }
         if(query.parameters.length === 0)
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
         }
-
         //Set pagination parameters...
         query.pageSize = queryParameters["_count"] || '*';
         //Set sort parameters...
         if(typeof queryParameters["_sort"] !== 'undefined') {
             query.sort = queryParameters["_sort"].split(",");
         }
-        //Set include parameters...
-        finished(responseMessage.getResponse(request,{query: query}));
+        //Dispatch the query...
+        finished(dispatcher.getResponseMessage(request,{query: query}));
     } 
     catch(ex) 
     {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

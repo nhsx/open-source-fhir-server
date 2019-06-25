@@ -16,9 +16,9 @@ var responder = {
             id: uuid.v4(),
             issue: [
               {
-                code: error.code,
-                severity: error.severity,
-                diagnostics: error.diagnostics
+                code: error.code || 'processing',
+                severity: error.severity || 'fatal',
+                diagnostics: error.diagnostics || error.stack
               }
             ]
         };

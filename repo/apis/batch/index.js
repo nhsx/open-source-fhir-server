@@ -31,8 +31,7 @@
 
 
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Repo Batch Read: " + JSON.stringify(args,null,2));
@@ -45,22 +44,30 @@ module.exports = function(args, finished) {
     {
         var batch = request.data.batchRequest || undefined;
         if(typeof batch === 'undefined') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Bundle cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Bundle cannot be empty or undefined')); 
         }
 
         if(batch.type !== 'batch') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Only Batch requests are supported by this server.')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Only Batch requests are supported by this server.')); 
         }
 
         var entries = batch.entry || undefined;
         if(typeof entries === 'undefined' || (typeof entries !== 'undefined' && !Array.isArray(entries))) {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Bundle must contain a valid entry array which must contain at least 1 request')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Bundle must contain a valid entry array which must contain at least 1 request')); 
         }
 
         var query = request.data.query;
         if(typeof query === 'undefined')
         {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Batch requests to the local FHIR store (repo) must contain a valid query in addition to a batchrequest')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Batch requests to the local FHIR store (repo) must contain a valid query in addition to a batchrequest')); 
+        }
+
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
         }
 
         var db = this.db;
@@ -84,16 +91,19 @@ module.exports = function(args, finished) {
             var resource = db.use(resourceType, resourceId);
             if(!resource.exists) {
                 //Add an error response of 404 not found...
-                bundle.entry.push(errorMessage.notFound(request, 'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist'));
+                bundle.entry.push(dispatcher.error.notFound(request, 'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist'));
             } else {
                 //Add resource to bundle.entry after pulling it from source...
                 resource = resource.getDocument(true);
                 bundle.entry.push({resource: resource});
             }
         });
-
-        finished(responseMessage.getResponse(request, {query,bundle}));
+        //Add query and bundle to service response...
+        data.query = query;
+        data.bundle = bundle;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

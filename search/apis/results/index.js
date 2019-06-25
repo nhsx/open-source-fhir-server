@@ -30,8 +30,7 @@
 */
 
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     console.log("Search RESULTS " + JSON.stringify(args,null,2));
@@ -55,7 +54,14 @@ module.exports = function(args, finished) {
             entry: []
         };
 
-        //for each query in request.data.query
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
+        }
+        //Convert the query to an array if needed - this may be a result set for different resource types...
         var query = request.data.query;
         if(!Array.isArray(query)) {
             query = [request.data.query];
@@ -74,12 +80,13 @@ module.exports = function(args, finished) {
                 );
             });
         });
-        
-        finished(responseMessage.getResponse(request,{query,batchRequest}));
+        //Add query and batch request to service response...
+        data.query = query;
+        data.batchRequest = batchRequest;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
     } 
     catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
-
-    finished({args});
 }

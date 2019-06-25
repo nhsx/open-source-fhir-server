@@ -29,8 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
     
@@ -44,22 +43,22 @@ module.exports = function(args, finished) {
     try
     {
         if (resourceType === '') {
-            finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined')); 
         }
     
         if (resourceId === '') {
-            finished(errorMessage.badRequest(request, 'processing', 'fatal', 'ResourceId cannot be empty or undefined')); 
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'ResourceId cannot be empty or undefined')); 
         }
 
         var resource = this.db.use(resourceType, resourceId);
         if(!resource.exists) {
-            finished(errorMessage.notFound(request,'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist')); 
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist'));
         } else {
             resource = resource.getDocument(true);
             //May have to "pick" the properties in the correct order according to spec... Yotta persists in alpha!
-            finished(responseMessage.getResponse(request,{results: resource}));
+            finished(dispatcher.getResponseMessage(request,{results: resource}));
         }
     } catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
 }

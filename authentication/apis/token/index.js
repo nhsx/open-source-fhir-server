@@ -29,22 +29,60 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var errorMessage = require('../../../configuration/messages/error.js').error;
-var messageMap = require('../../../configuration/messages/messageMap.js').messageMap;
-var fisp = require('../../modules/fhirInteractionServicePipeline.js').fhirInteractionServicePipeline;
+var uuid = require('uuid');
+var _ = require('underscore');
+var moment = require('moment');
+
+var crypto = require('../../modules/crypto.js').crypto;
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
-
-    var request = messageMap.request.createRequestMessage();
+    
+    var request = dispatcher.createRequestMessage();
 
     try
     {
-        //Map incoming request onto internal message object
-        fisp["search"](args, request) || undefined;
-        //Respond (forwards to msresponse)...
-        finished(request);
-    } 
-    catch(ex) {
-        finished(errorMessage.serverError(request, ex.stack || ex.toString()));
+       var credentials = args.req.body;
+       if(typeof credentials === 'undefined' || _.isEmpty(credentials)) {
+            finished(dispatcher.error.unauthorized(request));
+       }
+       
+        //var grant_type = args.req.headers['grant_type'] || undefined;
+        var clientId = credentials.client_id || undefined;
+        var clientSecret = credentials.client_secret || undefined;
+
+        if(typeof clientId === 'undefined' || typeof clientSecret === 'undefined') {
+            finished(dispatcher.error.unauthorized(request)); 
+        }
+        else {
+            var registeredClient = this.db.use('clients', clientId);
+            registeredClient = registeredClient.getDocument(true);
+            
+            if(registeredClient.revoked === true) {
+                finished(dispatcher.error.unauthorized(request));
+            }
+            //Decrypt ciphered client secret...
+            var plainTextSecret = crypto.decrypt(registeredClient.secret);
+            //Compare to plain text secret...
+            if(plainTextSecret !== clientSecret)
+            {
+                finished(dispatcher.error.unauthorized(request));
+            }
+            
+            var jwt = args.session;
+            jwt.aud = 'IAM';
+            jwt.iat = moment().utc().valueOf();
+            jwt.iss = clientId;
+            jwt.jti = uuid.v4();
+            jwt.authenticated = true;
+            jwt.timeout = moment().add(48,'hours').utc().valueOf();
+            
+            finished({ok:true});
+        }
     }
-};
+    catch(ex)
+    {
+        finished(dispatcher.error.serverError(request,ex.stack || ex.toString()));
+    }
+
+}

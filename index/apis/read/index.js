@@ -29,8 +29,6 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
 var indexer = require('../../modules/indexer.js').indexer;
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
@@ -107,7 +105,6 @@ module.exports = function(args, finished) {
     
                         var documents = db.use(global);
                         path.paths.forEach(function(path) {
-                            console.log("Path: " + path);
                             var pathArray = path.split(',');
                             documents.$(pathArray).forEachChild(function(value, node) {
                                 
@@ -133,7 +130,7 @@ module.exports = function(args, finished) {
                     });
                 }
             }
-            
+
         });
 
         //Sort indexData so that it is returned in alphabetical order...

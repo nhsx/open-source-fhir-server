@@ -60,7 +60,7 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.notFound(request,'processing','fatal', 'Resource ' + resourceType + '/' + resourceId + ' not found'));
         }
         resource.delete();
-        //Before dispatching to create, set checkid to false (this will bypass a validation rule which ensures created resources do not have and id)
+        //Before dispatching to create, set checkid to false (this will bypass a validation rule which ensures that resources can be created with an id)
         request.checkId = false;
         finished(dispatcher.getResponseMessage(request,request.data));
     }

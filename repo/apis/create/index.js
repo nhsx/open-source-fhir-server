@@ -32,8 +32,8 @@
 
 var moment = require('moment');
 var uuid = require('uuid');
-var responseMessage = require('../../../configuration/messages/response.js').response;
-var errorMessage = require('../../../configuration/messages/error.js').error;
+var _ = require('underscore');
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 function isEmptyObject(obj) {
     for (var prop in obj) {
@@ -56,33 +56,48 @@ module.exports = function(args, finished) {
     {
         //Return error object to be sent to responder service in ms response...
         if (typeof resource === 'undefined' || resource === '' || isEmptyObject(resource)) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
     
         if (typeof resource.resourceType === 'undefined' || resource.resourceType === '') {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
       
         if (checkId && typeof resource.id !== 'undefined' && resource.id.length > 0) {
-          finished(errorMessage.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
+        }
+
+        var server = request.server;
+        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)) {
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Server configuration is not available'));
         }
 
         //Add an id property to the resource before persisting...
         if (typeof resource.id === 'undefined' || resource.id.length === 0) resource.id = uuid.v4();
         //Set meta/version id...
-        if (typeof resource.meta === 'undefined' || (typeof resource.meta !== 'undefined' && resource.meta.versionId === undefined)) {
+        if (typeof resource.meta === 'undefined' || (typeof resource.meta !== 'undefined' && typeof resource.meta.versionId === 'undefined')) {
           resource.meta = resource.meta || {};
           resource.meta.versionId = '1';
           resource.meta.lastUpdated = moment().utc().format();
         }
+        //Set source _tag...
+        var source = _.find(server.sources,function(source) { return source.target === 'repo';});
+        resource.meta.tag = resource.meta.tag || [];
+        resource.meta.tag.push(
+          {
+            system:source.tag.system,
+            code:source.tag.code,
+            display:source.tag.display
+          }
+        );
         //Persist resource...
         var doc = this.db.use(resource.resourceType);
         doc.$(resource.id).setDocument(resource);
-        finished(responseMessage.getResponse(request,{results: resource}));
+        finished(dispatcher.getResponseMessage(request,{results: resource}));
     }
     catch (ex) { 
         finished(
-          errorMessage.serverError(request, ex.stack || ex.toString())
+          dispatcher.error.serverError(request, ex.stack || ex.toString())
         );
     }
 }

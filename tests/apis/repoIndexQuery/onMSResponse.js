@@ -32,7 +32,8 @@
 var uuid = require('uuid');
 var _ = require('underscore');
 
-var registry = {
+var registry = 
+{
     Encounter:
     {
         searchParameters:[
@@ -112,11 +113,19 @@ var registry = {
                 indexType:'reference'
             },
             {
-                indexProperty:'period',
+                indexProperty:'date',
                 property:'period',
                 searchProperty:'date',
                 type:'period',
                 indexType:'period'
+            },
+            {
+                indexProperty:'type',
+                property:'type',
+                searchProperty:'type',
+                type:'codeableConcept',
+                indexType:'token',
+                allowMultiple:false
             },
             {
                 indexProperty:'subject',
@@ -131,14 +140,6 @@ var registry = {
                 searchProperty:'status',
                 type:'string',
                 indexType:'string'
-            },
-            {
-                indexProperty:'type',
-                property:'type',
-                searchProperty:'type',
-                type:'codeableConcept',
-                indexType:'token',
-                allowMultiple:false
             }
         ],
         searchResultParameters:
@@ -453,8 +454,8 @@ var registry = {
                     indexType:'uri'
                 }
             ],
-        }
-    };
+    }
+}
 
 module.exports = function(message, jwt, forward, sendBack) {    
     console.log("Document Type: " + JSON.stringify(registry[message.req.body.data.query.documentType], null, 2));
