@@ -29,24 +29,19 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var moment = require('moment');
-var uuid = require('uuid');
+var request = require('request');
+var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-
-function isEmptyObject(obj) {
-    for (var prop in obj) {
-      return false;
-    }
-    return true;
-  }
-  
-  function isInt(value) {
-    return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
-  }
-
+var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
 module.exports = function(args, finished) {
-    console.log("Search Create: " + JSON.stringify(args,null,2));
+    //For each server that isn't local dispatch a request...
+    //Dispatch query[0].raw to remote site and await response
+    //https://github.com/robtweed/QEWD-Courier-QUp/blob/master/helm/discovery_service/apis/getPatientDemographics/index.js
+    //if return, stamp each result with a tag (from server config) and persist in search set...
+    //if error then just log it and move on (no need to exit the pipeline as this is just demonstrating a simple proxy/result aggregation)
+    console.log("Search Dispatch: " + JSON.stringify(args,null,2));
 
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
@@ -55,22 +50,22 @@ module.exports = function(args, finished) {
     try
     {
         var server = request.server || undefined;
-        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)){
+        if(typeof server === 'undefined' || server === '' || _.isEmpty(server)){
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid server registry object'));
         }
 
         var data = request.data || undefined;
-        if (typeof data === 'undefined' || data === '' || isEmptyObject(data)) {
+        if (typeof data === 'undefined' || data === '' || _.isEmpty(data)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
         } 
 
         var query = data.query || undefined;
-        if (typeof query === 'undefined' || query === '' || isEmptyObject(query)) {
+        if (typeof query === 'undefined' || query === '' || _.isEmpty(query)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
         } 
 
         var bundle = data.bundle || undefined;
-        if (typeof bundle === 'undefined' || bundle === '' || isEmptyObject(bundle)) {
+        if (typeof bundle === 'undefined' || bundle === '' || _.isEmpty(bundle)) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
 
@@ -78,33 +73,36 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
         }
 
-        //Add an id property to the resource before persisting...
-        if (typeof bundle.id === 'undefined' || bundle.id.length === 0) bundle.id = uuid.v4();
-        //Set meta/version id...
-        if (typeof bundle.meta === 'undefined' || (typeof bundle.meta !== 'undefined' && bundle.meta.versionId === undefined)) {
-          bundle.meta = bundle.meta || {};
-          bundle.meta.versionId = "1";
-          bundle.meta.lastUpdated = moment().utc().format();
+        if(bundle.entry.length > 0 && returnedResourceManager.federate.canDispatch(query)) {
+          //Grab the remote id from mdm based on what was searched for...
+          var localId = returnedResourceManager.federate.getLocalIdFromQuery(query);
+          if(localId !== '') {
+            //Dispatch the query
+            //For each result, append server source tag and add to bundle
+            //Set request.data.bundle = federated bundle
+            var mdm = this.db.use('mdm',localId);
+            if(mdm.exists)
+            {
+              mdm = mdm.getDocument(true);
+              //console.log(JSON.stringify(mdm,null,2));
+              //Dispatch request - call back needs to...
+              //For each result, append server source tag and add to bundle
+              //Set request.data.bundle = federated bundle
+              
+            }
+            finished(dispatcher.getResponseMessage(request,request.data));
+          } 
+          else 
+          {
+            finished(dispatcher.getResponseMessage(request,request.data));
+          }
+        } 
+        else 
+        {
+          finished(dispatcher.getResponseMessage(request,request.data));
         }
-        //Add a self link so that the context of this search is persisted...
-        bundle.link = [];
-        bundle.link.push({relation:"self", url:server.url + query[0].raw});
-        //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
-        bundle.total = bundle.entry.length.toString();
-        //For each entry, set the mode to match...
-        bundle.entry.forEach(function(entry) {
-          entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
-          entry.search = {mode:"match"};
-        });
-        //Persist bundle/search set...
-        var doc = this.db.use(bundle.resourceType);
-        doc.$(bundle.id).setDocument(bundle);
-        //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
-        request.searchSetId = bundle.id;
-
-        finished(dispatcher.getResponseMessage(request,{query, bundle}));
     }
-    catch (ex) {
+    catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

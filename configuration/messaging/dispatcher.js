@@ -77,6 +77,10 @@ var dispatcher =  {
             message.operation = "PUBLISH";
             request.body = message;
         },
+        "/services/v1/publisher/evaluate":function(request,message,route) {
+            message.operation = "EVALUATE-SUBSCRIPTIONS";
+            request.body = message;
+        },
         "/services/v1/repo/batch":function(request,message,route) {
             message.operation = "BATCH-READ";
             request.body= message;
@@ -114,11 +118,19 @@ var dispatcher =  {
             request.body = message;
         },
         "/services/v1/search":function(request, message, route) {
-            message.operation = "CREATE",
+            message.operation = "CREATE";
+            request.body = message;
+        },
+        "/services/v1/search/federate":function(request,message,route) {
+            message.operation = "FEDERATE";
+            request.body = message;
+        },  
+        "/services/v1/search/mdm":function(request,message, route) {
+            message.operation = "MDM";
             request.body = message;
         },
         "/services/v1/search/:searchSetId":function(request, message, route) {
-            message.operation = "UPDATE",
+            message.operation = "UPDATE";
             request.path = request.path.replace(':searchSetId',message.searchSetId);
             request.body = message;
         },
@@ -213,7 +225,6 @@ var dispatcher =  {
             //Call the request configuration handler for this route...
             context.messageMap[r.path](request,message,r);
             //Now forward...
-            console.log("No Await Reply: " + JSON.stringify(request));
             forward(request, jwt, function(responseObj) {});
         });
     },

@@ -145,12 +145,20 @@ var returnedResourceManager = {
         fetch:function(registry, searchset, includes, revincludes) {
             var referenceQueries = [];
             
-            var incs = this.include.getReferencesToInclude(registry,searchset,includes);
+            var filter = function(entry) {
+                if(typeof entry.resource.meta.tag === 'undefined') return false;
+
+                var tags = [];
+                tags = _.filter(entry.resource.meta.tags,function(tag) { return tag.system === 'https://roqr.fhir.co.uk/source' && tag.code === 'local-repo'});
+                return tags.length > 0;
+            }
+
+            var incs = this.include.getReferencesToInclude(registry,searchset,includes,filter)
             incs.forEach(function(inc) {
                 referenceQueries.push(inc);
             });
 
-            var revs = this.revinclude.getReferencesToInclude(registry,searchset,revincludes);
+            var revs = this.revinclude.getReferencesToInclude(registry,searchset,revincludes,filter);
             revs.forEach(function(rev) {
                 referenceQueries.push(rev);
             });
@@ -159,7 +167,7 @@ var returnedResourceManager = {
         },
         include: 
         {
-            getReferencesToInclude:function(registry,searchset,includes) {
+            getReferencesToInclude:function(registry,searchset,includes,filter) {
                 var queries = [];
                 includes.forEach(function(include) {
                     var incParameter = registry.searchResultParameters.include[include] || undefined;
@@ -167,31 +175,34 @@ var returnedResourceManager = {
                     if(typeof incParameter !== 'undefined') {
                         var included = [];
                         searchset.entry.forEach(function(entry) {
-                            if(traverse(entry.resource).has([incParameter.reference]))
+                            if(filter(entry) === true)
                             {
-                                var property = entry.resource[incParameter.reference]
-                                if(!_.isArray(property)) {
-                                    property = [property] //FHIR and its f******g arrays!!!!
-                                };
-                                property.forEach(function(prop) {
-                                    if(!_.contains(included, prop.reference))
-                                    {
-                                        var referencedResourceId = prop.reference.split("/")[1];
-                                        var query = {
-                                            documentType:incParameter.resourceType,
-                                            parameters: [
-                                                {
-                                                    indexType:"id",
-                                                    documentType:incParameter.resourceType.toLowerCase(),
-                                                    node:"id",
-                                                    value: referencedResourceId
-                                                }
-                                            ]
+                                if(traverse(entry.resource).has([incParameter.reference]))
+                                {
+                                    var property = entry.resource[incParameter.reference]
+                                    if(!_.isArray(property)) {
+                                        property = [property] //FHIR and its f******g arrays!!!!
+                                    };
+                                    property.forEach(function(prop) {
+                                        if(!_.contains(included, prop.reference))
+                                        {
+                                            var referencedResourceId = prop.reference.split("/")[1];
+                                            var query = {
+                                                documentType:incParameter.resourceType,
+                                                parameters: [
+                                                    {
+                                                        indexType:"id",
+                                                        documentType:incParameter.resourceType.toLowerCase(),
+                                                        node:"id",
+                                                        value: referencedResourceId
+                                                    }
+                                                ]
+                                            }
+                                            included.push(prop.reference);
+                                            queries.push(query);
                                         }
-                                        included.push(prop.reference);
-                                        queries.push(query);
-                                    }
-                                }); 
+                                    }); 
+                                }
                             }
                         });
                     }
@@ -203,15 +214,18 @@ var returnedResourceManager = {
         },
         revinclude:
         {
-            getReferencesToInclude:function(registry,searchSet,includes) {
+            getReferencesToInclude:function(registry,searchSet,includes,filter) {
                 var queries = [];
                 includes.forEach(function(inc) {
                     //include will be string in format "xxxx:xxxx"
                     //Fetch the revinclude parameter from the registry...
                     var revParameter = registry.searchResultParameters.revinclude[inc];
                     //Using revParameter.reference and the resource id, extract a list of references from the search set...
-                    var references = _.map(searchSet.entry, function(entry) { 
-                        return revParameter.referenceType + "/" + entry.resource.id || revParameter.reference + "/" + entry.resource.id
+                    var references = _.map(searchSet.entry, function(entry) {
+                        if(filter(entry))
+                        {
+                            return revParameter.referenceType + "/" + entry.resource.id || revParameter.reference + "/" + entry.resource.id
+                        }
                     });
                     references.forEach(function(reference) {
                         var query = {
@@ -231,8 +245,35 @@ var returnedResourceManager = {
                 return queries;
             }
         }
+    },
+    federate:{
+        dispatchable:[
+            'Encounter?patient=Patient/',
+            'Observation?patient=Patient/',
+            'AllergyIntolerance?patient=Patient/'
+        ],
+        canDispatch:function(query) {
+            //Hard coded for now...
+            var canDispatch = false;
+            for(var i=0;i<this.dispatchable.length;i++)
+            {
+                canDispatch = (query[0].raw.indexOf(this.dispatchable[i]) > -1);
+                if(canDispatch) break;
+            }
+            return canDispatch;
+        },
+        getLocalIdFromQuery: function(query) {
+            //Only supports query reference types specfic to patient for now...
+            var localId = '';
+            var supportedParam = _.find(query[0].parameters, function(param) {
+                return param.indexType === 'reference' && (param.node === 'subject' || param.node === 'patient');
+            });
+            if(typeof supportedParam !== 'undefined') {
+                localId = supportedParam.value.split('/')[1];
+            }
+            return localId;
+        }
     }
-    
 }
 
 module.exports = {

@@ -824,7 +824,8 @@ var resources =
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
                 'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'}
             }
-        }
+        },
+        isMasterData:true
     },
     Policy:{
         searchParameters:[
@@ -1173,22 +1174,32 @@ var resources =
                     searchProperty:'_tag',
                     type:'token',
                     indexType:'token'
-                }, 
+                },
+                {
+                    indexProperty:'criteria',
+                    property:'criteria',
+                    searchProperty:'criteria',
+                    type:'string',
+                    indexType:'string'
+                },
                 {
                     indexProperty: 'status',
                     property:'status',
+                    searchProperty:'status',
                     type:'string',
                     indexType:'string'
                 },
                 {
                     indexProperty: 'payload',
                     property:'payload',
+                    searchProperty:'payload',
                     type:'string',
                     indexType:'string'
                 },
                 {
                     indexProperty: 'type',
                     property:'type',
+                    searchProperty:'type',
                     type:'string',
                     indexType:'string'
                 },

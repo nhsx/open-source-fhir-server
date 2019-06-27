@@ -3,6 +3,7 @@ var server = {
     sources:[
         {
             target:'repo',
+            isLocal:true,
             tag:{
                 system:'https://roqr.fhir.co.uk/source',
                 code:'local-repo',
@@ -11,6 +12,11 @@ var server = {
         },
         {
             target:'ccri',
+            isLocal:false,
+            dispatchable:true,
+            resourceIdentifier:{
+                system:'https://data.developer.nhs.uk/ccri-fhir/id'
+            },
             tag:{
                     system:'https://roqr.fhir.co.uk/source',
                     code:'ccri',
@@ -19,7 +25,6 @@ var server = {
             url:'https://data.developer.nhs.uk/ccri-fhir/STU3'
         }
     ]
-    
 }
 
 module.exports = {

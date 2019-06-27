@@ -175,7 +175,8 @@
       "authentication",
       "fhir",
       "index",
-      "search"
+      "search",
+      "publisher"
     ],
     "authenticate":false
   },
@@ -232,6 +233,7 @@
     "from_microservices":[
       "tests", 
       "authentication",
+      "publisher",
       "repoadapter"
     ],
     "authenticate": false
@@ -253,7 +255,8 @@
       "authentication",
       "repoadapter",
       "index",
-      "search"
+      "search",
+      "publisher"
     ],
     "authenticate": false
   },
@@ -339,6 +342,7 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "publisher",
       "repoadapter",
       "repo",
       "search"
@@ -349,6 +353,19 @@
     "uri": "/services/v1/publisher/publish",
     "method": "POST",
     "handler": "publish",
+    "on_microservice": "publisher",
+    "from_microservices":[
+      "tests",
+      "index",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/publisher/evaluate",
+    "method": "POST",
+    "handler": "evaluate",
     "on_microservice": "publisher",
     "from_microservices":[
       "tests",
@@ -373,6 +390,31 @@
       "tests",
       "authentication",
       "repo"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/mdm",
+    "method": "POST",
+    "handler": "mdm",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repoadapter",
+      "repo"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/federate",
+    "method": "POST",
+    "handler": "federate",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "search"
     ],
     "authenticate": false
   },
@@ -500,7 +542,8 @@
     "from_microservices":[
       "tests",
       "authentication",
-      "index"
+      "index",
+      "publisher"
     ],
     "authenticate": false
   }

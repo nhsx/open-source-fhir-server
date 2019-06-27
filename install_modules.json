@@ -1,7 +1,7 @@
 [
     "btoa",
+    "crypto-js",
     "moment",
     "traverse",
-    "underscore",
-    "crypto-js"
+    "underscore"
 ]

@@ -29,24 +29,15 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var moment = require('moment');
-var uuid = require('uuid');
+/* THIS IS A TEMPORARY HACK FOR MDM - MDM WILL BE IN ITS OWN SERVICE (part of the aggregator) */
+
+var request = require('request');
+var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-function isEmptyObject(obj) {
-    for (var prop in obj) {
-      return false;
-    }
-    return true;
-  }
-  
-  function isInt(value) {
-    return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
-  }
-
-
 module.exports = function(args, finished) {
-    console.log("Search Create: " + JSON.stringify(args,null,2));
+    console.log("Search MDM: " + JSON.stringify(args,null,2));
 
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
@@ -55,56 +46,58 @@ module.exports = function(args, finished) {
     try
     {
         var server = request.server || undefined;
-        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)){
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid server registry object'));
+        if(typeof server === 'undefined' || server === '' || _.isEmpty(server)){
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist MDM data must contain a valid server registry object'));
         }
 
-        var data = request.data || undefined;
-        if (typeof data === 'undefined' || data === '' || isEmptyObject(data)) {
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
-        } 
-
-        var query = data.query || undefined;
-        if (typeof query === 'undefined' || query === '' || isEmptyObject(query)) {
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
-        } 
-
-        var bundle = data.bundle || undefined;
-        if (typeof bundle === 'undefined' || bundle === '' || isEmptyObject(bundle)) {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
-        } 
-
-        if (typeof bundle.resourceType === 'undefined' || bundle.resourceType === '' || (typeof bundle.resourceType !== 'undefined' && bundle.resourceType !== 'Bundle')) {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
+        var registry = request.registry || undefined;
+        if(typeof registry === 'undefined' || registry === '' || _.isEmpty(registry)){
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist MDM data must contain a valid resource registry object'));
         }
 
-        //Add an id property to the resource before persisting...
-        if (typeof bundle.id === 'undefined' || bundle.id.length === 0) bundle.id = uuid.v4();
-        //Set meta/version id...
-        if (typeof bundle.meta === 'undefined' || (typeof bundle.meta !== 'undefined' && bundle.meta.versionId === undefined)) {
-          bundle.meta = bundle.meta || {};
-          bundle.meta.versionId = "1";
-          bundle.meta.lastUpdated = moment().utc().format();
+        var isMasterData = registry.isMasterData || false;
+        if(!isMasterData) {
+          //Exit here as this resource requires no mdm...
+          finished(dispatcher.getResponseMessage(request,request.data));
         }
-        //Add a self link so that the context of this search is persisted...
-        bundle.link = [];
-        bundle.link.push({relation:"self", url:server.url + query[0].raw});
-        //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
-        bundle.total = bundle.entry.length.toString();
-        //For each entry, set the mode to match...
-        bundle.entry.forEach(function(entry) {
-          entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
-          entry.search = {mode:"match"};
+
+        var data = (request.data && request.data.results) || undefined;
+        if (typeof data === 'undefined' || data === '' || _.isEmpty(data)) {
+          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist persist MDM data must contain a valid data object'));
+        } 
+
+        var resource = request.data.results;
+        //For each remote system map the local resource id to remote system id...
+        var remotes = _.filter(server.sources, function(source) {
+          return source.isLocal === false;
         });
-        //Persist bundle/search set...
-        var doc = this.db.use(bundle.resourceType);
-        doc.$(bundle.id).setDocument(bundle);
-        //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
-        request.searchSetId = bundle.id;
-
-        finished(dispatcher.getResponseMessage(request,{query, bundle}));
+        var ids = [];
+        //Fetch ids to
+        remotes.forEach(function(remote) {
+          ids = _.filter(resource.identifier, function(id) {
+            return id.system === remote.resourceIdentifier.system;
+          });
+        });
+        if(ids.length > 0)
+        {
+          request.data.mdm = [];
+          var mdm = this.db.use('mdm');
+          //Write out to MDM global
+          //local id, source system, source system id...
+          ids.forEach(function(id) {
+            var mdmEntry = {
+              id:resource.id,
+              source:id.system,
+              value:id.value
+            }
+            mdm.$(mdmEntry.id).setDocument(mdmEntry);
+            request.data.mdm.push(mdmEntry);
+          });
+        }
+        //Pass through original request...
+        finished(dispatcher.getResponseMessage(request,request.data));
     }
-    catch (ex) {
-        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
+    catch(ex) {
+      finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }
