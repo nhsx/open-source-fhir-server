@@ -375,6 +375,17 @@
     "authenticate": false
   },
   {
+    "uri":"/services/v1/publisher/notify",
+    "method":"POST",
+    "handler":"notify",
+    "on_microservice":"publisher",
+    "from_microservices":[
+      "tests",
+      "index"
+    ],
+    "authenticate": false
+  },
+  {
     "uri": "/api/v1/tests/search",
     "method": "POST",
     "handler": "searchCreate",

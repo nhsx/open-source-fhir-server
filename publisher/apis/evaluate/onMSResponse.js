@@ -32,7 +32,7 @@
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(message, jwt, forward, sendBack) {
-    console.log('Publish evaluate message in: ' + JSON.stringify(message));
+    console.log('Publish evaluate message in: ' + JSON.stringify(message,null,2));
     var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
     if(!dispatched) return false;
 }

@@ -41,50 +41,61 @@ module.exports = function(args,finished) {
 
     try
     {
-        var searchQuery = request.data.query || undefined;
         var registry = request.registry || undefined;
-        //validate request (TODO...)
-        var indexQuery = {};
-        indexQuery.raw = request.data.query.raw;
-        indexQuery.documentType = request.data.query.resourceType;
-        indexQuery.page = request.data.query.page;
-        indexQuery.pageSize = request.data.query.pageSize;
-        indexQuery.parameters = [];
-        indexQuery.sort = [];
-        indexQuery.includes = request.data.query.includes;
-        indexQuery.revincludes = request.data.query.revincludes;
-        //Convert FHIR search params into index params...
-        searchQuery.parameters.forEach(function(searchParameter) {
-            var indexParameter = _.findWhere(registry.searchParameters, {property: searchParameter.name});
-            if(typeof indexParameter !== 'undefined') {
-                var queryParameter = {
-                    indexType:indexParameter.indexType,
-                    documentType: indexQuery.documentType.toLowerCase(),
-                    node:indexParameter.property,
-                    value: searchParameter.value
+
+        var searchQuery = request.data.query || undefined;
+        if(!_.isArray(searchQuery))
+        {
+            searchQuery = [searchQuery];
+        }
+
+        var indexQueries = [];
+        searchQuery.forEach(function(query) {
+            //validate request (TODO...)
+            var indexQuery = {};
+            indexQuery.raw = query.raw;
+            indexQuery.documentType = query.resourceType;
+            indexQuery.page = query.page;
+            indexQuery.pageSize = query.pageSize;
+            indexQuery.parameters = [];
+            indexQuery.sort = [];
+            indexQuery.includes = query.includes;
+            indexQuery.revincludes = query.revincludes;
+            //Convert FHIR search params into index params...
+            query.parameters.forEach(function(searchParameter) {
+                var indexParameter = _.findWhere(registry.searchParameters, {property: searchParameter.name});
+                if(typeof indexParameter !== 'undefined') {
+                    var queryParameter = {
+                        indexType:indexParameter.indexType,
+                        documentType: indexQuery.documentType.toLowerCase(),
+                        node:indexParameter.property,
+                        value: searchParameter.value
+                    }
+                    if(typeof searchParameter.modifier !== 'undefined') {
+                        queryParameter.modifier = searchParameter.modifier;
+                    }
+                    indexQuery.parameters.push(queryParameter);
                 }
-                if(typeof searchParameter.modifier !== 'undefined') {
-                    queryParameter.modifier = searchParameter.modifier;
+            });
+            //Convert FHIR sort params into index sort parameters...
+            query.sort.forEach(function(sortParameter) {
+                var isDesc = sortParameter.startsWith('-');
+                sortParameter = sortParameter.replace('-','');
+                if(typeof registry.searchResultParameters.sort[sortParameter]!== 'undefined') {
+                    var querySortParameter = {
+                        name:sortParameter
+                    }
+                    if(isDesc === true) {
+                        querySortParameter.direction = "desc";
+                    }
+                    indexQuery.sort.push(querySortParameter);
                 }
-                indexQuery.parameters.push(queryParameter);
-            }
+            });
+            //Add query to index queries...
+            indexQueries.push(indexQuery);
         });
-        //Convert FHIR sort params into index sort parameters...
-        searchQuery.sort.forEach(function(sortParameter) {
-            var isDesc = sortParameter.startsWith('-');
-            sortParameter = sortParameter.replace('-','');
-            if(typeof registry.searchResultParameters.sort[sortParameter]!== 'undefined') {
-                var querySortParameter = {
-                    name:sortParameter
-                }
-                if(isDesc === true) {
-                    querySortParameter.direction = "desc";
-                }
-                indexQuery.sort.push(querySortParameter);
-            }
-        });
-        //Replace the request's searchQuery with the indexQuery
-        finished(dispatcher.getResponseMessage(request,{query:indexQuery}));
+        //Replace the request's searchQuery with the indexQueries
+        finished(dispatcher.getResponseMessage(request,{query:indexQueries}));
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }

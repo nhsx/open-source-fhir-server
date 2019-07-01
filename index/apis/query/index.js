@@ -43,12 +43,12 @@ module.exports = function(args, finished)
     try
     {
         if(typeof request.data === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no message data present in request body')); 
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no message data present in request body')); 
         }
 
         var qry = request.data.query || undefined;
         if(typeof qry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid request - no query present in request body'));
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for: Invalid request - no query present in request body'));
         }
 
         if(!Array.isArray(qry))

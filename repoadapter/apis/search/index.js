@@ -45,66 +45,81 @@ module.exports = function(args, finished) {
         //validate inbound request (TODO)... especially need the registry here...
         var registry = request.registry;
         var resourceType = request.resourceType;
-        var queryParameters = request.data;
-        var query = {
-            raw: '',
-            resourceType:resourceType,
-            parameters: [],
-            pageSize:'',
-            page:'1',
-            sort:[],
-            includes:[],
-            revincludes:[]
+        var searchQueryData = request.data;
+
+        if(!_.isArray(searchQueryData)) {
+            searchQueryData = [searchQueryData]; //Query data is an array of query parameter objects...
         }
-        //create the raw query string from the query data...
-        query.raw = urlBuilder.createUrlFromQuery(resourceType, queryParameters);
-        //map queryParameters onto search/indexed properties...
-        for(p in queryParameters){
-            if(p !== '_count' && p !=='_sort') {
-                if(p !== '_include' && p !=='_revinclude') {
-                    var parameterName = p;
-                    //If there is a modifier present then strip out...
-                    var modifier;
-                    if(parameterName.indexOf(':') > -1)
-                    {
-                        var paramAndModifier = parameterName.split(':');
-                        parameterName = paramAndModifier[0];
-                        modifier = paramAndModifier[1];
-                    } 
-                    var searchParameter = _.findWhere(registry.searchParameters, {searchProperty:parameterName});
-                    if(typeof searchParameter !== 'undefined') {
-                        var parameter = {
-                            name:searchParameter.property,
-                            value:queryParameters[p]
-                        };
-                        if(typeof modifier !== 'undefined') 
-                        {
-                            parameter.modifier = modifier;
+
+        var searchQueries = []; //This is what will be dispatched to repo search...
+
+        searchQueryData.forEach(function(queryParameters) {
+            var searchQuery = {
+                raw: '',
+                resourceType:resourceType,
+                parameters: [],
+                pageSize:'',
+                page:'1',
+                sort:[],
+                includes:[],
+                revincludes:[]
+            }
+            //create the raw query string from the query data...
+            searchQuery.raw = urlBuilder.createUrlFromQuery(resourceType, queryParameters);
+            //map queryParameters onto search/indexed properties...
+            for(p in queryParameters){
+                if(!_.isObject(queryParameters[p]))
+                {
+                    if(p !== '_count' && p !=='_sort') {
+                        if(p !== '_include' && p !=='_revinclude') {
+                            var parameterName = p;
+                            //If there is a modifier present then strip out...
+                            var modifier;
+                            if(parameterName.indexOf(':') > -1)
+                            {
+                                var paramAndModifier = parameterName.split(':');
+                                parameterName = paramAndModifier[0];
+                                modifier = paramAndModifier[1];
+                            } 
+                            var searchParameter = _.findWhere(registry.searchParameters, {searchProperty:parameterName});
+                            if(typeof searchParameter !== 'undefined') {
+                                var parameter = {
+                                    name:searchParameter.property,
+                                    value:queryParameters[p]
+                                };
+                                if(typeof modifier !== 'undefined') 
+                                {
+                                    parameter.modifier = modifier;
+                                }
+                                searchQuery.parameters.push(parameter);
+                            }
+                        } else if(p === '_include' || p === '_revinclude') {
+                            var includeType = p.replace('_', '') + "s";
+                            var incs = queryParameters[p];
+                            if(!_.isArray(incs)) { incs = [incs]; }
+                            incs.forEach(function(inc) {
+                                searchQuery[includeType].push(inc);
+                            });
                         }
-                        query.parameters.push(parameter);
                     }
-                } else if(p === '_include' || p === '_revinclude') {
-                    var includeType = p.replace('_', '') + "s";
-                    var incs = queryParameters[p];
-                    if(!_.isArray(incs)) { incs = [incs]; }
-                    incs.forEach(function(inc) {
-                        query[includeType].push(inc);
-                    });
                 }
             }
-        }
-        if(query.parameters.length === 0)
-        {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
-        }
-        //Set pagination parameters...
-        query.pageSize = queryParameters["_count"] || '*';
-        //Set sort parameters...
-        if(typeof queryParameters["_sort"] !== 'undefined') {
-            query.sort = queryParameters["_sort"].split(",");
-        }
+            if(searchQuery.parameters.length === 0)
+            {
+                finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Invalid Search Parameters or Search Parameters not supported'));
+            }
+            //Set pagination parameters...
+            searchQuery.pageSize = queryParameters["_count"] || '*';
+            //Set sort parameters...
+            if(typeof queryParameters["_sort"] !== 'undefined') {
+                searchQuery.sort = queryParameters["_sort"].split(",");
+            }
+
+            searchQueries.push(searchQuery);
+        });
+
         //Dispatch the query...
-        finished(dispatcher.getResponseMessage(request,{query: query}));
+        finished(dispatcher.getResponseMessage(request,{query: searchQueries}));
     } 
     catch(ex) 
     {

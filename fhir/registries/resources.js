@@ -302,7 +302,8 @@ var resources =
                 indexPropertyIndexTypes:{
                     'participant-type':'token',
                     'participant':'reference'
-                }
+                },
+                allowMultiple:false
             },
             {
                 indexProperty:'partOf',
@@ -319,14 +320,6 @@ var resources =
                 indexType:'period'
             },
             {
-                indexProperty:'type',
-                property:'type',
-                searchProperty:'type',
-                type:'codeableConcept',
-                indexType:'token',
-                allowMultiple:false
-            },
-            {
                 indexProperty:'subject',
                 property:'subject',
                 searchProperty:'patient',
@@ -339,6 +332,14 @@ var resources =
                 searchProperty:'status',
                 type:'string',
                 indexType:'string'
+            },
+            {
+                indexProperty:'type',
+                property:'type',
+                searchProperty:'type',
+                type:'codeableConcept',
+                indexType:'token',
+                allowMultiple:false
             }
         ],
         searchResultParameters:

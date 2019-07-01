@@ -81,6 +81,10 @@ var dispatcher =  {
             message.operation = "EVALUATE-SUBSCRIPTIONS";
             request.body = message;
         },
+        "/services/v1/publisher/notify":function(request,message,router) {
+            message.operation = "NOTIFY";
+            request.body = message;
+        },  
         "/services/v1/repo/batch":function(request,message,route) {
             message.operation = "BATCH-READ";
             request.body= message;
@@ -119,14 +123,6 @@ var dispatcher =  {
         },
         "/services/v1/search":function(request, message, route) {
             message.operation = "CREATE";
-            request.body = message;
-        },
-        "/services/v1/search/federate":function(request,message,route) {
-            message.operation = "FEDERATE";
-            request.body = message;
-        },  
-        "/services/v1/search/mdm":function(request,message, route) {
-            message.operation = "MDM";
             request.body = message;
         },
         "/services/v1/search/:searchSetId":function(request, message, route) {
