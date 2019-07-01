@@ -149,7 +149,7 @@ var returnedResourceManager = {
                 if(typeof entry.resource.meta.tag === 'undefined') return false;
 
                 var tags = [];
-                tags = _.filter(entry.resource.meta.tags,function(tag) { return tag.system === 'https://roqr.fhir.co.uk/source' && tag.code === 'local-repo'});
+                tags = _.filter(entry.resource.meta.tag,function(tag) { return tag.system === 'https://roqr.fhir.co.uk/source' && tag.code === 'local-repo'});
                 return tags.length > 0;
             }
 
@@ -175,8 +175,7 @@ var returnedResourceManager = {
                     if(typeof incParameter !== 'undefined') {
                         var included = [];
                         searchset.entry.forEach(function(entry) {
-                            if(filter(entry) === true)
-                            {
+                            
                                 if(traverse(entry.resource).has([incParameter.reference]))
                                 {
                                     var property = entry.resource[incParameter.reference]
@@ -203,7 +202,7 @@ var returnedResourceManager = {
                                         }
                                     }); 
                                 }
-                            }
+                            
                         });
                     }
                 });

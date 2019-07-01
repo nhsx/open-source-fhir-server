@@ -187,8 +187,8 @@ var indexer =
             var index = {};
             index.global = data.global;
             index.subscripts = [];
-            //Context check STOPS references from being indexed as an identifer for a resource... e.g. subject.identifier (wrong)
-            if(!data.context.startsWith('identifier') && typeof data.indexFrom === 'object')
+            
+            if(typeof data.indexFrom === 'object')
             {
                 var tokenData = {
                     propertyName: data.propertyName,
