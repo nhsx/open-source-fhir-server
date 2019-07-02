@@ -825,8 +825,7 @@ var resources =
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
                 'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'}
             }
-        },
-        isMasterData:true
+        }
     },
     Policy:{
         searchParameters:[
