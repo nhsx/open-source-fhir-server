@@ -10,18 +10,16 @@ var urlBuilder = {
         
         for(key in queryParameters)
         {
-            if(!_.isObject(queryParameters[key])) {
-                var value = queryParameters[key];
-                if(_.isArray(value))
-                {
-                    value.forEach(function(item) {
-                        rawSearchUrl = rawSearchUrl + key + "=" + item + "&";
-                    });
-                }
-                else 
-                {
-                    rawSearchUrl = rawSearchUrl + key + "=" + value + "&";
-                }
+            var value = queryParameters[key];
+            if(_.isArray(value))
+            {
+                value.forEach(function(item) {
+                    rawSearchUrl = rawSearchUrl + key + "=" + item + "&";
+                });
+            }
+            else 
+            {
+                rawSearchUrl = rawSearchUrl + key + "=" + value + "&";
             }
         }
         //Strip off trailing &

@@ -68,39 +68,36 @@ module.exports = function(args, finished) {
             searchQuery.raw = urlBuilder.createUrlFromQuery(resourceType, queryParameters);
             //map queryParameters onto search/indexed properties...
             for(p in queryParameters){
-                if(!_.isObject(queryParameters[p]))
-                {
-                    if(p !== '_count' && p !=='_sort') {
-                        if(p !== '_include' && p !=='_revinclude') {
-                            var parameterName = p;
-                            //If there is a modifier present then strip out...
-                            var modifier;
-                            if(parameterName.indexOf(':') > -1)
+                if(p !== '_count' && p !=='_sort') {
+                    if(p !== '_include' && p !=='_revinclude') {
+                        var parameterName = p;
+                        //If there is a modifier present then strip out...
+                        var modifier;
+                        if(parameterName.indexOf(':') > -1)
+                        {
+                            var paramAndModifier = parameterName.split(':');
+                            parameterName = paramAndModifier[0];
+                            modifier = paramAndModifier[1];
+                        } 
+                        var searchParameter = _.findWhere(registry.searchParameters, {searchProperty:parameterName});
+                        if(typeof searchParameter !== 'undefined') {
+                            var parameter = {
+                                name:searchParameter.property,
+                                value:queryParameters[p]
+                            };
+                            if(typeof modifier !== 'undefined') 
                             {
-                                var paramAndModifier = parameterName.split(':');
-                                parameterName = paramAndModifier[0];
-                                modifier = paramAndModifier[1];
-                            } 
-                            var searchParameter = _.findWhere(registry.searchParameters, {searchProperty:parameterName});
-                            if(typeof searchParameter !== 'undefined') {
-                                var parameter = {
-                                    name:searchParameter.property,
-                                    value:queryParameters[p]
-                                };
-                                if(typeof modifier !== 'undefined') 
-                                {
-                                    parameter.modifier = modifier;
-                                }
-                                searchQuery.parameters.push(parameter);
+                                parameter.modifier = modifier;
                             }
-                        } else if(p === '_include' || p === '_revinclude') {
-                            var includeType = p.replace('_', '') + "s";
-                            var incs = queryParameters[p];
-                            if(!_.isArray(incs)) { incs = [incs]; }
-                            incs.forEach(function(inc) {
-                                searchQuery[includeType].push(inc);
-                            });
+                            searchQuery.parameters.push(parameter);
                         }
+                    } else if(p === '_include' || p === '_revinclude') {
+                        var includeType = p.replace('_', '') + "s";
+                        var incs = queryParameters[p];
+                        if(!_.isArray(incs)) { incs = [incs]; }
+                        incs.forEach(function(inc) {
+                            searchQuery[includeType].push(inc);
+                        });
                     }
                 }
             }

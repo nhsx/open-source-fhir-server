@@ -129,11 +129,11 @@ var fhirInteractionServicePipeline = {
                 {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
                 {paths:{path: "/services/v1/search/:searchSetId/include"}},
                 {paths:{path: "/services/v1/repo/index/query"}},
-                /*{paths:{path: "/services/v1/search/results"}},
+                {paths:{path: "/services/v1/search/results"}},
                 {paths:{path: "/services/v1/repo/batch"}},
                 {paths:{path: "/services/v1/search/:searchSetId/add"}},
                 {paths:{path: "/services/v1/adapters/repo/respond"}},
-                {paths:{path: "/services/v1/responder/create"}}*/
+                {paths:{path: "/services/v1/responder/create"}}
             ]
             request.data = fhirRequest.req.query;
             var resource = fhirRequest.resource;
