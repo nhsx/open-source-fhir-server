@@ -133,6 +133,11 @@ var fhirInteractionServicePipeline = {
                 } 
                 else
                 {
+                    //If no count is present then set it to 10 by default (mimic behaviour of CCRI)...
+                    if(keys.indexOf('_count') === -1) 
+                    {
+                        query._count=10;
+                    }
                     request.routes.push({paths:{path: "/services/v1/repo/index/query"}})
                     request.data = query;
                 }

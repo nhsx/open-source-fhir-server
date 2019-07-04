@@ -6,434 +6,6 @@
 	},
 	"item": [
 		{
-			"name": "data-import",
-			"item": [
-				{
-					"name": "Get Patient Resources",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
-								"exec": [
-									"//Send each resource in bundle to elastic",
-									"pm.test(\"Bundle was returned\", function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.not.equal(null)",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"if(jsonData !== undefined && jsonData !== null)",
-									"{",
-									"    pm.environment.set(\"total\", jsonData.total);",
-									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
-									"    pm.environment.set(\"current\", 0);",
-									"    ",
-									"    var url = jsonData.link[1];",
-									"    if(url.relation === 'next') {",
-									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
-									"    } else {",
-									"        pm.environment.set('atLastPage', \"true\");",
-									"    }",
-									"    ",
-									"    postman.setNextRequest(\"Create Patient Resource Index\");",
-									"}",
-									"",
-									"",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{ccriSearchUrl}}",
-							"host": [
-								"{{ccriSearchUrl}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Patient Resource Index",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
-								"exec": [
-									"var _ = require(\"lodash\");",
-									"//Extract the next patient",
-									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
-									"var total = pm.variables.get(\"total\");",
-									"var current = pm.variables.get(\"current\");",
-									"",
-									"if(current !== bundle.entry.length-1)",
-									"{",
-									"    var resource = bundle.entry[current].resource;",
-									"    var request = {breakchain:false,data:resource};",
-									"    pm.environment.set(\"resourceId\", resource.id);",
-									"    pm.environment.set(\"resourceType\", resource.resourceType);",
-									"    pm.environment.set(\"request\", JSON.stringify(request));",
-									"}",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
-								"exec": [
-									"var current = parseInt(pm.variables.get(\"current\"));",
-									"current = current + 1;",
-									"pm.environment.set(\"current\", current);",
-									"",
-									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
-									"currentPage++;",
-									"pm.environment.set(\"currentPage\",currentPage);",
-									"",
-									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
-									"if(current !== bundle.entry.length- 1)",
-									"{",
-									"   postman.setNextRequest(\"Create Patient Resource Index\"); ",
-									"} ",
-									"else if(pm.environment.get('atLastPage') === \"false\") ",
-									"{",
-									"    postman.setNextRequest(\"Get Patient Resources\");",
-									"}",
-									"else if(pm.environment.get('atLastPage') === \"true\") ",
-									"{",
-									"    //reset ccri search uri for Encounters",
-									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Encounter?_count=100');",
-									"    pm.environment.set('currentPage', 0);",
-									"    pm.environment.set('atLastPage', \"false\");",
-									"    //set next request to Get Encounter Resources",
-									"    postman.setNextRequest(\"Get Encounter Resources\");",
-									"}",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{{request}}"
-						},
-						"url": {
-							"raw": "http://{{roqrOrchestrator}}/api/v1/services/index",
-							"protocol": "http",
-							"host": [
-								"{{roqrOrchestrator}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"services",
-								"index"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Encounter Resources",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
-								"exec": [
-									"//Send each resource in bundle to elastic",
-									"pm.test(\"Bundle was returned\", function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.not.equal(null)",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"if(jsonData !== undefined && jsonData !== null)",
-									"{",
-									"    pm.environment.set(\"total\", jsonData.total);",
-									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
-									"    pm.environment.set(\"current\", 0);",
-									"    ",
-									"    var url = jsonData.link[1];",
-									"    if(url.relation === 'next') {",
-									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
-									"    } else {",
-									"        pm.environment.set('atLastPage', \"true\");",
-									"    }",
-									"    ",
-									"    postman.setNextRequest(\"Create Encounter Resource Index\");",
-									"}",
-									"",
-									"",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{ccriSearchUrl}}",
-							"host": [
-								"{{ccriSearchUrl}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Encounter Resource Index",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
-								"exec": [
-									"var _ = require(\"lodash\");",
-									"//Extract the next patient",
-									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
-									"var total = pm.variables.get(\"total\");",
-									"var current = pm.variables.get(\"current\");",
-									"",
-									"if(current !== bundle.entry.length-1)",
-									"{",
-									"    console.log(current);",
-									"    var resource = bundle.entry[current].resource;",
-									"    var request = {breakchain:false,data:resource};",
-									"    pm.environment.set(\"resourceId\", resource.id);",
-									"    pm.environment.set(\"resourceType\", resource.resourceType);",
-									"    pm.environment.set(\"request\", JSON.stringify(request));",
-									"}",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
-								"exec": [
-									"var current = parseInt(pm.variables.get(\"current\"));",
-									"current = current + 1;",
-									"pm.environment.set(\"current\", current);",
-									"",
-									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
-									"currentPage++;",
-									"pm.environment.set(\"currentPage\",currentPage);",
-									"",
-									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
-									"if(current !== bundle.entry.length- 1)",
-									"{",
-									"   postman.setNextRequest(\"Create Encounter Resource Index\"); ",
-									"} ",
-									"else if(pm.environment.get('atLastPage') === \"false\") ",
-									"{",
-									"    postman.setNextRequest(\"Get Encounter Resources\");",
-									"}",
-									"",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{{request}}"
-						},
-						"url": {
-							"raw": "http://{{roqrOrchestrator}}/api/v1/services/index",
-							"protocol": "http",
-							"host": [
-								"{{roqrOrchestrator}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"services",
-								"index"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Observation Resources",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
-								"exec": [
-									"//Send each resource in bundle to elastic",
-									"pm.test(\"Bundle was returned\", function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.not.equal(null)",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"if(jsonData !== undefined && jsonData !== null)",
-									"{",
-									"    pm.environment.set(\"total\", jsonData.total);",
-									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
-									"    pm.environment.set(\"current\", 0);",
-									"    ",
-									"    var url = jsonData.link[1];",
-									"    if(url.relation === 'next') {",
-									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
-									"    } else {",
-									"        pm.environment.set('atLastPage', \"true\");",
-									"    }",
-									"    ",
-									"    postman.setNextRequest(\"Create Patient Resource Index\");",
-									"}",
-									"",
-									"",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{ccriSearchUrl}}",
-							"host": [
-								"{{ccriSearchUrl}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Example encounter",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"breakchain\":false,\n\t\"data\":\n\t{\n\t    \"resourceType\": \"Encounter\",\n\t    \"id\": \"752\",\n\t    \"meta\": {\n\t        \"lastUpdated\": \"2019-02-08T09:12:47.878+00:00\",\n\t        \"profile\": [\n\t            \"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Encounter-1\"\n\t        ]\n\t    },\n\t    \"identifier\": [\n\t        {\n\t            \"system\": \"https://tools.ietf.org/html/rfc4122\",\n\t            \"value\": \"872A4FC5-DCED-40F8-AC54-A97594FB83AD\"\n\t        }\n\t    ],\n\t    \"status\": \"finished\",\n\t    \"class\": {\n\t        \"system\": \"http://hl7.org/fhir/v3-ActEncounterCode\",\n\t        \"code\": \"IMP\",\n\t        \"display\": \"inpatient encounter\"\n\t    },\n\t    \"type\": [\n\t        {\n\t            \"coding\": [\n\t                {\n\t                    \"system\": \"http://snomed.info/sct\",\n\t                    \"code\": \"24882007\",\n\t                    \"display\": \"Medical consultation on hospital inpatient\"\n\t                }\n\t            ]\n\t        }\n\t    ],\n\t    \"priority\": {\n\t        \"coding\": [\n\t            {\n\t                \"system\": \"http://hl7.org/fhir/v3/ActPriority\",\n\t                \"code\": \"R\",\n\t                \"display\": \"routine\"\n\t            }\n\t        ]\n\t    },\n\t    \"subject\": {\n\t        \"reference\": \"Patient/1195\",\n\t        \"display\": \"Ms Merle Dixie Rice\"\n\t    },\n\t    \"episodeOfCare\": [\n\t        {\n\t            \"reference\": \"EpisodeOfCare/1\"\n\t        }\n\t    ],\n\t    \"participant\": [\n\t        {\n\t            \"type\": [\n\t                {\n\t                    \"coding\": [\n\t                        {\n\t                            \"system\": \"http://hl7.org/fhir/v3/ParticipationType\",\n\t                            \"code\": \"DIS\",\n\t                            \"display\": \"discharger\"\n\t                        }\n\t                    ]\n\t                }\n\t            ],\n\t            \"individual\": {\n\t                \"reference\": \"Practitioner/203553\"\n\t            }\n\t        },\n\t        {\n\t            \"type\": [\n\t                {\n\t                    \"coding\": [\n\t                        {\n\t                            \"system\": \"http://hl7.org/fhir/v3/ParticipationType\",\n\t                            \"code\": \"CON\",\n\t                            \"display\": \"consultant\"\n\t                        }\n\t                    ]\n\t                }\n\t            ],\n\t            \"individual\": {\n\t                \"reference\": \"Practitioner/203554\",\n\t                \"display\": \"Somerville Robert EDMONDSON,\"\n\t            }\n\t        }\n\t    ],\n\t    \"period\": {\n\t        \"start\": \"2018-07-10T00:00:00+00:00\"\n\t    },\n\t    \"diagnosis\": [\n\t        {\n\t            \"condition\": {\n\t                \"reference\": \"Condition/68\",\n\t                \"display\": \"Cardiac arrest\"\n\t            }\n\t        }\n\t\t],\n\t    \"location\": [\n\t        {\n\t            \"location\": {\n\t                \"reference\": \"Location/200014\",\n\t                \"display\": \"Pinderfields: Emergency Department\"\n\t            },\n\t            \"status\": \"planned\"\n\t        },\n\t        {\n\t            \"location\": {\n\t                \"reference\": \"Location/200013\",\n\t                \"display\": \"Casuaulty Location\"\n\t            },\n\t            \"status\": \"completed\"\n\t        },\n\t        {\n\t            \"location\": {\n\t                \"reference\": \"Location/200017\",\n\t                \"display\": \"Elbe\"\n\t            },\n\t            \"status\": \"active\"\n\t        }\n\t    ],\n\t    \"serviceProvider\": {\n\t        \"reference\": \"Organization/200226\",\n\t        \"display\": \"YORKSHIRE AMBULANCE SERVICE NHS TRUST\"\n\t    },\n\t    \"partOf\": {\n\t        \"reference\": \"Encounter/731\"\n\t    }\n\t}\n}"
-						},
-						"url": {
-							"raw": "http://{{roqrOrchestrator}}/api/v1/services/index",
-							"protocol": "http",
-							"host": [
-								"{{roqrOrchestrator}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"services",
-								"index"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get example encounter",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://{{roqrOrchestrator}}/api/v1/services/index/Encounter/752",
-							"protocol": "http",
-							"host": [
-								"{{roqrOrchestrator}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"services",
-								"index",
-								"Encounter",
-								"752"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "fhir-api-service",
 			"item": [
 				{
@@ -846,6 +418,82 @@
 						},
 						{
 							"name": "Can read a Patient resource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Read FHIR Patient Resource - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Resource is returned in body - NOT operation outcome",
+											"pm.test(\"Can Read FHIR Patient Resource - resource is returned)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Patient\");",
+											"});",
+											"//Resource id is equal to the created resource id",
+											"pm.test(\"Can Read FHIR Patient Resource - resource id === server assigned resource id)\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.id).to.exist &&",
+											"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"fhir_created_patient_id\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient/{{fhir_created_patient_id}}",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient",
+										"{{fhir_created_patient_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can read a Patient resource Copy",
 							"event": [
 								{
 									"listen": "test",
@@ -4707,152 +4355,6 @@
 										{
 											"key": "_id",
 											"value": "{{fhir_created_encounter_id}}"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Can search for female Patient resources and page through results with page size of 1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
-										"exec": [
-											"var _ = require('lodash');",
-											"//Expect 200 success...",
-											"pm.test(\"Can search for female Patient resources and page through results - 200 returned\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"//Bundle is returned in body - NOT operation outcome",
-											"pm.test(\"Can search for female Patient resources and page through results - 1 resource is returned\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData.resourceType).to.exist &&",
-											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
-											"});",
-											"//5 links are present in results...",
-											"pm.test(\"Can search for female Patient resources and page through results - 5 links are present in the bundle\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var links = jsonData.link;",
-											"    pm.expect(links.length).to.eql(5);",
-											"});",
-											"//First, Next, Self, Previous, Last are present...",
-											"pm.test(\"Can search for female Patient resources and page through results - all link relations are present in returned bundle\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var links = jsonData.link;",
-											"    links.forEach(function(link) {",
-											"      pm.expect(link.relation).to.satisfy(function(relation) {",
-											"          return relation === \"first\" || relation === \"next\" || relation === \"self\"",
-											"            || relation === \"previous\" || relation === \"last\";",
-											"      })",
-											"    });",
-											"});",
-											"//Self url === request.url",
-											"pm.test(\"Can search for female Patient resources and page through results - self.url === request.url\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var links = jsonData.link;",
-											"    var url;",
-											"    links.forEach(function(link) {",
-											"       if(link.relation === \"self\") {",
-											"           url = link.url;",
-											"       } ",
-											"    }); ",
-											"    pm.expect(url).to.eql(request.url);",
-											"});",
-											"//Bundle total === 3...",
-											"pm.test(\"Can search for female Patient resources and page through results - Bundle total === 3\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData.total).to.eql(3);",
-											"});",
-											"//1 resource is returned in this page...",
-											"pm.test(\"Can search for female Patient resources and page through results - 1 resource is returned\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData.entry.length).to.eql(1);",
-											"});",
-											"//1 result is a Patient",
-											"pm.test(\"Can search for female Patient resources and page through results - resource returned is a Patient\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var resource = jsonData.entry[0].resource;",
-											"    pm.expect(resource.resourceType).to.eql(\"Patient\");",
-											"});",
-											"//Patient result returned is a female",
-											"pm.test(\"Can search for female Patient resources and page through results - resource returned is female\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var resource = jsonData.entry[0].resource;",
-											"    pm.expect(resource.gender).to.eql(\"female\");",
-											"});",
-											"var jsonData = pm.response.json();",
-											"//Store the applicable links in env variable (for subsequent tests)..",
-											"pm.environment.set(\"patient_search_next_page\", _.find(jsonData.link, function(l) { return l.relation === 'next'; }).url);",
-											"//Capture the result id as will need to check the result only appears ONCE in a paged search...",
-											"var resultIds = [];",
-											"resultIds.push(jsonData.entry[0].resource.id);",
-											"pm.environment.set(\"patient_search_result_ids\",resultIds);",
-											"",
-											"",
-											"",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "894473ea-c452-4d94-b9f7-75191b290674",
-										"exec": [
-											"var resultIds = pm.environment.get(\"patient_search_result_ids\");",
-											"if(typeof resultIds !== 'undefined' && Array.isArray(resultIds) && resultIds.length > 0) {",
-											"    resultIds = [];",
-											"    pm.environment.set(\"patient_search_result_ids\",resultIds);",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "accept",
-										"type": "text",
-										"value": "application/fhir+json"
-									},
-									{
-										"key": "Content-Type",
-										"name": "Content-Type",
-										"type": "text",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?gender=female&_count=1",
-									"host": [
-										"{{proxy_server_address}}"
-									],
-									"path": [
-										"fhir",
-										"stu3",
-										"Patient"
-									],
-									"query": [
-										{
-											"key": "gender",
-											"value": "female"
-										},
-										{
-											"key": "_count",
-											"value": "1"
 										}
 									]
 								}
@@ -12462,6 +11964,88 @@
 									"response": []
 								},
 								{
+									"name": "Can read complete patient index Copy",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+												"exec": [
+													"//Expect 200 success...",
+													"pm.test(\"Can Read Index from local index - 201 returned\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"//Service response is returned",
+													"pm.test(\"Can Read Index from local index - service response message is returned (as opposed to error response)\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.messageId).to.exist &&",
+													"    pm.expect(jsonData.requestId).to.exist &&",
+													"    pm.expect(jsonData.responseId).to.exist &&",
+													"    pm.expect(jsonData.pipeline.length).to.eql(2) && ",
+													"    pm.expect(jsonData.operation).to.eql(\"READ\")",
+													"});",
+													"//Indices are the same as what was created",
+													"pm.test(\"Can Read Index from local index - indices are the same as those which were created\", function() {",
+													"   var jsonData = pm.response.json();",
+													"   var createdIndices = pm.environment.get('hashedIndex');",
+													"   var returnedIndices = CryptoJS.MD5(JSON.stringify(jsonData.data.indices)).toString();",
+													"   pm.expect(createdIndices).to.equal(returnedIndices);",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript"
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"id": "894473ea-c452-4d94-b9f7-75191b290674",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "accept",
+												"type": "text",
+												"value": "application/fhir+json"
+											},
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "{{proxy_server_address}}/api/v1/tests/repo/index/Patient/{{indexResourceId}}",
+											"host": [
+												"{{proxy_server_address}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"tests",
+												"repo",
+												"index",
+												"Patient",
+												"{{indexResourceId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "Can read name index type from a patient index",
 									"event": [
 										{
@@ -19857,6 +19441,142 @@
 										{
 											"key": "token",
 											"value": "{{jwt_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"type": "text",
+										"value": "application/fhir+json"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{proxy_server_address}}/fhir/stu3/Patient?identifier=https://fhir.nhs.uk/Id/nhs-number|9658218873&_include=Patient:general-practitioner&_include=Patient:organization",
+									"host": [
+										"{{proxy_server_address}}"
+									],
+									"path": [
+										"fhir",
+										"stu3",
+										"Patient"
+									],
+									"query": [
+										{
+											"key": "identifier",
+											"value": "https://fhir.nhs.uk/Id/nhs-number|9658218873"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:general-practitioner"
+										},
+										{
+											"key": "_include",
+											"value": "Patient:organization"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Can find Michael using his NHS Number and include GP, GP Practice Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "405981bd-74b1-4fee-b114-ff43b71e00ab",
+										"exec": [
+											"//Expect 200 success...",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number - 200 returned\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"//Bundle is returned in body - NOT operation outcome",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.resourceType).to.exist &&",
+											"    pm.expect(jsonData.resourceType).to.eql(\"Bundle\");",
+											"});",
+											"//1 resource is returned and that resource is a patient...",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number - 1 resource is returned\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.entry.length).to.eql(1);",
+											"});",
+											"//Nhs number === nhs number searched for",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number - nhs number === nhs number searched for\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var resource = jsonData.entry[0].resource;",
+											"    pm.expect(resource.identifier[0].value).to.eql(pm.environment.get(\"lastTestNHSNumber\"));",
+											"    ",
+											"});",
+											"//Only 1 link is present in results...",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number and revinclude Encounter - only 1 link is present in the bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    pm.expect(links.length).to.eql(1);",
+											"});",
+											"//relation self link is present",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number and revinclude Encounter - link relation === self is present in returned bundle\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var self;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           self = link.relation;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(self).to.eql(\"self\");",
+											"});",
+											"//Self url === request.url",
+											"pm.test(\"Can Search FHIR Patient Resources by NHS Number and revinclude Encounter - self.url === request.url\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var links = jsonData.link;",
+											"    var url;",
+											"    links.forEach(function(link) {",
+											"       if(link.relation === \"self\") {",
+											"           url = link.url;",
+											"       } ",
+											"    }); ",
+											"    pm.expect(url).to.eql(request.url);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "894473ea-c452-4d94-b9f7-75191b290674",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjMxNDEzMjE5MzYsImlhdCI6MTU2MTQwNzExNCwiaXNzIjoiMTIzNDU2NTY3NTY3NTY3NTY3NTY3NTYzNDYzNDU2MzQ2IiwiYXBwbGljYXRpb24iOiJhdXRoZW50aWNhdGlvbiIsInRpbWVvdXQiOjE1NjE1Nzk5MTQ4MjIsInFld2QiOiI3ZjZkOGZiMjg3N2ExNWVhNjM3OGU0Yjg4ODk3N2VhMjhjNDBhMzY3NTE4YmE4ODA0YTFmMDA0ZGIyMTQ5ZjkzNmE0OTA1YTA2NWI1YjZhMjk1MzRiY2I3MjAxODhlODkzMTg2OTc4ZWI3ODk0ZGYxZjVjMWVlZGU1ZmRjYWUzYTA4NzhkYjBjY2ZjNDRjZWE2YzI2OTlhOGMyMjA3MDJjZDA5ZWU2MzljOTdkM2JmNmFlY2ZlYTJkODY1ZTRkZjMiLCJhdWQiOiJJQU0iLCJqdGkiOiIyODJmODAzMC05NmE3LTRiODctODYwNi1mOGQyN2E2MjkzZDMifQ.BJz3MnDrMqOLzpZmh5S_CA8GdtxoFjhvI2o-V80aH_o",
 											"type": "string"
 										}
 									]

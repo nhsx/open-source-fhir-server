@@ -31,6 +31,8 @@
 
 
 var uuid = require('uuid');
+var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
@@ -70,15 +72,13 @@ module.exports = function(args, finished) {
             data.results = results;
         }
 
-        var db = this.db;
-
         var bundle = {};
         bundle.resourceType = "Bundle"
         bundle.id = uuid.v4();
         bundle.type = request.bundleType || "batch-response";
         bundle.entry = [];
 
-        entries.forEach(function(entry) {
+        var resources = _.map(entries, function(entry, key) {
             var url = entry.request.url;
             //Split url on "/" so that resourceType and resourceId can be extracted...
             if(url.indexOf("/") === 0) {
@@ -87,15 +87,19 @@ module.exports = function(args, finished) {
             var urlAsArray = url.split("/");
             var resourceType = urlAsArray[0];
             var resourceId = urlAsArray[1];
-            //Fetch the resource from db..
-            var resource = db.use(resourceType, resourceId);
-            if(!resource.exists) {
-                //Add an error response of 404 not found...
-                bundle.entry.push(dispatcher.error.notFound(request, 'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist'));
-            } else {
-                //Add resource to bundle.entry after pulling it from source...
-                resource = resource.getDocument(true);
-                bundle.entry.push({resource: resource});
+
+            return {
+                resourceType:resourceType,
+                resourceId: resourceId
+            }
+        });
+
+        var db = this.db;
+        bundle.entry = _.map(resources,function(resource,key) {
+            var entry = db.use(resource.resourceType, resource.resourceId);
+            if(entry.exists) {
+                entry = entry.getDocument(true);
+                return {resource: entry};
             }
         });
         //Add query and bundle to service response...

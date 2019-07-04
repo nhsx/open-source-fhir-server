@@ -1,0 +1,10 @@
+version: "2"
+services:
+
+ newman:
+  image: postman/newman:ubuntu
+  container_name: newman
+  volumes:
+    - ~/Repos/open-source-fhir-server/api-tests/roqr-resource-import:/etc/newman
+  command:
+    run roqr-resource-import-postman-collection.json -e roqr-tests-postman-environment.json -r junit,cli --reporter-json-export=roqr-resource-import-tests-results.xml -k

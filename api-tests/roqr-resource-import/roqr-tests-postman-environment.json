@@ -1,0 +1,314 @@
+{
+	"id": "c2245b83-6079-4bf7-bdb1-843d9c535b4a",
+	"name": "ROQR",
+	"values": [
+		{
+			"key": "proxy_server_address",
+			"value": "http://host.docker.internal:8080",
+			"enabled": true
+		},
+		{
+			"key": "base_fhir_path",
+			"value": "/local/fhir/STU3",
+			"enabled": true
+		},
+		{
+			"key": "target_test_patient_id",
+			"value": "fbd1a673-831b-44fe-bf41-00d1df25cead",
+			"enabled": true
+		},
+		{
+			"key": "firstPageResourceIds",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "last_page",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "next_page",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "nextPageResourceIds",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "lastTestNHSNumber",
+			"value": 10000001904,
+			"enabled": true
+		},
+		{
+			"key": "resource_url",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "patient_resource_url",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "encounter_resource_url",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "target_test_encounter_id",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "requestId",
+			"value": "2404f73b-3894-4e07-b07c-00fd0ab6c2b3",
+			"enabled": true
+		},
+		{
+			"key": "requestedOn",
+			"value": "2019-07-02T13:11:28Z",
+			"enabled": true
+		},
+		{
+			"key": "indexResourceId",
+			"value": "13b92455-a3f8-44cd-ae7c-7617895e0b2f",
+			"enabled": true
+		},
+		{
+			"key": "hashedIndex",
+			"value": "36aa7c89a5a2e437498747d7287aebde",
+			"enabled": true
+		},
+		{
+			"key": "messageId",
+			"value": "bb6cf3d3-4a90-4af3-902a-f2efabbeabf6",
+			"enabled": true
+		},
+		{
+			"key": "lastUpdated",
+			"value": "2019-06-17",
+			"enabled": true
+		},
+		{
+			"key": "bundleId",
+			"value": "2c8b5a5e-87d3-4295-99e0-532cc8855659",
+			"enabled": true
+		},
+		{
+			"key": "sortedBundle",
+			"value": "{\"entry\":[{\"fullUrl\":\"http://localhost:8080/fhir/stu3/Patient/3\",\"resource\":{\"address\":[{\"city\":\"Leeds\",\"line\":[\"21, Grove Street, Overtown\"],\"postalCode\":\"LS21 1PF\"}],\"birthDate\":\"1957-01-01\",\"gender\":\"male\",\"id\":3,\"identifier\":[{\"extension\":[{\"url\":\"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-NHSNumberVerificationStatus-1\",\"valueCodeableConcept\":{\"coding\":[{\"code\":1,\"display\":\"Number present and verified\",\"system\":\"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-NHSNumberVerificationStatus-1\"}]}}],\"system\":\"https://fhir.nhs.uk/Id/nhs-number\",\"value\":1352465790}],\"meta\":{\"lastUpdated\":\"2019-03-23T07:46:05.576+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Patient-1\"]},\"name\":[{\"family\":\"CCCTEST\",\"given\":[\"CCC\"],\"prefix\":[\"Mr\"],\"use\":\"official\"}],\"resourceType\":\"Patient\"},\"search\":{\"mode\":\"match\"}},{\"fullUrl\":\"http://localhost:8080/fhir/stu3/Patient/2\",\"resource\":{\"address\":[{\"city\":\"Overtown\",\"district\":\"West Yorkshire\",\"line\":[\"14 Sunny Mews\"],\"postalCode\":\"LS17 4NK\",\"type\":\"both\",\"use\":\"home\"}],\"birthDate\":\"1956-02-04\",\"gender\":\"male\",\"generalPractitioner\":[{\"display\":\"Dr Paul Rastall\",\"reference\":\"Practitioner/203508\"}],\"id\":2,\"identifier\":[{\"extension\":[{\"url\":\"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-NHSNumberVerificationStatus-1\",\"valueCodeableConcept\":{\"coding\":[{\"code\":1,\"display\":\"Number present and verified\",\"system\":\"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-NHSNumberVerificationStatus-1\"}]}}],\"system\":\"https://fhir.nhs.uk/Id/nhs-number\",\"value\":2378954317}],\"managingOrganization\":{\"display\":\"MGP Medical Centre\",\"reference\":\"Organization/200236\"},\"maritalStatus\":{\"coding\":[{\"code\":\"M\",\"display\":\"Married\",\"system\":\"http://hl7.org/fhir/v3/MaritalStatus\"}]},\"meta\":{\"lastUpdated\":\"2018-09-21T15:55:59.403+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Patient-1\"]},\"name\":[{\"family\":\"BBBTEST\",\"given\":[\"BBB\"],\"prefix\":[\"Mr\"],\"use\":\"official\"}],\"resourceType\":\"Patient\"},\"search\":{\"mode\":\"match\"}},{\"fullUrl\":\"http://localhost:8080/fhir/stu3/Patient/1\",\"resource\":{\"address\":[{\"city\":\"Malton\",\"district\":\"North Yorkshire\",\"line\":[\"29 West Avenue\",\"Bury Thorpe\"],\"postalCode\":\"YO32 5TT\",\"use\":\"work\"}],\"birthDate\":\"1965-12-13\",\"extension\":[{\"url\":\"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-EthnicCategory-1\",\"valueCodeableConcept\":{\"coding\":[{\"code\":\"CY\",\"display\":\"Other white European, European unspecified, European mixed\",\"system\":\"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-EthnicCategory-1\"}]}}],\"gender\":\"female\",\"generalPractitioner\":[{\"display\":\"Dr. Gregory Townley\",\"reference\":\"Practitioner/200000\"}],\"id\":1,\"identifier\":[{\"extension\":[{\"url\":\"https://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-NHSNumberVerificationStatus-1\",\"valueCodeableConcept\":{\"coding\":[{\"code\":1,\"display\":\"Number present and verified\",\"system\":\"https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-NHSNumberVerificationStatus-1\"}]}}],\"system\":\"https://fhir.nhs.uk/Id/nhs-number\",\"value\":3333333333}],\"managingOrganization\":{\"display\":\"Malton GP Practice\",\"reference\":\"Organization/200000\"},\"maritalStatus\":{\"coding\":[{\"code\":\"M\",\"display\":\"Married\",\"system\":\"http://hl7.org/fhir/v3/MaritalStatus\"}]},\"meta\":{\"lastUpdated\":\"2019-03-20T11:52:26.055+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Patient-1\"]},\"name\":[{\"family\":\"AAATEST\",\"given\":[\"AAA\"],\"prefix\":[\"Mrs\"],\"use\":\"official\"}],\"resourceType\":\"Patient\",\"telecom\":[{\"system\":\"phone\",\"use\":\"home\",\"value\":441234567890}]},\"search\":{\"mode\":\"match\"}}],\"id\":\"6f522051-3675-4ade-8667-277ed3b5a0f7\",\"link\":[{\"relation\":\"self\",\"url\":\"http://localhost:8080/fhir/stu3/http://localhost:8080/fhir/stu3/Patient?name=smith\"}],\"meta\":{\"lastUpdated\":\"2019-06-16T17:30:18Z\",\"versionId\":1},\"resourceType\":\"Bundle\",\"total\":3,\"type\":\"searchset\"}",
+			"enabled": true
+		},
+		{
+			"key": "batch_first_target_test_patient_id",
+			"value": "95eb44e7-e0f6-4558-9d7a-13da5bc4f258",
+			"enabled": true
+		},
+		{
+			"key": "batch_second_target_test_patient_id",
+			"value": "5f295321-2a18-478b-84ca-b86e24718596",
+			"enabled": true
+		},
+		{
+			"key": "batch_third_target_test_patient_id",
+			"value": "3fa65438-bb5c-4fae-ae75-8f6112f81cce",
+			"enabled": true
+		},
+		{
+			"key": "batch_organization_id",
+			"value": "c73eeab2-e368-4687-9d97-dbb4c0fc628b",
+			"enabled": true
+		},
+		{
+			"key": "batch_practitioner_id",
+			"value": "738cba98-3d46-491a-b3d2-2219da26292e",
+			"enabled": true
+		},
+		{
+			"key": "include_practitioner_id",
+			"value": "5ea645ca-ed44-47bb-93f7-1de5eb1d2777",
+			"enabled": true
+		},
+		{
+			"key": "include_organisation_id",
+			"value": "87e9f307-8a82-444c-994f-a6c6bff2d16e",
+			"enabled": true
+		},
+		{
+			"key": "include_organization_id",
+			"value": "7d120902-df67-4e3c-981b-6160e586eaff",
+			"enabled": true
+		},
+		{
+			"key": "include_encounter_id",
+			"value": "0e47d686-7d7f-4070-b454-ff4420a0c103",
+			"enabled": true
+		},
+		{
+			"key": "search_first_target_test_patient_id",
+			"value": "f9ccb0f6-f322-42fc-b2a0-eb8801257c28",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_patient_id",
+			"value": "5965d7ef-d583-4a79-9f52-41168d7494d3",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_encounter_id",
+			"value": "9f8deb7a-fb97-4437-af5a-e387e065a9c3",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_organization_id",
+			"value": "56dd5d38-0daa-4680-b850-510f5a2be687",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_practitioner_id",
+			"value": "62f2eeba-1b1c-4063-bf6b-a111067f2c54",
+			"enabled": true
+		},
+		{
+			"key": "patient_search_next_page",
+			"value": "http://localhost:8080/fhir/stu3/?_getpages=e5286556-f4c0-4aa6-8887-5c2b2ec8aa43&_count=10&_getpagesoffset=2",
+			"enabled": true
+		},
+		{
+			"key": "patient_search_result_ids",
+			"value": [],
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_practitioner_role_id",
+			"value": "046a97d7-a1c9-4a72-948a-8eec10f25ad9",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_allergy_id",
+			"value": "5426cff5-6505-4078-b9bc-02abfcd59679",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_observation_id",
+			"value": "2d41791a-89af-4094-9d6f-5f2d6f5b82ac",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_medication_id",
+			"value": "a1c24778-e5b8-4b3e-a111-97b1c7884f17",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_medication_statement_id",
+			"value": "af865382-d69c-41e4-98d4-9a0d24cc79ff",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_consent_id",
+			"value": "d85b9ced-7690-485d-9c2c-668e515596a3",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_location_id",
+			"value": "1cf945e6-9c20-4e73-b63b-2d98613e6c88",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_condition_id",
+			"value": "d3286f30-6064-4035-becd-c2f3af8f2904",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_procedure_id",
+			"value": "1e83abcf-e8c9-4dd0-baef-c1a11c4f43ef",
+			"enabled": true
+		},
+		{
+			"key": "registered_client_id",
+			"value": "bd129c8a-6871-420f-8278-96f963253553",
+			"enabled": true
+		},
+		{
+			"key": "registered_client_secret",
+			"value": "TopSecret!&*123",
+			"enabled": true
+		},
+		{
+			"key": "jwt_token",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NjM4MDkxNTIyNzEsImlhdCI6MTU2MjA3NDI3NywiaXNzIjoiYmQxMjljOGEtNjg3MS00MjBmLTgyNzgtOTZmOTYzMjUzNTUzIiwiYXBwbGljYXRpb24iOiJhdXRoZW50aWNhdGlvbiIsInRpbWVvdXQiOjE1NjIyNDcwNzc5OTQsInFld2QiOiI1MWYzYjllM2NiZjdjZjk3ODY4NmY4MjNmMzM1YmE5ZGU2ZTgyNThmMGU2ZDJlZDZkOTQ4NTlmN2EwMWY5MDZmZGZiYWZiY2FiZjE0Y2E1YjE2OWY3ZWNiN2JlZTMxMzc1Y2M4ZTc1NjA0MzUyNmJkZWZiNGU4YmFkMzVmMTg4NzMwM2IwNDNlYzA5OWQ4ZjllZmE2NTlmMmZkY2VhMzUyODQ0M2IzYTljMWQ3MzY3ZTM0YTc1MWNiODg4ZGE1MWEiLCJhdWQiOiJJQU0iLCJqdGkiOiI3ZjBjMzM0ZS04ZGRiLTQyOTUtYWViNi05N2U3ZWI4NmE0MWIifQ.Ncj3FkcGKDjU3_vHv3NPc-N0VgoOjn1BE4YNozwK7n4",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_policy_id",
+			"value": "4cad1cbf-5939-414d-8c12-74eb128df11e",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_terms_policy_id",
+			"value": "0b91f537-d48c-4346-8dca-24d290c8b9f0",
+			"enabled": true
+		},
+		{
+			"key": "reverse_proxy_address",
+			"value": "https://localhost:8443",
+			"enabled": true
+		},
+		{
+			"key": "fhir_created_subscription_id",
+			"value": "301aa235-02f6-406f-bdf6-a50541fe486c",
+			"enabled": true
+		},
+		{
+			"key": "ccriSearchUrl",
+			"value": "https://data.developer.nhs.uk/ccri-fhir/STU3/Patient?_count=10",
+			"enabled": true
+		},
+		{
+			"key": "atLastPage",
+			"value": "true",
+			"enabled": true
+		},
+		{
+			"key": "bundle",
+			"value": "{\"resourceType\":\"Bundle\",\"id\":\"f6a43f0c-5fbf-4103-9442-f93f6f3edee9\",\"meta\":{\"lastUpdated\":\"2019-07-04T10:09:30.430+00:00\"},\"type\":\"searchset\",\"total\":4,\"link\":[{\"relation\":\"self\",\"url\":\"https://data.developer.nhs.uk/ccri-fhir/STU3/Flag?_count=100\"}],\"entry\":[{\"fullUrl\":\"https://data.developer.nhs.uk/ccri-fhir/STU3/Flag/1\",\"resource\":{\"resourceType\":\"Flag\",\"id\":\"1\",\"meta\":{\"lastUpdated\":\"2018-11-30T16:14:18.849+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Flag-1\"]},\"identifier\":[{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"unusmy8\"}],\"status\":\"active\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"450476008\",\"display\":\"Not for attempted cardiopulmonary resuscitation\"}]},\"subject\":{\"reference\":\"Patient/1184\",\"display\":\"MS Emilie KEWN\"},\"period\":{\"start\":\"2018-07-31T23:00:00+00:00\"},\"author\":{\"reference\":\"Organization/200269\",\"display\":\"Mid Yorkshire Hospitals Nhs Trust\"}}},{\"fullUrl\":\"https://data.developer.nhs.uk/ccri-fhir/STU3/Flag/2\",\"resource\":{\"resourceType\":\"Flag\",\"id\":\"2\",\"meta\":{\"lastUpdated\":\"2018-11-30T16:14:18.925+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Flag-1\"]},\"identifier\":[{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"unusmy8\"},{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"unusmy9\"}],\"status\":\"active\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"526631000000108\",\"display\":\"On end of life care register (finding)\"}]},\"subject\":{\"reference\":\"Patient/1184\",\"display\":\"MS Emilie KEWN\"},\"period\":{\"start\":\"2018-07-31T23:00:00+00:00\"},\"author\":{\"reference\":\"Organization/200269\",\"display\":\"Mid Yorkshire Hospitals Nhs Trust\"}}},{\"fullUrl\":\"https://data.developer.nhs.uk/ccri-fhir/STU3/Flag/3\",\"resource\":{\"resourceType\":\"Flag\",\"id\":\"3\",\"meta\":{\"lastUpdated\":\"2019-03-21T14:14:34.316+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Flag-1\"]},\"identifier\":[{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"adrt\"}],\"status\":\"active\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"816301000000100\",\"display\":\"Has ADRT (advance decision to refuse treatment) (Mental Capacity Act 2005)\"}]},\"subject\":{\"reference\":\"Patient/1184\",\"display\":\"MS Emilie KEWN\"},\"author\":{\"reference\":\"Organization/200269\",\"display\":\"Mid Yorkshire Hospitals Nhs Trust\"}}},{\"fullUrl\":\"https://data.developer.nhs.uk/ccri-fhir/STU3/Flag/4\",\"resource\":{\"resourceType\":\"Flag\",\"id\":\"4\",\"meta\":{\"lastUpdated\":\"2019-03-21T14:14:36.067+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Flag-1\"]},\"identifier\":[{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"lpa\"}],\"status\":\"active\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"816361000000101\",\"display\":\"Has appointed person with personal welfare lasting power of attorney (Mental Capacity Act 2005)\"}]},\"subject\":{\"reference\":\"Patient/1184\",\"display\":\"MS Emilie KEWN\"},\"author\":{\"reference\":\"Organization/200269\",\"display\":\"Mid Yorkshire Hospitals Nhs Trust\"}}}]}",
+			"enabled": true
+		},
+		{
+			"key": "current",
+			"value": 2,
+			"enabled": true
+		},
+		{
+			"key": "total",
+			"value": 4,
+			"enabled": true
+		},
+		{
+			"key": "resourceId",
+			"value": "2",
+			"enabled": true
+		},
+		{
+			"key": "resourceType",
+			"value": "Flag",
+			"enabled": true
+		},
+		{
+			"key": "request",
+			"value": "{\"resourceType\":\"Flag\",\"id\":\"2\",\"meta\":{\"lastUpdated\":\"2018-11-30T16:14:18.925+00:00\",\"profile\":[\"https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Flag-1\"]},\"identifier\":[{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"unusmy8\"},{\"system\":\"https://fhir.midyorks.nhs.uk/Flag/Identifier\",\"value\":\"unusmy9\"}],\"status\":\"active\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"526631000000108\",\"display\":\"On end of life care register (finding)\"}]},\"subject\":{\"reference\":\"Patient/1184\",\"display\":\"MS Emilie KEWN\"},\"period\":{\"start\":\"2018-07-31T23:00:00+00:00\"},\"author\":{\"reference\":\"Organization/200269\",\"display\":\"Mid Yorkshire Hospitals Nhs Trust\"}}",
+			"enabled": true
+		},
+		{
+			"key": "currentPage",
+			"value": 2,
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2019-07-04T10:43:07.117Z",
+	"_postman_exported_using": "Postman/7.2.2"
+}

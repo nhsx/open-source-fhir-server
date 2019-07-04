@@ -30,6 +30,7 @@
 */
 
 var uuid = require('uuid');
+var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
@@ -69,16 +70,14 @@ module.exports = function(args, finished) {
         //for each result in query.results
         query.forEach(function(q) {
             var results = q.results;
-            results.forEach(function(result) {
-                batchRequest.entry.push(
-                    {
-                        request:{
-                            method:"GET",
-                            url:q.documentType + "/" + result
+            batchRequest.entry = _.map(results, function(result) {
+                return {
+                            request:{
+                                method:"GET",
+                                url:q.documentType + "/" + result
+                            }
                         }
-                    }
-                );
-            });
+                    });
         });
         //Add query and batch request to service response...
         data.query = query;

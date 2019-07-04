@@ -31,19 +31,9 @@
 
 var moment = require('moment');
 var uuid = require('uuid');
+var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-
-function isEmptyObject(obj) {
-    for (var prop in obj) {
-      return false;
-    }
-    return true;
-  }
-  
-  function isInt(value) {
-    return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
-  }
-
 
 module.exports = function(args, finished) {
     console.log("Search Create: " + JSON.stringify(args,null,2));
@@ -55,22 +45,22 @@ module.exports = function(args, finished) {
     try
     {
         var server = request.server || undefined;
-        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)){
+        if(typeof server === 'undefined' || server === '' || _.isEmpty(server)){
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid server registry object'));
         }
 
         var data = request.data || undefined;
-        if (typeof data === 'undefined' || data === '' || isEmptyObject(data)) {
+        if (typeof data === 'undefined' || data === '' || _.isEmpty(data)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
         } 
 
         var query = data.query || undefined;
-        if (typeof query === 'undefined' || query === '' || isEmptyObject(query)) {
+        if (typeof query === 'undefined' || query === '' || _.isEmpty(query)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
         } 
 
         var bundle = data.bundle || undefined;
-        if (typeof bundle === 'undefined' || bundle === '' || isEmptyObject(bundle)) {
+        if (typeof bundle === 'undefined' || bundle === '' || _.isEmpty(bundle)) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
 
@@ -92,9 +82,10 @@ module.exports = function(args, finished) {
         //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
         bundle.total = bundle.entry.length.toString();
         //For each entry, set the mode to match...
-        bundle.entry.forEach(function(entry) {
+        bundle.entry = _.map(bundle.entry, function(entry, index) {
           entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
           entry.search = {mode:"match"};
+          return entry;
         });
         //Persist bundle/search set...
         var doc = this.db.use(bundle.resourceType);

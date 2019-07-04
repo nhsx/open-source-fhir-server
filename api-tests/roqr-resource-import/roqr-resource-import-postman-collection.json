@@ -1,0 +1,2718 @@
+{
+	"info": {
+		"_postman_id": "7dbcbbd0-0b14-4703-856d-54153d01f3fc",
+		"name": "roqr-resource-import",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "import-patients",
+			"item": [
+				{
+					"name": "Get Patient Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Patient Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Patient Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Patient Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Patient Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    //reset ccri search uri for Encounters",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Encounter?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    //set next request to Get Encounter Resources",
+									"    postman.setNextRequest(\"Get Encounter Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/fhir+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Patient",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Patient"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "import-encounters",
+			"item": [
+				{
+					"name": "Get Encounter Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Encounter Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Encounter Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Encounter Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Encounter Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    //reset ccri search uri for Obs",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Observation?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    //set next request to Get Obs Resources",
+									"    postman.setNextRequest(\"Get Observation Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/fhir+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Encounter",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Encounter"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "import-observations",
+			"item": [
+				{
+					"name": "Get Observation Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Observation Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Observation Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Observation Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Observation Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    //reset ccri search uri for Allergies",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/AllergyIntolerance?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    //set next request to Get Allergy Resources",
+									"    postman.setNextRequest(\"Get Allergy Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Observation",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Observation"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "import-allergy-intolerances",
+			"item": [
+				{
+					"name": "Get Allergy Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Allergy Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Allergy Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Allergy Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Allergy Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    //reset ccri search uri for Allergies",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Condition?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    //set next request to Get Allergy Resources",
+									"    postman.setNextRequest(\"Get Condition Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"AllergyIntolerance"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "import-conditions",
+			"item": [
+				{
+					"name": "Get Condition Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Condition Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Condition Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Condition Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Condition Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    //reset ccri search uri for Allergies",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Procedure?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    //set next request to Get Allergy Resources",
+									"    postman.setNextRequest(\"Get Procedure Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Condition",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Condition"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-procedures",
+			"item": [
+				{
+					"name": "Get Procedure Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Procedure Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Procedure Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Procedure Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Procedure Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/MedicationStatement?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Medication Statement Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Procedure",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Procedure"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-medication-statement",
+			"item": [
+				{
+					"name": "Get Medication Statement Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Medication Statement Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Medication Statement Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Medication Statement Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Medication Statement Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Medication?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Medication Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"MedicationStatement"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-medication",
+			"item": [
+				{
+					"name": "Get Medication Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Medication Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Medication Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Medication Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Medication Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Organization?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Organization Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Medication",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Medication"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-organization",
+			"item": [
+				{
+					"name": "Get Organization Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Organization Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Organization Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Organization Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Organization Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Location?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Location Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Organization",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Organization"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-location",
+			"item": [
+				{
+					"name": "Get Location Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Location Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Location Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Location Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Location Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Practitioner?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Practitioner Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Location",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Location"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-practitioner",
+			"item": [
+				{
+					"name": "Get Practitioner Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Practitioner Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Practitioner Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Practitioner Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Practitioner Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/PractitionerRole?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Practitioner Role Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Practitioner",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Practitioner"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-practitioner-role",
+			"item": [
+				{
+					"name": "Get Practitioner Role Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Practitioner Role Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Practitioner Role Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Practitioner Role Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Practitioner Role Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/ReferralRequest?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Referral Request Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/PractitionerRole",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"PractitionerRole"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-referral-request",
+			"item": [
+				{
+					"name": "Get Referral Request Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Referral Request Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Referral Request Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Referral Request Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Referral Request Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Flag?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Flag Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/ReferralRequest",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"ReferralRequest"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-flag",
+			"item": [
+				{
+					"name": "Get Flag Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Flag Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Flag Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = pm.variables.get(\"current\");",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Flag Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Flag Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/CarePlan?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"    postman.setNextRequest(\"Get Care Plan Resources\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/Flag",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"Flag"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-care-plan",
+			"item": [
+				{
+					"name": "Get Care Plan Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Care Plan Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Care Plan Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Care Plan Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Care Plan Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Patient?_count=100');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/fhir+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/CarePlan",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"CarePlan"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}

@@ -73,6 +73,70 @@ var resources =
             }
         }
     },
+    CarePlan:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'category',
+                property:'category',
+                searchProperty:'category',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'date',
+                property:'period',
+                searchProperty:'date',
+                type:'period',
+                indexType:'period'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'CarePlan:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{}
+        }
+    },
     Condition: {
         searchParameters:[
             {
@@ -895,11 +959,12 @@ var resources =
             },
             revinclude:{
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
+                'CarePlan:patient':{resourceType:'CarePlan',reference:'Subject',referenceType:'Patient'},
                 'Condition:patient':{resourceType:'Condition',reference:'Subject',referenceType:'Patient'},
                 'Consent:consentor':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Consent:patient':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
-                'Flag:patient':{resourceType:'Flag',reference:'Subect',referenceType:'Patient'},
+                'Flag:patient':{resourceType:'Flag',reference:'Subject',referenceType:'Patient'},
                 'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'},
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
                 'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'},
