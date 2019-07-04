@@ -53,7 +53,7 @@ module.exports = function(args, finished) {
     try
     {
         if(typeof registry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + resource.resourceType + ': No search parameters configured'));  
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to create index for ' + documentType + ': No search parameters configured'));  
         };
 
         var db = this.db;
@@ -103,7 +103,7 @@ module.exports = function(args, finished) {
                             );
                         });
     
-                        var documents = db.use(global);
+                        var documents = db.use(documentType.toLowerCase() + global);
                         path.paths.forEach(function(path) {
                             var pathArray = path.split(',');
                             documents.$(pathArray).forEachChild(function(value, node) {

@@ -101,21 +101,21 @@ module.exports = function(args, finished)
             parameters.forEach(function(parameter) {
                 passNo++;
                 matches = {};
-                var global = parameter.indexType;
+                var global = parameter.documentType.toLowerCase() + parameter.indexType;
                 //Instantiate the correct global...
                 var documents = db.use(global);
                 //Apply filters using filter handler for this 'type' of global...
-                 query.filters[global].call(query, documents, parameter).forEach(function(match) {
+                query.filters[parameter.indexType].call(query, documents, parameter).forEach(function(match) {
                     matches[match] = true;
-                 });
-                 
-                 if(passNo === 1) {
+                });
+                
+                if(passNo === 1) {
                     filtered = matches;
-                 } else {
-                     for(result in filtered) {
+                } else {
+                    for(result in filtered) {
                          if(!matches[result]) delete filtered[result];
-                     }
-                 }
+                    }
+                }
             });
     
             for(result in filtered) {

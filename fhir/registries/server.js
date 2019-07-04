@@ -4,6 +4,7 @@ var server = {
         {
             target:'repo',
             isLocal:true,
+            allowIdOnCreate:true,
             tag:{
                 system:'https://roqr.fhir.co.uk/source',
                 code:'local-repo',

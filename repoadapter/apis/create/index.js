@@ -29,8 +29,9 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
+var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+
 
 module.exports = function(args, finished) {
     console.log("REPO ADAPTER CREATE: " + JSON.stringify(args));
@@ -49,6 +50,14 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         }
 
+        var server = request.server || undefined;
+        if(typeof server !== 'undefined') {
+            var local = _.find(server.sources,function(source) {
+                return source.isLocal === true;
+            });
+            
+            request.checkId = local.allowIdOnCreate === false ? true : false;
+        }
 
         finished(dispatcher.getResponseMessage(request,request.data));
     } 

@@ -111,16 +111,40 @@ var fhirInteractionServicePipeline = {
             ];
             request.resource = fhirRequest.resource;
             request.resourceId = fhirRequest.resourceId;
-        } else if(!_.isEmpty(fhirRequest.req.query)) {
-            //Search
+        } else {
             request.operation = "SEARCH";
             request.routes = [
                 /*{
                     paths:{path:"/services/v1/auth/validate"}
                 },*/
                 {paths:{path: "/services/v1/adapters/repo/search"}},
-                {paths:{path: "/services/v1/repo/search"}},
-                {paths:{path: "/services/v1/repo/index/query"}},
+                {paths:{path: "/services/v1/repo/search"}}
+            ]
+
+            var query = fhirRequest.req.query;
+            if(!_.isEmpty(query))
+            {
+                //If there is only a count qs then forward request to top,
+                var keys = _.keys(query);
+                if(keys.length === 1 && keys.indexOf('_count') === 0)
+                {
+                    request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
+                    request.data = {_id:'*',_count:query._count};
+                } 
+                else
+                {
+                    request.routes.push({paths:{path: "/services/v1/repo/index/query"}})
+                    request.data = query;
+                }
+            } 
+            else 
+            {
+                //forward to top but set page size to 10
+                request.data = {_id:'*',_count:10};
+                request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
+            }
+
+            request.routes.push(
                 {paths:{path: "/services/v1/search/results"}},
                 {paths:{path: "/services/v1/repo/batch"}},
                 {paths:{path: "/services/v1/search"}},
@@ -134,15 +158,12 @@ var fhirInteractionServicePipeline = {
                 {paths:{path: "/services/v1/search/:searchSetId/add"}},
                 {paths:{path: "/services/v1/adapters/repo/respond"}},
                 {paths:{path: "/services/v1/responder/create"}}
-            ]
-            request.data = fhirRequest.req.query;
+            );
+
             var resource = fhirRequest.resource;
             //Attach the registry entry for this resource...
             request.registry = resourceRegistry.resources[resource];
             request.resourceType = resource;
-        } else {
-            //Throw exception - unknown/unsupported READ
-            throw dispatcher.error.serverError("Unsupported READ operation");
         }
     },
     update: function(fhirRequest, request)

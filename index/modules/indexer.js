@@ -427,6 +427,8 @@ var indexer =
         class:'code',
         code:'code',
         category:'code',
+        specialty:'code',
+        serviceRequested:'code',
         "participant-type":'code'
     },
     sort: function(indexData)

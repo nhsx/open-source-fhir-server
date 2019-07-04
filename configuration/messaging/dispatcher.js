@@ -113,6 +113,10 @@ var dispatcher =  {
             message.operation = "QUERY";
             request.body= message;
         },
+        "/services/v1/repo/index/top":function(request,message,route) {
+            message.operation = "TOP";
+            request.body= message;
+        },
         "/services/v1/repo/read":function(request,message,route) {
             message.operation = "READ";
             request.body = message;
@@ -178,9 +182,22 @@ var dispatcher =  {
         
         return true;
     },
+    isErrorResponse:function(message) {
+        //This is an error message which needs raising if message.data.error is true (exists) and raised === false
+        return message.data && message.data.error && message.raised === false || false;
+    },
     dispatch:function(message, jwt, forward, sendBack) {
         //Should this message be forwarded?
         if(!this.shouldForward(message)) return false;
+        //If this message carries an error then exit out of the pipeline by going straight to the responders...
+        if(this.isErrorResponse(message))
+        {
+            message.raised = true;
+            message.routes = [
+                {paths:{path: "/services/v1/adapters/repo/respond"}},
+                {paths:{path: "/services/v1/responder/create"}}
+            ];   
+        }
         //Get the next route...
         var route = message.routes.shift();
         //Check for valid paths...
@@ -274,6 +291,7 @@ var dispatcher =  {
                 respondedOn:moment().utc().format()
             };
             response = _.extend(response, request);
+            response.raised = false;
             response.data = {
                 error:{
                     responseId: uuid.v4(),
@@ -308,6 +326,7 @@ var dispatcher =  {
                 respondedOn:moment().utc().format()
             };
             response = _.extend(response, request);
+            response.raised = false;
             response.data = {
                 error:{
                     responseId: uuid.v4(),

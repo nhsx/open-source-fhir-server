@@ -57,7 +57,7 @@ module.exports = function(args, finished) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
       
-        if (checkId && typeof resource.id !== 'undefined' && resource.id.length > 0) {
+        if (checkId === true && typeof resource.id !== 'undefined' && resource.id.length > 0) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
         }
 

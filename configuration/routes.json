@@ -214,6 +214,7 @@
       "authentication",
       "index",
       "repo",
+      "repoadapter",
       "search"
     ],
     "authenticate": false
@@ -350,6 +351,20 @@
     "authenticate": false
   },
   {
+    "uri": "/services/v1/repo/index/top",
+    "method": "POST",
+    "handler": "top",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repoadapter",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
     "uri": "/services/v1/publisher/publish",
     "method": "POST",
     "handler": "publish",
@@ -401,31 +416,6 @@
       "tests",
       "authentication",
       "repo"
-    ],
-    "authenticate": false
-  },
-  {
-    "uri": "/services/v1/search/mdm",
-    "method": "POST",
-    "handler": "mdm",
-    "on_microservice": "search",
-    "from_microservices":[
-      "tests",
-      "authentication",
-      "repoadapter",
-      "repo"
-    ],
-    "authenticate": false
-  },
-  {
-    "uri": "/services/v1/search/federate",
-    "method": "POST",
-    "handler": "federate",
-    "on_microservice": "search",
-    "from_microservices":[
-      "tests",
-      "authentication",
-      "search"
     ],
     "authenticate": false
   },

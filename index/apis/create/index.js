@@ -125,7 +125,7 @@ module.exports = function(args, finished) {
                                     subs.push(node);
                                     subs.push(resource.id);
     
-                                    var idx = db.use(index.global);
+                                    var idx = db.use(resource.resourceType.toLowerCase() + index.global);
                                     idx.$(subs).value = resource.id;
         
                                     indexData.indices.push(
