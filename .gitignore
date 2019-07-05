@@ -60,4 +60,6 @@ typings/
 # next.js build output
 .next
 .DS_Store
+
+#newman test reports
 api-tests/roqr-resource-import/newman
