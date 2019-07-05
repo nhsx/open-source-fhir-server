@@ -33,6 +33,7 @@ var _ = require('underscore');
 var traverse = require('traverse');
 
 var returnedResourceManager = {
+    _sortFunctions: [],
     _getSortFunctions:function(registry, parameters)
     {
         var sortFunctions = [];
@@ -46,15 +47,15 @@ var returnedResourceManager = {
     sort:function(registry, searchSet, parameters) {
         var sortFunctions = this._getSortFunctions(registry, parameters);
         var sorted = searchSet.entry;
-        var i = 0;
-        sortFunctions.forEach(function(f) {
+        for(var i=0;i<sortFunctions.length;i++)
+        {
+            var f = sortFunctions[i];
             sorted = _.sortBy(sorted, f);
             var param = parameters[i];
             if(param.direction === "desc") {
                 sorted = sorted.reverse();
             }
-            i++;
-        });
+        }
         searchSet.entry = sorted;
         return searchSet; 
     },
@@ -130,7 +131,9 @@ var returnedResourceManager = {
                 //Split this into an array and then further reduce by fetching  _include ||  _revinclude params...
                 var rawIncludes = _.filter(queryString.split('&'),function(part) {return part.indexOf("_include") > -1 || part.indexOf("_revinclude") > -1});
                 //should give _include=Patient:general-practitioner etc...
-                rawIncludes.forEach(function(rawInclude) {
+                for(var i=0;i<rawIncludes.length;i++)
+                {
+                    var rawInclude = rawIncludes[i];
                     var include = rawInclude.split('=');
                     var includeType = include[0];
                     var includeValue = include[1];
@@ -139,21 +142,22 @@ var returnedResourceManager = {
                     } else if (includeType === "_revinclude") {
                         query.revincludes.push(includeValue);
                     }
-                });
+                }
+            }
+        },
+        _aggregateReferenceQueries:function(queries,target) {
+            for(var i=0;i<queries.length;i++) {
+                target.push(queries[i]);
             }
         },
         fetch:function(registry, searchset, includes, revincludes) {
             var referenceQueries = [];
             
             var incs = this.include.getReferencesToInclude(registry,searchset,includes);
-            incs.forEach(function(inc) {
-                referenceQueries.push(inc);
-            });
+            this._aggregateReferenceQueries(incs,referenceQueries);
 
             var revs = this.revinclude.getReferencesToInclude(registry,searchset,revincludes);
-            revs.forEach(function(rev) {
-                referenceQueries.push(rev);
-            });
+            this._aggregateReferenceQueries(revs,referenceQueries);
 
             return referenceQueries;
         },
@@ -161,19 +165,24 @@ var returnedResourceManager = {
         {
             getReferencesToInclude:function(registry,searchset,includes) {
                 var queries = [];
-                includes.forEach(function(include) {
+                for(var i=0;i<includes.length;i++)
+                {
+                    var include = includes[i];
                     var incParameter = registry.searchResultParameters.include[include] || undefined;
                     //property  e.g. generalPractitioner
                     if(typeof incParameter !== 'undefined') {
                         var included = [];
-                        searchset.entry.forEach(function(entry) {
+                        for(var j=0;j<searchset.entry.length;j++) {
+                            var entry = searchset.entry[j];
                             if(traverse(entry.resource).has([incParameter.reference]))
                             {
                                 var property = entry.resource[incParameter.reference]
                                 if(!_.isArray(property)) {
                                     property = [property] //FHIR and its f******g arrays!!!!
                                 };
-                                property.forEach(function(prop) {
+                                for(var k=0;k<property.length;k++)
+                                {
+                                    var prop = property[k];
                                     if(!_.contains(included, prop.reference))
                                     {
                                         var referencedResourceId = prop.reference.split("/")[1];
@@ -191,13 +200,11 @@ var returnedResourceManager = {
                                         included.push(prop.reference);
                                         queries.push(query);
                                     }
-                                }); 
+                                }
                             }
-                        });
+                        }
                     }
-                });
-
-                console.log("getReferencesToInclude Queries: " + JSON.stringify(queries,null,2));
+                }
                 return queries;
             }
         },
@@ -205,15 +212,18 @@ var returnedResourceManager = {
         {
             getReferencesToInclude:function(registry,searchSet,includes) {
                 var queries = [];
-                includes.forEach(function(inc) {
+                for(var i=0;i<includes.length;i++)
+                {
                     //include will be string in format "xxxx:xxxx"
                     //Fetch the revinclude parameter from the registry...
+                    var inc = includes[i];
                     var revParameter = registry.searchResultParameters.revinclude[inc];
                     //Using revParameter.reference and the resource id, extract a list of references from the search set...
                     var references = _.map(searchSet.entry, function(entry) { 
                         return revParameter.referenceType + "/" + entry.resource.id || revParameter.reference + "/" + entry.resource.id
                     });
-                    references.forEach(function(reference) {
+                    for(var j=0;j<references.length;j++) {
+                        var reference = references[j];
                         var query = {
                             documentType:revParameter.resourceType,
                             parameters: [
@@ -226,8 +236,8 @@ var returnedResourceManager = {
                             ]
                         }
                         queries.push(query);
-                    });
-                });
+                    }
+                }
                 return queries;
             }
         }

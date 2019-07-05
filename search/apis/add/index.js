@@ -74,7 +74,9 @@ module.exports = function(args, finished) {
         var bundle = request.data.bundle;
         var query = request.data.query;
         query.added = [];
-        bundle.entry.forEach(function(entry) {
+        for(var i=0;i<bundle.entry.length;i++)
+        {
+            var entry = bundle.entry[i];
             entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
             entry.search = {mode: mode};
             searchSet.entry.push(entry);
@@ -85,7 +87,7 @@ module.exports = function(args, finished) {
                     mode:mode 
                 }
             )
-        });
+        }
         //Build service response data...
         data.query = query;
         data.results = searchSet;

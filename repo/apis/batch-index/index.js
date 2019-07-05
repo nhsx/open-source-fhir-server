@@ -29,47 +29,64 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+
+var uuid = require('uuid');
 var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
+    console.log("Repo Batch Index Read: " + JSON.stringify(args,null,2));
     
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
-    request.pipeline.push("index");
-
+    request.pipeline.push("repo");
+   
     try
     {
-        var documentId = args.req.body.documentId || undefined;
-        var resourceType = request.resource;
-        var registry = request.registry;
 
-        if(typeof documentId === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index - document id cannot be null or undefined'));  
+        var query = request.data.query;
+        if(typeof query === 'undefined')
+        {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Batch requests to the local FHIR store (repo) must contain a valid query in addition to a batchrequest')); 
         }
 
-        if(typeof resourceType === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index - resourceType cannot be null or undefined'));  
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
         }
 
-        if(typeof registry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index for document id ' + documentId + ': No search parameters configured'));  
-        }
+        var bundle = {};
+        bundle.resourceType = "Bundle"
+        bundle.id = uuid.v4();
+        bundle.type = request.bundleType || "batch-response";
+        bundle.entry = [];
 
-        var db = this.db;
-        var indexTypes = _.uniq(_.sortBy(_.pluck(_.filter(registry.searchParameters,function(sp) { return sp.type !== 'virtual';}),"indexType"),true));
-        indexTypes.forEach(function(indexType) {
-            var index = db.use(resourceType.toLowerCase() + indexType);
-            index.forEachLeafNode(function(data,leafNode) {
-                if(data!=='' && data===documentId) {
-                    index.$(leafNode._node.subscripts).delete();
+        for(var i=0;i<query.length;i++)
+        {
+            var q = query[i]
+            var resourceType = q.documentType;
+            var queryResults = q.results;
+            var entries = this.db.use(resourceType);
+            for(var j=0;j<queryResults.length;j++)
+            {
+                var resourceId = queryResults[j];
+                var entry = entries.$(resourceId);
+                if(entry.exists)
+                {
+                    bundle.entry.push({resource: entry.getDocument(true)});
                 }
-            });
-        });
-
-        finished(dispatcher.getResponseMessage(request,request.data));
-    } 
-    catch(ex) {
+            }
+        }
+        //Add query and bundle to service response...
+        data.query = query;
+        data.bundle = bundle;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
+    } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

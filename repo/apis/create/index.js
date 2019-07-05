@@ -33,14 +33,8 @@
 var moment = require('moment');
 var uuid = require('uuid');
 var _ = require('underscore');
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-function isEmptyObject(obj) {
-    for (var prop in obj) {
-      return false;
-    }
-    return true;
-  }
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
   
 module.exports = function(args, finished) {
     console.log("Local Repo Create: " + JSON.stringify(args,null,2));
@@ -55,7 +49,7 @@ module.exports = function(args, finished) {
     try
     {
         //Return error object to be sent to responder service in ms response...
-        if (typeof resource === 'undefined' || resource === '' || isEmptyObject(resource)) {
+        if (typeof resource === 'undefined' || resource === '' || _.isEmpty(resource)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
         } 
     
@@ -63,12 +57,12 @@ module.exports = function(args, finished) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined'));  
         }
       
-        if (checkId && typeof resource.id !== 'undefined' && resource.id.length > 0) {
+        if (checkId === true && typeof resource.id !== 'undefined' && resource.id.length > 0) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + resource.resourceType + ' cannot have an \'id\' property'));
         }
 
         var server = request.server;
-        if(typeof server === 'undefined' || server === '' || isEmptyObject(server)) {
+        if(typeof server === 'undefined' || server === '' || _.isEmpty(server)) {
           finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Server configuration is not available'));
         }
 

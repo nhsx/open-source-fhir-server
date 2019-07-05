@@ -1,0 +1,332 @@
+{
+	"info": {
+		"_postman_id": "d9b8e08a-d1f2-41ad-9d88-4ebe4644a712",
+		"name": "roqr-ui",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Can get Patient 1181 and include GP and GP Practice",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Patient?_id=1181&_include=Patient:generalPractitioner&_include=Patient:organization",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Patient"
+					],
+					"query": [
+						{
+							"key": "_id",
+							"value": "1181"
+						},
+						{
+							"key": "_include",
+							"value": "Patient:generalPractitioner"
+						},
+						{
+							"key": "_include",
+							"value": "Patient:organization"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 and vital signs",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Observation?patient=Patient/1181&category=vital-signs",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Observation"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "category",
+							"value": "vital-signs"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 blood pressures",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Observation?patient=Patient/1181&code=75367002",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Observation"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "code",
+							"value": "75367002"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 pulse",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Observation?patient=Patient/1181&code=364075005",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Observation"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "code",
+							"value": "364075005"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 active allergies",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/AllergyIntolerance?clinical-status=active&patient=Patient/1181",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"AllergyIntolerance"
+					],
+					"query": [
+						{
+							"key": "clinical-status",
+							"value": "active"
+						},
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 medication statements",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/MedicationStatement?status=active&patient=Patient/1181&_include=MedicationStatement:medication",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"MedicationStatement"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "active"
+						},
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "_include",
+							"value": "MedicationStatement:medication"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 active conditions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Condition?patient=Patient/1181&clinical-status=active&_count=5",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Condition"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "clinical-status",
+							"value": "active"
+						},
+						{
+							"key": "_count",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 procedures",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/stu3/Procedure?patient=Patient/1011",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"stu3",
+						"Procedure"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1011"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Can get Patient 1181 lab test results",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"type": "text",
+						"value": "application/fhir+json"
+					}
+				],
+				"url": {
+					"raw": "{{proxy_server_address}}/fhir/STU3/Observation?patient=Patient/1181&category=laboratory",
+					"host": [
+						"{{proxy_server_address}}"
+					],
+					"path": [
+						"fhir",
+						"STU3",
+						"Observation"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "Patient/1181"
+						},
+						{
+							"key": "category",
+							"value": "laboratory"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

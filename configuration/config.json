@@ -4,7 +4,8 @@
     {
       "name": "authentication",
       "qewd": {
-        "serverName": "ROQR Authentication Service"
+        "serverName": "ROQR Authentication Service",
+        "poolSize":4
       }
     },
     {
@@ -16,43 +17,50 @@
     {
       "name": "repoadapter",
       "qewd": {
-        "serverName": "ROQR FHIR Request Adapter Service"
+        "serverName": "ROQR FHIR Request Adapter Service",
+        "poolSize":4
       }
     },
     {
       "name": "repo",
       "qewd": {
-        "serverName": "ROQR Local FHIR Repository Service"
+        "serverName": "ROQR Local FHIR Repository Service",
+        "poolSize":4
       }
     },
     {
       "name": "index",
       "qewd": {
-        "serverName": "ROQR Local FHIR Resource Index Service"
+        "serverName": "ROQR Local FHIR Resource Index Service",
+        "poolSize":4
       }
     },
     {
       "name": "publisher",
       "qewd": {
-        "serverName": "ROQR Subscription Notification Service"
+        "serverName": "ROQR Subscription Notification Service",
+        "poolSize":4
       }
     },
     {
       "name": "search",
       "qewd": {
-        "serverName": "ROQR Search Service"
+        "serverName": "ROQR Search Service",
+        "poolSize":4
       }
     },
     {
       "name": "fhir",
       "qewd": {
-        "serverName": "ROQR FHIR API Service"
+        "serverName": "ROQR FHIR API Service",
+        "poolSize":4
       }
     },
     {
       "name": "responder",
       "qewd": {
-        "serverName": "ROQR Responder Service"
+        "serverName": "ROQR Responder Service",
+        "poolSize":4
       }
     }
   ],

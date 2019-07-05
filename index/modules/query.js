@@ -153,12 +153,16 @@ var query =
             //Fetch the initial result set (map) for each selector...
             var selectors = selector.paths;
             var context = this;
-            selectors.forEach(function(selector) {
+            for(var i=0;i<selectors.length;i++)
+            {
+                var selector = selectors[i];
                 selectorResults = context.filters._select.call(context, selector, documents, parameter);
-                selectorResults.forEach(function(result) {
+                for(var j=0;j<selectorResults.length;j++)
+                {
+                    var result = selectorResults[j];
                     results.push(result);
-                });
-            });
+                }
+            }
             
             return results;
         },
@@ -176,7 +180,9 @@ var query =
             documents.$(selector).forEachChild(function(value,node) {
                 //Filter (reduce)...
                 var paramValues = parameter.value.split(','); //Handles 'OR' (which kinda translates to a SQL IN)
-                paramValues.forEach(function(paramValue) {
+                for(var i=0;i<paramValues.length;i++)
+                {
+                    var paramValue = paramValues[i];
                     var match = false;
                     var modifier = parameter.modifier || parameter.indexType;
                     try
@@ -193,7 +199,7 @@ var query =
                             results.push(id);
                         });
                     }
-                });
+                }
             });
 
             return results;

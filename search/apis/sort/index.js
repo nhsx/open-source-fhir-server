@@ -62,7 +62,7 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'SearchSetId cannot be empty or undefined')); 
         }
 
-        var searchSet = this.db.use("Bundle", searchSetId);
+        var searchSet = this.db.use("Bundle",searchSetId);
         if(!searchSet.exists) {
             finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         }
@@ -73,26 +73,29 @@ module.exports = function(args, finished) {
         }
         
         var results;
-        query.forEach(function(q) {
+        for(var i=0;i<query.length;i++)
+        {
+            var q = query[i];
             var sortParameters = q.sort || undefined;
- 
+
             if(typeof sortParameters === 'undefined' || sortParameters.length === 0)
             {
                 //If there are no search parameters then just return the search set...
                 results = searchSet;
             } else {
                 //Check sort parameters against registry...
-                sortParameters.forEach(function(parameter) {
+                for(var j=0;j=sortParameters.length;j++)
+                {
                     var isValid = (typeof registry.searchResultParameters.sort[parameter.name] !== 'undefined');
-                        if(!isValid) {
-                            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': Sort Parameter ' + parameter.name + ' is not supported'));
-                        }
-                    });
+                    if(!isValid) {
+                        finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to sort ' + searchSetId + ': Sort Parameter ' + parameter.name + ' is not supported'));
+                    }
+                }  
             }
-
+            
             results = returnedResourceManager.sort(registry, searchSet, sortParameters);
             finished(dispatcher.getResponseMessage(request,{query:q,results}));
-        });
+        }
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 

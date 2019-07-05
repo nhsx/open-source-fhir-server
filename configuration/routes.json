@@ -175,7 +175,8 @@
       "authentication",
       "fhir",
       "index",
-      "search"
+      "search",
+      "publisher"
     ],
     "authenticate":false
   },
@@ -213,6 +214,7 @@
       "authentication",
       "index",
       "repo",
+      "repoadapter",
       "search"
     ],
     "authenticate": false
@@ -232,6 +234,7 @@
     "from_microservices":[
       "tests", 
       "authentication",
+      "publisher",
       "repoadapter"
     ],
     "authenticate": false
@@ -253,7 +256,23 @@
       "authentication",
       "repoadapter",
       "index",
-      "search"
+      "search",
+      "publisher"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/batch/index",
+    "method": "POST",
+    "handler": "batch-index",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests", 
+      "authentication",
+      "repoadapter",
+      "index",
+      "search",
+      "publisher"
     ],
     "authenticate": false
   },
@@ -339,6 +358,21 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "publisher",
+      "repoadapter",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/repo/index/top",
+    "method": "POST",
+    "handler": "top",
+    "on_microservice": "index",
+    "from_microservices":[
+      "tests",
+      "authentication",
       "repoadapter",
       "repo",
       "search"
@@ -353,7 +387,31 @@
     "from_microservices":[
       "tests",
       "index",
+      "repo",
+      "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/publisher/evaluate",
+    "method": "POST",
+    "handler": "evaluate",
+    "on_microservice": "publisher",
+    "from_microservices":[
+      "tests",
+      "index",
       "repo"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri":"/services/v1/publisher/notify",
+    "method":"POST",
+    "handler":"notify",
+    "on_microservice":"publisher",
+    "from_microservices":[
+      "tests",
+      "index"
     ],
     "authenticate": false
   },
@@ -500,7 +558,8 @@
     "from_microservices":[
       "tests",
       "authentication",
-      "index"
+      "index",
+      "publisher"
     ],
     "authenticate": false
   }

@@ -32,6 +32,7 @@
 var _ = require('underscore');
 var serverRegistry = require('../registries/server.js').server;
 var resourceRegistry = require('../registries/resources.js');
+
 var dispatcher = require('../../configuration/messaging/dispatcher.js').dispatcher;
 
 var fhirInteractionServicePipeline = {
@@ -65,28 +66,30 @@ var fhirInteractionServicePipeline = {
                 paths: {path: "/services/v1/repo/index"}
             },
             {
+                paths:{path: "/services/v1/adapters/repo/read"}
+            },
+            {
+                paths:[{path: "/services/v1/repo/read"}]
+            },
+            {
                 paths:[
                     {path:"/services/v1/publisher/publish",awaitReply:false},
-                    {path: "/services/v1/adapters/repo/read"}
+                    {path: "/services/v1/adapters/repo/respond"}
                 ]
             },
             {
-                paths:{path: "/services/v1/repo/read"}
-            },
-            {
-                paths:{path: "/services/v1/adapters/repo/respond"},
-            },
-            {
                 paths:{path: "/services/v1/responder/create"},
-            }
+            } 
         ];
-
-        //async path {path:"/services/v1/audit/create", awaitReply:"false"}
-        //async path {path:"/services/v1/version/create" awaitReply:"false"}
+        //TODO:
+        //path {path:"/services/v1/audit/create", awaitReply:"false"}
+        //path {path:"/services/v1/version/create" awaitReply:"false"}
 
         request.data = fhirRequest.req.body;
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
+        //For Create and update attach the subscription registry as this will be needed by the publisher service...
+        request.subscriptionRegistry = resourceRegistry.resources['Subscription'];
     }, 
     read: function(fhirRequest, request) {
         this._baseOperation(fhirRequest, request);
@@ -98,6 +101,9 @@ var fhirInteractionServicePipeline = {
             //This is straightforward read...
             request.operation = "READ";
             request.routes = [
+                /*{
+                    paths:{path:"/services/v1/auth/validate"}
+                },*/
                 {paths: {path: "/services/v1/adapters/repo/read"}},
                 {paths: {path: "/services/v1/repo/read"}},
                 {paths: {path: "/services/v1/adapters/repo/respond"}},
@@ -105,35 +111,57 @@ var fhirInteractionServicePipeline = {
             ];
             request.resource = fhirRequest.resource;
             request.resourceId = fhirRequest.resourceId;
-        } else if(!_.isEmpty(fhirRequest.req.query)) {
-            //Search
+        } else {
             request.operation = "SEARCH";
             request.routes = [
+                /*{
+                    paths:{path:"/services/v1/auth/validate"}
+                },*/
                 {paths:{path: "/services/v1/adapters/repo/search"}},
-                {paths:{path: "/services/v1/repo/search"}},
-                {paths:{path: "/services/v1/repo/index/query"}},
-                {paths:{path: "/services/v1/search/results"}},
-                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/repo/search"}}
+            ]
+
+            var query = fhirRequest.req.query;
+            if(!_.isEmpty(query))
+            {
+                //If there is only a count qs then forward request to top,
+                var keys = _.keys(query);
+                if(keys.length === 1 && keys.indexOf('_count') === 0)
+                {
+                    request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
+                    request.data = {_id:'*',_count:query._count};
+                } 
+                else
+                {
+                    request.routes.push({paths:{path: "/services/v1/repo/index/query"}})
+                    request.data = query;
+                }
+            } 
+            else 
+            {
+                //forward to top but set page size to 10
+                request.data = {_id:'*',_count:10};
+                request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
+            }
+
+            request.routes.push(
+                {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
                 {paths:{path: "/services/v1/search/:searchSetId/sort"}},
                 {paths:{path: "/services/v1/search/:searchSetId"}},
                 {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
                 {paths:{path: "/services/v1/search/:searchSetId/include"}},
                 {paths:{path: "/services/v1/repo/index/query"}},
-                {paths:{path: "/services/v1/search/results"}},
-                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search/:searchSetId/add"}},
                 {paths:{path: "/services/v1/adapters/repo/respond"}},
                 {paths:{path: "/services/v1/responder/create"}}
-            ]
-            request.data = fhirRequest.req.query;
+            );
+
             var resource = fhirRequest.resource;
             //Attach the registry entry for this resource...
             request.registry = resourceRegistry.resources[resource];
             request.resourceType = resource;
-        } else {
-            //Throw exception - unknown/unsupported READ
-            throw dispatcher.error.serverError("Unsupported READ operation");
         }
     },
     update: function(fhirRequest, request)
@@ -147,6 +175,9 @@ var fhirInteractionServicePipeline = {
         request.operation = "UPDATE";
         request.pipeline = ["fhir"];
         request.routes = [
+            /*{
+                    paths:{path:"/services/v1/auth/validate"}
+            },*/
             {
                 paths:{path: "/services/v1/adapters/repo/delete"}
             },
@@ -163,19 +194,16 @@ var fhirInteractionServicePipeline = {
                 paths:{path: "/services/v1/repo/create"}
             },
             {
-                paths:[
-                        {path:"/services/v1/publisher/publish",awaitReply:false},
-                        {path: "/services/v1/repo/index"}
-                    ]
-            },
-            {
-                paths:{path: "/services/v1/adapters/repo/read"}
+                paths:[{path: "/services/v1/repo/index"}]
             },
             {
                 paths:{path: "/services/v1/repo/read"}
             },
             {
-                paths:{path: "/services/v1/adapters/repo/respond"},
+                paths:[
+                    {path:"/services/v1/publisher/publish",awaitReply:false},
+                    {path: "/services/v1/adapters/repo/respond"}
+                ]
             },
             {
                 paths:{path: "/services/v1/responder/create"},
@@ -186,6 +214,8 @@ var fhirInteractionServicePipeline = {
         request.data = fhirRequest.req.body;
         //Attach the registry entry for this resource...
         request.registry = resourceRegistry.resources[fhirRequest.resource];
+        //For Create and update attach the subscription registry as this will be needed by the publisher service...
+        request.subscriptionRegistry = resourceRegistry.resources['Subscription'];
     },
     delete: function(fhirRequest, request) {
         this._baseOperation(fhirRequest, request);
@@ -195,6 +225,9 @@ var fhirInteractionServicePipeline = {
         request.operation = "DELETE";
         request.pipeline = ["fhir"];
         request.routes = [
+            /*{
+                paths:{path:"/services/v1/auth/validate"}
+            },*/
             {
                 paths:{path: "/services/v1/adapters/repo/delete"}
             },
@@ -224,6 +257,9 @@ var fhirInteractionServicePipeline = {
         request.operation = "SEARCHSET";
         request.pipeline = ["fhir"];
         request.routes = [
+            /*{
+                paths:{path:"/services/v1/auth/validate"}
+            },*/
             {paths:{path: "/services/v1/adapters/repo/searchset"}},
             {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
             {paths:{path: "/services/v1/search/:searchSetId/include"}},

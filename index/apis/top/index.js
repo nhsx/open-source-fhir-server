@@ -29,10 +29,12 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+var query = require('../../modules/query.js').query;
 
-module.exports = function(args, finished) {
+module.exports = function(args, finished) 
+{
+    console.log("Index Top: " + JSON.stringify(args,null,2));
     
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
@@ -40,36 +42,43 @@ module.exports = function(args, finished) {
 
     try
     {
-        var documentId = args.req.body.documentId || undefined;
-        var resourceType = request.resource;
-        var registry = request.registry;
-
-        if(typeof documentId === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index - document id cannot be null or undefined'));  
+        if(typeof request.data === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no message data present in request body')); 
         }
 
-        if(typeof resourceType === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index - resourceType cannot be null or undefined'));  
+        var qry = request.data.query || undefined;
+        if(typeof qry === 'undefined') {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for: Invalid request - no query present in request body'));
         }
 
-        if(typeof registry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to delete index for document id ' + documentId + ': No search parameters configured'));  
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this query - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
         }
 
-        var db = this.db;
-        var indexTypes = _.uniq(_.sortBy(_.pluck(_.filter(registry.searchParameters,function(sp) { return sp.type !== 'virtual';}),"indexType"),true));
-        indexTypes.forEach(function(indexType) {
-            var index = db.use(resourceType.toLowerCase() + indexType);
-            index.forEachLeafNode(function(data,leafNode) {
-                if(data!=='' && data===documentId) {
-                    index.$(leafNode._node.subscripts).delete();
-                }
+        if(!Array.isArray(qry))
+        {
+            qry = [request.data.query];
+        }
+
+        var db = this.db.use(request.resourceType.toLowerCase() + 'id'); //Always use the id global...
+        qry.forEach(function(q) {
+            q.results = [];
+            db.$([q.documentType.toLowerCase(),'id']).forEachChild(function(value,node) {
+                q.results.push(value);
             });
         });
 
-        finished(dispatcher.getResponseMessage(request,request.data));
-    } 
-    catch(ex) {
+        data.query = qry
+        
+        finished(dispatcher.getResponseMessage(request,data));
+    }
+    catch(ex) 
+    {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
+
 }

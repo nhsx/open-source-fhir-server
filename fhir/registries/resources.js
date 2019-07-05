@@ -73,6 +73,70 @@ var resources =
             }
         }
     },
+    CarePlan:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'category',
+                property:'category',
+                searchProperty:'category',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'date',
+                property:'period',
+                searchProperty:'date',
+                type:'period',
+                indexType:'period'
+            },
+            {
+                indexProperty:'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'CarePlan:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{}
+        }
+    },
     Condition: {
         searchParameters:[
             {
@@ -302,7 +366,8 @@ var resources =
                 indexPropertyIndexTypes:{
                     'participant-type':'token',
                     'participant':'reference'
-                }
+                },
+                allowMultiple:false
             },
             {
                 indexProperty:'partOf',
@@ -319,17 +384,100 @@ var resources =
                 indexType:'period'
             },
             {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            },
+            {
                 indexProperty:'type',
                 property:'type',
                 searchProperty:'type',
                 type:'codeableConcept',
                 indexType:'token',
                 allowMultiple:false
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'Encounter:patient':{resourceType:'Patient',reference:'subject'}
+            },
+            revinclude:{
+                'Condition:encounter':{resourceType:'Condition',reference:'Context', referenceType:'Encounter'},
+                'MedicationStatement:encounter':{resourceType:'MedicationStatement',reference:'Context',referenceType:'Encounter'},
+                'Observation:encounter':{resourceType:'Observation',reference:'Context',referenceType:'Encounter'},
+                'Procedure:encounter':{resourceType:'Procedure',reference:'Context',referenceType:'Encounter'}
+            }
+        }
+    },
+    Flag:{
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'code',
+                property:'code',
+                searchProperty:'code',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'date',
+                property:'period',
+                searchProperty:'date',
+                type:'period',
+                indexType:'period'
             },
             {
                 indexProperty:'subject',
                 property:'subject',
                 searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'encounter',
+                property:'encounter',
+                searchProperty:'encounter',
                 type:'reference',
                 indexType:'reference'
             },
@@ -348,14 +496,10 @@ var resources =
                 _lastUpdated:'lastUpdated'
             },
             include:{
-                'Encounter:patient':{resourceType:'Patient',reference:'subject'}
+                'Flag:patient':{resourceType:'Patient',reference:'subject'},
+                'Flag:encounter':{resourceType:'Encounter',reference:'encounter'},
             },
-            revinclude:{
-                'Condition:encounter':{resourceType:'Condition',reference:'Context', referenceType:'Encounter'},
-                'MedicationStatement:encounter':{resourceType:'MedicationStatement',reference:'Context',referenceType:'Encounter'},
-                'Observation:encounter':{resourceType:'Observation',reference:'Context',referenceType:'Encounter'},
-                'Procedure:encounter':{resourceType:'Procedure',reference:'Context',referenceType:'Encounter'}
-            }
+            revinclude:{}
         }
     },
     Location:{
@@ -457,8 +601,7 @@ var resources =
             },
             include:{},
             revinclude:{
-                'MedicationStatement:medicationReference':{resourceType:'Medication',reference:'medicationReference'}
-                    
+                'MedicationStatement:medicationReference':{resourceType:'Medication',reference:'MedicationReference',referenceType:'MedicationStatement'},    
             }
         }
     },
@@ -816,13 +959,16 @@ var resources =
             },
             revinclude:{
                 'AllergyIntolerance:patient':{resourceType:'AllergyIntolerance',reference:'Patient',referenceType:'Patient'},
+                'CarePlan:patient':{resourceType:'CarePlan',reference:'Subject',referenceType:'Patient'},
                 'Condition:patient':{resourceType:'Condition',reference:'Subject',referenceType:'Patient'},
                 'Consent:consentor':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Consent:patient':{resourceType:'Consent',reference:'Patient',referenceType:'Patient'},
                 'Encounter:patient':{resourceType:'Encounter',reference:'Subject',referenceType:'Patient'},
+                'Flag:patient':{resourceType:'Flag',reference:'Subject',referenceType:'Patient'},
                 'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'},
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
-                'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'}
+                'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'},
+                'ReferralRequest:patient':{resourceType:'ReferralRequest',reference:'Subject',referenceType:'Patient'},
             }
         }
     },
@@ -954,20 +1100,25 @@ var resources =
                 indexType:'string'
             },
             {
+                indexProperty:'name',
                 property:'name',
+                searchProperty:'name',
                 type:'name',
                 indexType:'name',
             },
-            //Type: virtual parameters (as below) serve as a means to map search params onto other indicies - they are NOT indexed
             {
-                property:'name',
-                type:'virtual',
-                searchProperty:'family'
+                indexProperty:'family',
+                property:'family',
+                searchProperty:'family',
+                type:'string',
+                indexType:'string'
             }, 
             {
-                property:'name',
-                type:'virtual',
-                searchProperty:'given'
+                indexProperty:'given',
+                property:'given',
+                searchProperty:'given',
+                type:'string',
+                indexType:'string'
             },  
             {
                 indexProperty: 'identifier',
@@ -1149,6 +1300,92 @@ var resources =
             revinclude:{}
         }
     },
+    ReferralRequest: {
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'specialty',
+                property:'specialty',
+                searchProperty:'specialty',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'serviceRequested',
+                property:'serviceRequested',
+                searchProperty:'service',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'type',
+                property:'type',
+                searchProperty:'type',
+                type:'codeableConcept',
+                indexType:'token'
+            },
+            {
+                indexProperty:'status',
+                property:'status',
+                searchProperty:'status',
+                type:'string',
+                indexType:'string'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'ReferralRequest:patient':{resourceType:'Patient',reference:'subject'},
+                'ReferralRequest:encounter':{resourceType:'Encounter',reference:'context'},
+            },
+            revinclude:{}
+        }
+    },
     Subscription:
         {
             searchParameters:
@@ -1173,22 +1410,32 @@ var resources =
                     searchProperty:'_tag',
                     type:'token',
                     indexType:'token'
-                }, 
+                },
+                {
+                    indexProperty:'criteria',
+                    property:'criteria',
+                    searchProperty:'criteria',
+                    type:'string',
+                    indexType:'string'
+                },
                 {
                     indexProperty: 'status',
                     property:'status',
+                    searchProperty:'status',
                     type:'string',
                     indexType:'string'
                 },
                 {
                     indexProperty: 'payload',
                     property:'payload',
+                    searchProperty:'payload',
                     type:'string',
                     indexType:'string'
                 },
                 {
                     indexProperty: 'type',
                     property:'type',
+                    searchProperty:'type',
                     type:'string',
                     indexType:'string'
                 },
