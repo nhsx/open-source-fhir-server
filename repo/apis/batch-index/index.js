@@ -29,77 +29,64 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var moment = require('moment');
+
 var uuid = require('uuid');
 var _ = require('underscore');
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
-    console.log("Search Create: " + JSON.stringify(args,null,2));
-
+    console.log("Repo Batch Index Read: " + JSON.stringify(args,null,2));
+    
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
-
+    request.pipeline.push("repo");
+   
     try
     {
-        var server = request.server || undefined;
-        if(typeof server === 'undefined' || server === '' || _.isEmpty(server)){
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid server registry object'));
+
+        var query = request.data.query;
+        if(typeof query === 'undefined')
+        {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Batch requests to the local FHIR store (repo) must contain a valid query in addition to a batchrequest')); 
         }
 
-        var data = request.data || undefined;
-        if (typeof data === 'undefined' || data === '' || _.isEmpty(data)) {
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid data object'));
-        } 
-
-        var query = data.query || undefined;
-        if (typeof query === 'undefined' || query === '' || _.isEmpty(query)) {
-          finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Requests to persist search sets must contain a valid query object'));
-        } 
-
-        var bundle = data.bundle || undefined;
-        if (typeof bundle === 'undefined' || bundle === '' || _.isEmpty(bundle)) {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
-        } 
-
-        if (typeof bundle.resourceType === 'undefined' || bundle.resourceType === '' || (typeof bundle.resourceType !== 'undefined' && bundle.resourceType !== 'Bundle')) {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
+        //Declare response...
+        var data = {};
+        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
+        var results = request.data.results || undefined;
+        if(typeof results !== 'undefined') {
+            data.results = results;
         }
 
-        //Add an id property to the resource before persisting...
-        if (typeof bundle.id === 'undefined' || bundle.id.length === 0) bundle.id = uuid.v4();
-        //Set meta/version id...
-        if (typeof bundle.meta === 'undefined' || (typeof bundle.meta !== 'undefined' && bundle.meta.versionId === undefined)) {
-          bundle.meta = bundle.meta || {};
-          bundle.meta.versionId = "1";
-          bundle.meta.lastUpdated = moment().utc().format();
-        }
-        //Add a self link so that the context of this search is persisted...
-        bundle.link = [];
-        bundle.link.push({relation:"self", url:server.url + query[0].raw});
-        //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
-        bundle.total = bundle.entry.length.toString();
-        //For each entry, set the mode to match...
-        for(var i=0;i<bundle.entry.length;i++) {
-          var entry = bundle.entry[i];
-          entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
-          entry.search = {mode:"match"};
-        }
-        bundle.entry = _.map(bundle.entry, function(entry, index) {
-          
-          return entry;
-        });
-        //Persist bundle/search set...
-        var doc = this.db.use(bundle.resourceType);
-        doc.$(bundle.id).setDocument(bundle);
-        //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
-        request.searchSetId = bundle.id;
+        var bundle = {};
+        bundle.resourceType = "Bundle"
+        bundle.id = uuid.v4();
+        bundle.type = request.bundleType || "batch-response";
+        bundle.entry = [];
 
-        finished(dispatcher.getResponseMessage(request,{query, bundle}));
-    }
-    catch (ex) {
+        for(var i=0;i<query.length;i++)
+        {
+            var q = query[i]
+            var resourceType = q.documentType;
+            var queryResults = q.results;
+            var entries = this.db.use(resourceType);
+            for(var j=0;j<queryResults.length;j++)
+            {
+                var resourceId = queryResults[j];
+                var entry = entries.$(resourceId);
+                if(entry.exists)
+                {
+                    bundle.entry.push({resource: entry.getDocument(true)});
+                }
+            }
+        }
+        //Add query and bundle to service response...
+        data.query = query;
+        data.bundle = bundle;
+        //Dispatch...
+        finished(dispatcher.getResponseMessage(request,data));
+    } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     }
 }

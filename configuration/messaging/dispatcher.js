@@ -89,6 +89,10 @@ var dispatcher =  {
             message.operation = "BATCH-READ";
             request.body= message;
         },
+        "/services/v1/repo/batch/index":function(request,message,route) {
+            message.operation = "BATCH-INDEX-READ";
+            request.body= message;
+        },
         "/services/v1/repo/create":function(request,message,route) {
             message.checkId = message.checkId;
             message.operation = "CREATE";

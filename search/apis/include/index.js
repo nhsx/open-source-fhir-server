@@ -29,6 +29,7 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
@@ -68,15 +69,22 @@ module.exports = function(args, finished) {
         }
         //This generates a set of queries derived from the initial query (which contains include and revincludes)
         //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
-        
-        query.forEach(function(q) {
-            var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes)
-            referenceQueries.forEach(function(rq) {
-                query.push(rq);
-            });
-        });
+        var includeQueries = [];
+        for(var i=0;i<query.length;i++)
+        {
+            var q = query[i];
+            var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes);
+            for(var j=0;j<referenceQueries.length;j++) {
+                includeQueries.push(referenceQueries[j]);
+            }
+        }
         query.shift();
-        
+        //Copy include queries...
+        for(var i=0;i<referenceQueries.length;i++)
+        {
+            query.push(referenceQueries[i]);
+        }
+
         request.mode = "include";
         finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
     } catch(ex) {

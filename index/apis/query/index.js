@@ -68,7 +68,7 @@ module.exports = function(args, finished)
         qry.forEach(function(q) {
             var documentType = q.documentType || '';
             if(documentType === '') {
-                finished(errorMessage.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid query - query does not contain a valid document type'));
+                finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': Invalid query - query does not contain a valid document type'));
             }
     
             var parameters = q.parameters || undefined;
@@ -98,16 +98,20 @@ module.exports = function(args, finished)
             var passNo = 0;
 
             //For each parameter - create the filtered result set
-            parameters.forEach(function(parameter) {
+            for(var i=0;i<parameters.length;i++)
+            {
+                var parameter = parameters[i];
                 passNo++;
                 matches = {};
                 var global = parameter.documentType.toLowerCase() + parameter.indexType;
                 //Instantiate the correct global...
                 var documents = db.use(global);
                 //Apply filters using filter handler for this 'type' of global...
-                query.filters[parameter.indexType].call(query, documents, parameter).forEach(function(match) {
+                var results = query.filters[parameter.indexType].call(query, documents, parameter);
+                for(var j=0;j<results.length;j++) {
+                    var match = results[j];
                     matches[match] = true;
-                });
+                }
                 
                 if(passNo === 1) {
                     filtered = matches;
@@ -116,7 +120,7 @@ module.exports = function(args, finished)
                          if(!matches[result]) delete filtered[result];
                     }
                 }
-            });
+            }
     
             for(result in filtered) {
                 q.results.push(result);

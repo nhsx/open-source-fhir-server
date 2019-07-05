@@ -262,6 +262,21 @@
     "authenticate": false
   },
   {
+    "uri": "/services/v1/repo/batch/index",
+    "method": "POST",
+    "handler": "batch-index",
+    "on_microservice": "repo",
+    "from_microservices":[
+      "tests", 
+      "authentication",
+      "repoadapter",
+      "index",
+      "search",
+      "publisher"
+    ],
+    "authenticate": false
+  },
+  {
     "uri": "/api/v1/tests/repo/index",
     "method": "POST",
     "handler": "repoIndexCreate",

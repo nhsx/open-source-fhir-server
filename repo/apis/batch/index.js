@@ -78,8 +78,12 @@ module.exports = function(args, finished) {
         bundle.type = request.bundleType || "batch-response";
         bundle.entry = [];
 
-        var resources = _.map(entries, function(entry, key) {
+        var resources = [];
+        for(var i=0;i<entries.length;i++)
+        {
+            var entry = entries[i];
             var url = entry.request.url;
+
             //Split url on "/" so that resourceType and resourceId can be extracted...
             if(url.indexOf("/") === 0) {
                 url = url.substring(1);
@@ -88,20 +92,23 @@ module.exports = function(args, finished) {
             var resourceType = urlAsArray[0];
             var resourceId = urlAsArray[1];
 
-            return {
-                resourceType:resourceType,
-                resourceId: resourceId
-            }
-        });
+            resources.push(
+                {
+                    resourceType:resourceType,
+                    resourceId: resourceId
+                }
+            )
+        }
 
-        var db = this.db;
-        bundle.entry = _.map(resources,function(resource,key) {
-            var entry = db.use(resource.resourceType, resource.resourceId);
-            if(entry.exists) {
+        for(var i=0;i<resources.length;i++) {
+            var resource = resources[i];
+            var entry = this.db.use(resource.resourceType, resource.resourceId);
+            if(entry.exists)
+            {
                 entry = entry.getDocument(true);
-                return {resource: entry};
+                bundle.entry.push({resource: entry});
             }
-        });
+        }
         //Add query and bundle to service response...
         data.query = query;
         data.bundle = bundle;

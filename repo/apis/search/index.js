@@ -50,7 +50,9 @@ module.exports = function(args,finished) {
         }
 
         var indexQueries = [];
-        searchQuery.forEach(function(query) {
+        for(var i=0;i<searchQuery.length;i++)
+        {
+            var query = searchQuery[i];
             //validate request (TODO...)
             var indexQuery = {};
             indexQuery.raw = query.raw;
@@ -62,7 +64,9 @@ module.exports = function(args,finished) {
             indexQuery.includes = query.includes;
             indexQuery.revincludes = query.revincludes;
             //Convert FHIR search params into index params...
-            query.parameters.forEach(function(searchParameter) {
+            for(var j=0;j<query.parameters.length;j++)
+            {
+                var searchParameter = query.parameters[j];
                 var indexParameter = _.findWhere(registry.searchParameters, {property: searchParameter.name});
                 if(typeof indexParameter !== 'undefined') {
                     var queryParameter = {
@@ -76,9 +80,11 @@ module.exports = function(args,finished) {
                     }
                     indexQuery.parameters.push(queryParameter);
                 }
-            });
+            }
             //Convert FHIR sort params into index sort parameters...
-            query.sort.forEach(function(sortParameter) {
+            for(var j=0;j<query.sort.length;j++)
+            {
+                var sortParameter = query.sort[j];
                 var isDesc = sortParameter.startsWith('-');
                 sortParameter = sortParameter.replace('-','');
                 if(typeof registry.searchResultParameters.sort[sortParameter]!== 'undefined') {
@@ -90,10 +96,10 @@ module.exports = function(args,finished) {
                     }
                     indexQuery.sort.push(querySortParameter);
                 }
-            });
+            }
             //Add query to index queries...
             indexQueries.push(indexQuery);
-        });
+        }
         //Replace the request's searchQuery with the indexQueries
         finished(dispatcher.getResponseMessage(request,{query:indexQueries}));
     } catch(ex) {

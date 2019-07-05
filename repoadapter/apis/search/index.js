@@ -95,9 +95,11 @@ module.exports = function(args, finished) {
                         var includeType = p.replace('_', '') + "s";
                         var incs = queryParameters[p];
                         if(!_.isArray(incs)) { incs = [incs]; }
-                        incs.forEach(function(inc) {
+                        for(var i=0;i<incs.length;i++)
+                        {
+                            var inc = incs[i];
                             searchQuery[includeType].push(inc);
-                        });
+                        }
                     }
                 }
             }

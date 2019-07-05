@@ -133,11 +133,6 @@ var fhirInteractionServicePipeline = {
                 } 
                 else
                 {
-                    //If no count is present then set it to 10 by default (mimic behaviour of CCRI)...
-                    if(keys.indexOf('_count') === -1) 
-                    {
-                        query._count=10;
-                    }
                     request.routes.push({paths:{path: "/services/v1/repo/index/query"}})
                     request.data = query;
                 }
@@ -150,16 +145,14 @@ var fhirInteractionServicePipeline = {
             }
 
             request.routes.push(
-                {paths:{path: "/services/v1/search/results"}},
-                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
                 {paths:{path: "/services/v1/search/:searchSetId/sort"}},
                 {paths:{path: "/services/v1/search/:searchSetId"}},
                 {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
                 {paths:{path: "/services/v1/search/:searchSetId/include"}},
                 {paths:{path: "/services/v1/repo/index/query"}},
-                {paths:{path: "/services/v1/search/results"}},
-                {paths:{path: "/services/v1/repo/batch"}},
+                {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search/:searchSetId/add"}},
                 {paths:{path: "/services/v1/adapters/repo/respond"}},
                 {paths:{path: "/services/v1/responder/create"}}

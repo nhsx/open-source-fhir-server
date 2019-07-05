@@ -29,70 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var uuid = require('uuid');
-var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-module.exports = function(args, finished) {
-    console.log("Search RESULTS " + JSON.stringify(args,null,2));
-
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
-
-    //Convert query responses into batch requests...
-    try
-    {
-        //validate request...
-
-        //Set request.bundleReturnType to instruct batch operation to return the type of bundle required, rather than a default of batch-response...
-        request.bundleType = "searchset"
-
-        var batchRequest = {
-            resourceType:"Bundle",
-            id:uuid.v4(),
-            type:"batch",
-            entry: []
-        };
-
-        //Declare response...
-        var data = {};
-        //Check if there is an existing result set with this request - forward it to next service if there is (on assumption that it is required)...
-        var results = request.data.results || undefined;
-        if(typeof results !== 'undefined') {
-            data.results = results;
-        }
-        //Convert the query to an array if needed - this may be a result set for different resource types...
-        var query = request.data.query;
-        if(!Array.isArray(query)) {
-            query = [request.data.query];
-        }
-        //for each result in query.results
-        batchRequest.entry = [];
-        for(var i=0;i<query.length;i++)
-        {
-            var q = query[i];
-            var results = q.results;
-            var references = 
-                _.map(results, function(result) {
-                return {
-                            request:{
-                                method:"GET",
-                                url:q.documentType + "/" + result
-                            }
-                        }
-                    });
-            for(var j=0;j<references.length;j++) {
-                batchRequest.entry.push(references[j]);
-            }
-        }
-        //Add query and batch request to service response...
-        data.query = query;
-        data.batchRequest = batchRequest;
-        //Dispatch...
-        finished(dispatcher.getResponseMessage(request,data));
-    } 
-    catch(ex) {
-        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
-    }
+module.exports = function(message, jwt, forward, sendBack) {
+    console.log("Repo BATCH message in: + " + JSON.stringify(message, null, 2));
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }
