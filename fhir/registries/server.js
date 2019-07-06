@@ -5,6 +5,9 @@ var server = {
             target:'repo',
             isLocal:true,
             allowIdOnCreate:true,
+            maxSearchResultSetSize:1000, //This is the maximum number of search results any query will return...
+            maxInitialSearchResultSetSize:50,//This is the threshold at which the server will return first set of results before sending the query off for completion)...
+            defaultPageSize:20,
             tag:{
                 system:'https://roqr.fhir.co.uk/source',
                 code:'local-repo',

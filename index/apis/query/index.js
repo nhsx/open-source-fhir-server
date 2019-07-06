@@ -28,6 +28,7 @@
  ----------------------------------------------------------------------------------------------------------------------------
  MVP pre-Alpha release: 4 June 2019
 */
+var _ = require('underscore');
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var query = require('../../modules/query.js').query;
@@ -42,6 +43,15 @@ module.exports = function(args, finished)
 
     try
     {
+        var server = request.server;
+        if(typeof server === 'undefined' || _.isEmpty(server)) {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no server thresholds present. Server is either null or undefined')); 
+        }
+
+        var maxInitialSearchResultSetSize = _.find(server.sources, function(source) {
+            return source.isLocal === true;
+        }).maxInitialSearchResultSetSize;
+
         if(typeof request.data === 'undefined') {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no message data present in request body')); 
         }
@@ -75,7 +85,7 @@ module.exports = function(args, finished)
             if(typeof parameters === 'undefined' || !Array.isArray(parameters) || (Array.isArray(parameters) && parameters.length === 0)) {
                 finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for ' + documentType + ': No search parameters present in request body'));  
             };
-    
+
             //Validate that the document type for each parameter matches the query.documentType...
             var paramIndex = 0;
             parameters.forEach(function(parameter)  {
@@ -97,6 +107,8 @@ module.exports = function(args, finished)
             var matches;
             var passNo = 0;
 
+            //Determine whether a partial (initial) result set has been sent back to the client...
+            var isInitial = typeof q.isInitial !== 'undefined' ? q.isInitial : true;
             //For each parameter - create the filtered result set
             for(var i=0;i<parameters.length;i++)
             {
@@ -122,8 +134,16 @@ module.exports = function(args, finished)
                 }
             }
     
+            //Set the total results...
+            q.total = _.keys(filtered).length;
+            //Build result list, taking threshold into account...
             for(result in filtered) {
                 q.results.push(result);
+                //Keep going until maxInitialSearchResultSize if this the initial run...
+                if(isInitial === true && q.results.length === maxInitialSearchResultSetSize) {
+                    q.isInitial = false;
+                    break;
+                }
             }
         });
 

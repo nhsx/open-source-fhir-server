@@ -29,19 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var _ = require('underscore');
 var moment = require('moment');
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
-function isEmptyObject(obj) {
-    for (var prop in obj) {
-      return false;
-    }
-    return true;
-  }
-  
-  function isInt(value) {
-    return !isNaN(value) && parseInt(Number(value)) == value && !isNaN(parseInt(value, 10));
-  }
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher; 
 
 module.exports = function(args, finished) {
   console.log("Search Update: " + JSON.stringify(args,null,2));
@@ -56,9 +47,9 @@ module.exports = function(args, finished) {
   {
     //TODO: Validate request.data (query/results)
     var query = request.data.query || undefined;
-    var bundle = request.data.results || undefined;
+    var bundle = request.data.results || request.data.bundle || undefined;
 
-    if (typeof bundle === 'undefined' || bundle === '' || isEmptyObject(bundle)) {
+    if (typeof bundle === 'undefined' || bundle === '' || _.isEmpty(bundle)) {
         finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
     } 
 
@@ -76,15 +67,33 @@ module.exports = function(args, finished) {
 
     //Does this bundle exist...
     var searchSet = this.db.use(bundle.resourceType, bundle.id);
+    var previousVersion;
     if(!searchSet.exists) {
-        finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Resource ' + bundle.id + ' does not exist'));
-    } 
-    //Simple replace (so delete and then insert)
-    searchSet.delete();
-    //Set _lastUpdated
+        finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Searchset ' + bundle.id + ' does not exist or may have expired'));
+    } else {
+      previousVersion = searchSet.getDocument(true);
+    }
+    //Copy searchset meta to bundle and update version number, last updated etc...
+    bundle.meta = previousVersion.meta;
+    bundle.meta.versionId = parseInt(bundle.meta.versionId) + 1;
     bundle.meta.lastUpdated = moment().utc().format();
-    searchSet = this.db.use(bundle.resourceType);
-    searchSet.$(bundle.id).setDocument(bundle);
+    //Ensure that the bundle type is set to search set...
+    bundle.type = "searchset";
+    //Copy over the total...
+    bundle.total = previousVersion.total;
+    //Copy the self link...
+    if(typeof bundle.link === 'undefined' || (_.isArray(bundle.link) && bundle.link.length === 0))
+    {
+      bundle.link = []
+      bundle.link.push(_.find(previousVersion.link, function(link) {
+        return link.relation === "self";
+      }));
+    }
+    //Now trash the previous search set...
+    searchSet.delete();
+    //Persist the new, updated one...
+    var updatedSearchSet = this.db.use(bundle.resourceType);
+    updatedSearchSet.$(bundle.id).setDocument(bundle);
     //Set searchset id on outbound response...
     request.searchSetId = searchSetId;
     var results = bundle;

@@ -122,6 +122,10 @@ var fhirInteractionServicePipeline = {
             ]
 
             var query = fhirRequest.req.query;
+            var defaultPageSize =  _.find(request.server.sources, function(source) {
+                return source.isLocal === true;
+            }).defaultPageSize;
+            
             if(!_.isEmpty(query))
             {
                 //If there is only a count qs then forward request to top,
@@ -133,21 +137,29 @@ var fhirInteractionServicePipeline = {
                 } 
                 else
                 {
+                    if(keys.indexOf('_count') === -1)
+                    {
+                        query._count = defaultPageSize;
+                    }
                     request.routes.push({paths:{path: "/services/v1/repo/index/query"}})
                     request.data = query;
                 }
             } 
             else 
             {
-                //forward to top but set page size to 10
-                request.data = {_id:'*',_count:10};
+                //forward to top but set page size to maxPageSize (100)...
+                request.data = {_id:'*',_count:defaultPageSize};
                 request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
             }
 
             request.routes.push(
                 {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
-                {paths:{path: "/services/v1/search/:searchSetId/sort"}},
+                //At this point, send to search completion service which will fetch any more records 'out of band' beyond the initial set - no need to wait for a reply
+                {paths:[
+                    {path:"/services/v1/search/:searchSetId/complete", awaitReply: false},
+                    {path: "/services/v1/search/:searchSetId/sort"}
+                ]},
                 {paths:{path: "/services/v1/search/:searchSetId"}},
                 {paths:{path: "/services/v1/search/:searchSetId/paginate/:page/:pageSize"}},
                 {paths:{path: "/services/v1/search/:searchSetId/include"}},

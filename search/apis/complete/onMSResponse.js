@@ -30,69 +30,9 @@
 */
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-var query = require('../../modules/query.js').query;
 
-module.exports = function(args, finished) 
-{
-    console.log("Index Top: " + JSON.stringify(args,null,2));
-    
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("index");
-
-    try
-    {
-        if(typeof request.data === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no message data present in request body')); 
-        }
-
-        var qry = request.data.query || undefined;
-        if(typeof qry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for: Invalid request - no query present in request body'));
-        }
-
-        //Declare response...
-        var data = {};
-        //Check if there is an existing result set with this query - forward it to next service if there is (on assumption that it is required)...
-        var results = request.data.results || undefined;
-        if(typeof results !== 'undefined') {
-            data.results = results;
-        }
-
-        if(!Array.isArray(qry))
-        {
-            qry = [request.data.query];
-        }
-        //Only return up to maxInitialSearchResultSetSize threshold then set q.initial === true so that the remainder of this search can be completed out of band...
-        var threshold = _.find(request.server.sources, function(source) {
-            return source.isLocal === true;
-        }).maxInitialSearchResultSetSize;
-        var thresholdReached = false;
-
-        var db = this.db.use(request.resourceType.toLowerCase() + 'id'); //Always use the id global...
-        for(var i=0;i<qry.length;i++)
-        {
-            var q = qry[i];
-            q.results = [];
-            db.$([q.documentType.toLowerCase(),'id']).forEachChild(function(value,node) {
-                if(i==-threshold) {
-                    q.isInitial = true;
-                    thresholdReached = true; 
-                    return true; 
-                }
-                q.results.push(value);
-            });
-
-            if(thresholdReached === true) { break; }
-        }
-
-        data.query = qry
-        
-        finished(dispatcher.getResponseMessage(request,data));
-    }
-    catch(ex) 
-    {
-        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
-    }
-
+module.exports = function(message, jwt, forward, sendBack) {
+    console.log("search COMPLETE message in: " + JSON.stringify(message, null, 2));
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

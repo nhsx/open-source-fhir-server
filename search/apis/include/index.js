@@ -70,19 +70,28 @@ module.exports = function(args, finished) {
         //This generates a set of queries derived from the initial query (which contains include and revincludes)
         //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
         var includeQueries = [];
+        var areIncludes = false;
         for(var i=0;i<query.length;i++)
         {
             var q = query[i];
-            var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes);
-            for(var j=0;j<referenceQueries.length;j++) {
-                includeQueries.push(referenceQueries[j]);
+            if(q.includes.length > 0 || q.revincludes.length > 0)
+            {
+                q.isInitial = false;
+                var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes);
+                for(var j=0;j<referenceQueries.length;j++) {
+                    includeQueries.push(referenceQueries[j]);
+                }
+                areIncludes = true;
             }
         }
         query.shift();
-        //Copy include queries...
-        for(var i=0;i<referenceQueries.length;i++)
+        if(areIncludes)
         {
-            query.push(referenceQueries[i]);
+            //Copy include queries...
+            for(var i=0;i<includeQueries.length;i++)
+            {
+                query.push(includeQueries[i]);
+            }
         }
 
         request.mode = "include";

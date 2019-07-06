@@ -138,6 +138,11 @@ var dispatcher =  {
             request.path = request.path.replace(':searchSetId',message.searchSetId);
             request.body = message;
         },
+        "/services/v1/search/:searchSetId/complete":function(request,message,route) {
+            message.operation = "COMPLETE";
+            request.path = request.path.replace(':searchSetId',message.searchSetId);
+            request.body = message;
+        },
         "/services/v1/search/:searchSetId/add":function(request,message,route) {
             message.operation = "ADD";
             //Replace the :searchSetId with message.searchSetId
@@ -169,12 +174,6 @@ var dispatcher =  {
             message.operation = "RESULTS";
             request.body= message;
         },
-        "/services/v1/search/:searchSetId/revinclude":function(request,message,route) {
-            message.operation = "REVINCLUDE";
-            //Replace the :searchSetId with message.searchSetId
-            request.path = request.path.replace(':searchSetId',message.searchSetId);
-            request.body = message;
-        }
     },
     shouldForward:function(message) {
         //Check service and routes...

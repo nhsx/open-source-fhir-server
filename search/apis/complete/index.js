@@ -29,70 +29,76 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-var query = require('../../modules/query.js').query;
+var _ = require('underscore');
 
-module.exports = function(args, finished) 
-{
-    console.log("Index Top: " + JSON.stringify(args,null,2));
-    
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
+
+module.exports = function(args, finished) {
+    console.log("Search Complete: " + JSON.stringify(args,null,2));
+
     var request = args.req.body;
     request.pipeline = request.pipeline || [];
-    request.pipeline.push("index");
+    request.pipeline.push("search");
 
     try
-    {
-        if(typeof request.data === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index: Invalid request - no message data present in request body')); 
+    {   
+        //Check that there are any results first - if not kill this pipeline...
+        var data = request.data || undefined;
+        if(typeof data === 'undefined' || _.isEmpty(data)) {
+            finished({searchcomplete:true});
+        }        
+        //Check searchSet id...
+        var searchSetId = request.searchSetId || undefined;
+        if (typeof searchSetId === 'undefined' || searchSetId === '') {
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Unable to complete search - SearchSetId cannot be empty or undefined')); 
         }
-
-        var qry = request.data.query || undefined;
-        if(typeof qry === 'undefined') {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to query index for: Invalid request - no query present in request body'));
+        //Check searchset exists!
+        searchSet = this.db.use("Bundle", searchSetId);
+        if(!searchSet.exists) {
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Unable to complete search - Search Set ' + searchSetId + ' does not exist or has expired')); 
         }
-
-        //Declare response...
-        var data = {};
-        //Check if there is an existing result set with this query - forward it to next service if there is (on assumption that it is required)...
-        var results = request.data.results || undefined;
-        if(typeof results !== 'undefined') {
-            data.results = results;
+        //Check that there are any results first - if not kill this pipeline...
+        var query = request.data.query || undefined;
+        if(typeof query === 'undefined' || _.isEmpty(query)) {
+            finished({searchcomplete:true});
         }
-
-        if(!Array.isArray(qry))
+        //Check that there are any results first - if not kill this pipeline...
+        var bundle = request.data.bundle || undefined;
+        if(typeof bundle === 'undefined' || _.isEmpty(bundle) || (!_.isEmpty(bundle) && !_.isArray(bundle.entry) || (!_.isEmpty(bundle) && _.isArray(bundle.entry) && bundle.entry.length === 0))) {
+            finished({searchcomplete:true});
+        }
+        //Check registry...
+        var registry = request.registry;
+        if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': No search result parameters configured'));  
+        }
+        //Need to map inbound message from search onto that which is needed by query/index...
+        //First thing - drop the bundle...
+        delete data.bundle;
+        //Next, drop results from initial search, make sure that q.isInitial === false (this will override maxInitialResultSetSize observation in query/index) and blat total...
+        //This is effectively restoring the query back to it's original state but asking the index service to execute it in full...
+        for(var i=0;i<query.length;i++)
         {
-            qry = [request.data.query];
+            var q = query[i];
+            //Set q.isInitial...
+            q.isInitial = false;
+            //Delete total and results...
+            delete q.total;
+            delete q.results;
         }
-        //Only return up to maxInitialSearchResultSetSize threshold then set q.initial === true so that the remainder of this search can be completed out of band...
-        var threshold = _.find(request.server.sources, function(source) {
-            return source.isLocal === true;
-        }).maxInitialSearchResultSetSize;
-        var thresholdReached = false;
+        //Before forwarding, set up a new pipeline for this request...
+        request.routes = [
+            {paths:{path: "/services/v1/repo/index/query"}}, //Re run query...
+            {paths:{path: "/services/v1/repo/batch/index"}}, //Hydrate results from repo...
+            {paths:{path: "/services/v1/search/:searchSetId"}}, //Update/replace the existing initial search set...
+            {paths:{path: "/services/v1/search/:searchSetId/sort"}}, //Sort it...
+            {paths:{path: "/services/v1/search/:searchSetId"}} //Update with sorted search set...
+        ];
+        //Forward the query...
+        finished(dispatcher.getResponseMessage(request,{query:query}));
 
-        var db = this.db.use(request.resourceType.toLowerCase() + 'id'); //Always use the id global...
-        for(var i=0;i<qry.length;i++)
-        {
-            var q = qry[i];
-            q.results = [];
-            db.$([q.documentType.toLowerCase(),'id']).forEachChild(function(value,node) {
-                if(i==-threshold) {
-                    q.isInitial = true;
-                    thresholdReached = true; 
-                    return true; 
-                }
-                q.results.push(value);
-            });
-
-            if(thresholdReached === true) { break; }
-        }
-
-        data.query = qry
-        
-        finished(dispatcher.getResponseMessage(request,data));
-    }
-    catch(ex) 
-    {
+    } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
-    }
+    } 
 
 }

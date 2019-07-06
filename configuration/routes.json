@@ -469,6 +469,7 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "repo",
       "search"
     ],
     "authenticate": false
@@ -488,15 +489,9 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "repo",
       "search"
     ],
-    "authenticate": false
-  },
-  {
-    "uri": "/api/v1/tests/search/:searchSetId/add",
-    "method": "POST",
-    "handler": "searchAdd",
-    "on_microservice": "tests",
     "authenticate": false
   },
   {
@@ -509,6 +504,20 @@
       "authentication",
       "repo",
       "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/complete",
+    "method": "POST",
+    "handler": "complete",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repo",
+      "search",
+      "index"
     ],
     "authenticate": false
   },

@@ -44,7 +44,6 @@ module.exports = function(args, finished) {
    
     try
     {
-
         var query = request.data.query;
         if(typeof query === 'undefined')
         {
@@ -61,7 +60,7 @@ module.exports = function(args, finished) {
 
         var bundle = {};
         bundle.resourceType = "Bundle"
-        bundle.id = uuid.v4();
+        bundle.id = request.searchSetId || uuid.v4(); //Check for existing search set id... this request may have come from the search complete service, in which case, the bundle.id should be the same as the existing searchSetId
         bundle.type = request.bundleType || "batch-response";
         bundle.entry = [];
 

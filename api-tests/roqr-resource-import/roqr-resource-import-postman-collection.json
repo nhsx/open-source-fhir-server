@@ -51,7 +51,14 @@
 							"script": {
 								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
 								"exec": [
-									""
+									"//reset all environment vars...",
+									"pm.environment.set(\"atLastPage\", false);",
+									"pm.environment.set(\"bundle\", \"\");",
+									"pm.environment.set(\"current\", 0);",
+									"pm.environment.set(\"currentPage\", 0);",
+									"pm.environment.set(\"total\", 0);",
+									"pm.environment.set(\"resourceType\", \"\");",
+									"pm.environment.set(\"request\", \"\");"
 								],
 								"type": "text/javascript"
 							}
