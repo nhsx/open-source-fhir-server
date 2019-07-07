@@ -140,7 +140,7 @@ module.exports = function(args, finished)
                 q.results.push(result);
                 //Keep going until maxInitialSearchResultSize if this the initial run...
                 if(isInitial === true && q.results.length === maxInitialSearchResultSetSize) {
-                    q.isInitial = false;
+                    q.isInitial = true;
                     break;
                 }
             }

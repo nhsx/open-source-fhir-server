@@ -156,7 +156,6 @@ var fhirInteractionServicePipeline = {
                 {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
                 //At this point, send to search completion service which will fetch any more records 'out of band' beyond the initial set - no need to wait for a reply
-                //{paths:{path:"/services/v1/search/:searchSetId/complete"}},
                 {paths:[
                     {path:"/services/v1/search/:searchSetId/complete", awaitReply: false},
                     {path: "/services/v1/search/:searchSetId/sort"}

@@ -62,16 +62,6 @@ module.exports = function(args, finished) {
         if(typeof query === 'undefined' || _.isEmpty(query)) {
             finished({searchcomplete:true});
         }
-        //Check that there are any results first - if not kill this pipeline...
-        var bundle = request.data.bundle || undefined;
-        if(typeof bundle === 'undefined' || _.isEmpty(bundle) || (!_.isEmpty(bundle) && !_.isArray(bundle.entry) || (!_.isEmpty(bundle) && _.isArray(bundle.entry) && bundle.entry.length === 0))) {
-            finished({searchcomplete:true});
-        }
-        //Check registry...
-        var registry = request.registry;
-        if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
-            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': No search result parameters configured'));  
-        }
         //Check server...
         var server = request.server;
         if(typeof server === 'undefined' || _.isEmpty(server)) {
@@ -81,6 +71,21 @@ module.exports = function(args, finished) {
         var maxInitialSearchResultSetSize = _.find(server.sources, function(source) {
             return source.isLocal === true;
         }).maxInitialSearchResultSetSize;
+        //Check that there are any results first - if not kill this pipeline...
+        var bundle = request.data.bundle || undefined;
+        if(typeof bundle === 'undefined' || _.isEmpty(bundle) || (!_.isEmpty(bundle) && !_.isArray(bundle.entry) || (!_.isEmpty(bundle) && _.isArray(bundle.entry) && bundle.entry.length === 0))) {
+            finished({searchcomplete:true});
+        }
+        //Is there any need to proceed?
+        if(parseInt(bundle.total) < maxInitialSearchResultSetSize)
+        {
+            finished({searchcomplete:true});
+        }
+        //Check registry...
+        var registry = request.registry;
+        if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': No search result parameters configured'));  
+        }
         //Need to map inbound message from search onto that which is needed by query/index...
         //First thing - drop the bundle...
         delete data.bundle;
@@ -90,9 +95,9 @@ module.exports = function(args, finished) {
         for(var i=0;i<query.length;i++)
         {
             var q = query[i];
-            var isInitial = q.isInitial === 'undefined' ? true : q.isInitial;
+            var isInitial = typeof q.isInitial !== 'undefined' ? q.isInitial : true;
             //Only continue if this is the initial query and the total is > maxInitialSearchResultSetSize...
-            if(isInitial === true && q.total > maxInitialSearchResultSetSize) {
+            if(isInitial === true) {
                 //Set q.isInitial...
                 q.isInitial = false;
                 //Delete total and results...
@@ -110,7 +115,7 @@ module.exports = function(args, finished) {
                 {paths:{path: "/services/v1/repo/batch/index"}}, //Hydrate results from repo...
                 {paths:{path: "/services/v1/search/:searchSetId"}}, //Update/replace the existing initial search set...
                 {paths:{path: "/services/v1/search/:searchSetId/sort"}}, //Sort it...
-                {paths:{path: "/services/v1/search/:searchSetId"}} //Update with sorted search set...
+                {paths:{path: "/services/v1/search/:searchSetId"}} //Update with sorted search set...*/
             ];
             //Forward the query...
             finished(dispatcher.getResponseMessage(request,{query:query}));
