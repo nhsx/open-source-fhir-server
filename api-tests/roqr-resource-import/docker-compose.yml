@@ -7,4 +7,4 @@ services:
   volumes:
     - ~/Repos/open-source-fhir-server/api-tests/roqr-resource-import:/etc/newman
   command:
-    run roqr-resource-import-postman-collection.json -e roqr-tests-postman-environment.json --delay-request 3000 -r junit,cli --reporter-json-export=roqr-resource-import-tests-results.xml -k
+    run roqr-resource-import-postman-collection.json -e roqr-tests-postman-environment.json --delay-request 100 -r junit,cli --reporter-json-export=roqr-resource-import-tests-results.xml -k

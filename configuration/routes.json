@@ -32,6 +32,20 @@
     "authenticate":false
   },
   {
+    "uri":"/fhir/stu3/roqr/metadata",
+    "method":"GET",
+    "handler":"metadata",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/roqr/$metadata",
+    "method":"GET",
+    "handler":"metadata",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
     "uri":"/fhir/stu3/:resource",
     "method":"POST",
     "handler":"create",
@@ -71,6 +85,17 @@
     "method":"POST",
     "handler":"fhirResponseTest",
     "on_microservice":"tests",
+    "authenticate":false
+  },
+  {
+    "uri":"/services/v1/capabilities/read",
+    "method":"POST",
+    "handler":"read",
+    "on_microservice":"capabilities",
+    "from_microservices":[
+      "tests",
+      "fhir"
+    ],
     "authenticate":false
   },
   {
@@ -212,6 +237,7 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "capabilities",
       "index",
       "repo",
       "repoadapter",

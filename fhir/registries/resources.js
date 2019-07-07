@@ -70,7 +70,8 @@ var resources =
             },
             include:{
                 'AllergyIntolerance:patient':{resourceType:'Patient',reference:'patient'}
-            }
+            },
+            revinclude:{}
         }
     },
     CarePlan:{
@@ -645,7 +646,7 @@ var resources =
             {
                 indexProperty:'effectiveDateTime',
                 property:'effectiveDateTime',
-                searchProperty:'date',
+                searchProperty:'effective',
                 type:'datetime',
                 indexType:'datetime'
             },

@@ -90,8 +90,8 @@ module.exports = function(args, finished) {
           entry.search = {mode:"match"};
         }
         //Persist bundle/search set...
-        var doc = this.db.use(bundle.resourceType);
-        doc.$(bundle.id).setDocument(bundle);
+        var doc = this.db.use(bundle.resourceType);   
+        doc.$(bundle.id).setDocument(bundle); 
         //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
         request.searchSetId = bundle.id;
 

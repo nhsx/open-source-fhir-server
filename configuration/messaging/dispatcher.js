@@ -39,6 +39,10 @@ var dispatcher =  {
             message.operation = "TOKEN-VALIDATE";
             request.body = message;
         },
+        "/services/v1/capabilities/read":function(request,message,route) {
+            message.operation = "METADATA";
+            request.body = message;
+        },
         "/services/v1/responder/create":function(request, message, route) {
             message.operation = "RESPOND";
             request.body = message;

@@ -147,7 +147,7 @@ var fhirInteractionServicePipeline = {
             } 
             else 
             {
-                //forward to top but set page size to maxPageSize (100)...
+                //forward to top but set page size to default page size...
                 request.data = {_id:'*',_count:defaultPageSize};
                 request.routes.push({paths:{path: "/services/v1/repo/index/top"}})
             }
@@ -156,6 +156,7 @@ var fhirInteractionServicePipeline = {
                 {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
                 //At this point, send to search completion service which will fetch any more records 'out of band' beyond the initial set - no need to wait for a reply
+                //{paths:{path:"/services/v1/search/:searchSetId/complete"}},
                 {paths:[
                     {path:"/services/v1/search/:searchSetId/complete", awaitReply: false},
                     {path: "/services/v1/search/:searchSetId/sort"}
@@ -283,6 +284,23 @@ var fhirInteractionServicePipeline = {
             {paths:{path: "/services/v1/responder/create"}}
         ]
         request.data = fhirRequest.req.query;
+    },
+    metadata: function(fhirRequest, request) {
+        this._baseOperation(fhirRequest, request);
+
+        request.serviceMode = "pipeline";
+        request.operation = "METADATA";
+        request.pipeline = ["fhir"];
+        request.routes = [
+             /*{
+                paths:{path:"/services/v1/auth/validate"}
+            },*/
+            {paths:{path: "/services/v1/capabilities/read"}},
+            {paths:{path: "/services/v1/adapters/repo/respond"}},
+            {paths:{path: "/services/v1/responder/create"}}
+        ]
+        //Attach the server's resource registry...
+        request.registry = resourceRegistry.resources;
     }
 }
 

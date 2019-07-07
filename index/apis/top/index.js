@@ -28,9 +28,9 @@
  ----------------------------------------------------------------------------------------------------------------------------
  MVP pre-Alpha release: 4 June 2019
 */
+var _ = require('underscore');
 
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-var query = require('../../modules/query.js').query;
 
 module.exports = function(args, finished) 
 {
@@ -67,7 +67,6 @@ module.exports = function(args, finished)
         var threshold = _.find(request.server.sources, function(source) {
             return source.isLocal === true;
         }).maxInitialSearchResultSetSize;
-        var thresholdReached = false;
 
         var db = this.db.use(request.resourceType.toLowerCase() + 'id'); //Always use the id global...
         for(var i=0;i<qry.length;i++)
@@ -75,15 +74,15 @@ module.exports = function(args, finished)
             var q = qry[i];
             q.results = [];
             db.$([q.documentType.toLowerCase(),'id']).forEachChild(function(value,node) {
-                if(i==-threshold) {
-                    q.isInitial = true;
-                    thresholdReached = true; 
-                    return true; 
-                }
                 q.results.push(value);
             });
-
-            if(thresholdReached === true) { break; }
+            q.total = q.results.length;
+            if(q.total > threshold)
+            {
+                q.results = q.results.slice(0,threshold);
+                q.isInitial = true;
+                break;
+            }
         }
 
         data.query = qry

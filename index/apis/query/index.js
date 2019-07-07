@@ -133,7 +133,6 @@ module.exports = function(args, finished)
                     }
                 }
             }
-    
             //Set the total results...
             q.total = _.keys(filtered).length;
             //Build result list, taking threshold into account...
