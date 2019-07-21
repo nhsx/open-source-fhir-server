@@ -59,9 +59,9 @@ module.exports = function(args, finished) {
         //Declare variable to return statement...
         var metadata;
         //Check if there is a cached capability statement...
-        var cached = this.db.use('capability',localRepo.target);
+        var cached = this.db.use('capability');
         if(cached.exists) {
-            metadata = cached.getDocument(true);
+            metadata = dispatcher.parse(cached.$(localRepo.target).value);
         } else {
             //Generate n' cache...
             metadata = meta.CapabilityStatement;
@@ -132,7 +132,7 @@ module.exports = function(args, finished) {
                 }
 
                 //Persist the capability statement...
-                cached.$(localRepo.target).setDocument(metadata);
+                cached.$(localRepo.target).value = dispatcher.stringify(metadata);
             }
         }
 

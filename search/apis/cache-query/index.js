@@ -37,7 +37,7 @@ module.exports = function(args, finished) {
     console.log("Search Complete: " + JSON.stringify(args,null,2));
 
     var request = args.req.body;
-    request.pipeline = [];
+    request.pipeline = request.pipeline || [];
     request.pipeline.push("search");
 
     try
@@ -57,39 +57,62 @@ module.exports = function(args, finished) {
         if(!searchSet.exists) {
             finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Unable to complete search - Search Set ' + searchSetId + ' does not exist or has expired')); 
         }
+        //Check that there are any results first - if not kill this pipeline...
+        var query = request.data.query || undefined;
+        if(typeof query === 'undefined' || _.isEmpty(query)) {
+            finished({searchcomplete:true});
+        }
         //Check server...
         var server = request.server;
         if(typeof server === 'undefined' || _.isEmpty(server)) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': server cannot be undefined'));  
+        }
+        //Get maxiniitalresultsize...
+        var maxInitialSearchResultSetSize = _.find(server.sources, function(source) {
+            return source.isLocal === true;
+        }).maxInitialSearchResultSetSize;
+        //Check that there are any results first - if not kill this pipeline...
+        var bundle = request.data.bundle || undefined;
+        if(typeof bundle === 'undefined' || _.isEmpty(bundle) || (!_.isEmpty(bundle) && !_.isArray(bundle.entry) || (!_.isEmpty(bundle) && _.isArray(bundle.entry) && bundle.entry.length === 0))) {
+            finished({searchcomplete:true});
+        }
+        //Is there any need to proceed?
+        if(parseInt(bundle.total) < maxInitialSearchResultSetSize)
+        {
+            finished({searchcomplete:true});
         }
         //Check registry...
         var registry = request.registry;
         if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
             finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': No search result parameters configured'));  
         }
-        //Got this far so fetch the query from cache and re-route it around the search process to complete...
-        var querycache = this.db.use("querycache");
-        var query = querycache.$(searchSetId).value;
-        if(typeof query !== 'undefined') {
-            query = dispatcher.parse(query);
-            //Bin of anything that is in request.data and anything else that may still be attached from the search pipeline...
-            delete request.data;
-            delete request.mode;
-            //Attach a new set of routes so that this query is effectively executed in full (out of band)...
-            request.routes = [
-                {paths:{path: "/services/v1/repo/index/query"}}, //Re run query...
-                {paths:{path: "/services/v1/repo/batch/index"}}, //Hydrate results from repo...
-                {paths:{path: "/services/v1/search/:searchSetId"}}, //Update/replace the existing initial search set...
-                {paths:{path: "/services/v1/search/:searchSetId/sort"}}, //Sort it...
-                {paths:{path: "/services/v1/search/:searchSetId"}} //Update with sorted search set...
-            ];
-            //Bin the query cache entry...
-            querycache = this.db.use('querycache',searchSetId);
-            if(querycache.exists)
-            {
-                querycache.delete();
+        //Need to map inbound message from search onto that which is needed by query/index...
+        //First thing - drop the bundle...
+        delete data.bundle;
+        //Next, drop results from initial search, make sure that q.isInitial === false (this will override maxInitialResultSetSize observation in query/index) and blat total...
+        //This is effectively restoring the query back to it's original state and then asking the index service to execute it in full...
+        var completeSearch = true;
+        for(var i=0;i<query.length;i++)
+        {
+            var q = query[i];
+            var isInitial = typeof q.isInitial !== 'undefined' ? q.isInitial : true;
+            //Only continue if this is the initial query and the total is > maxInitialSearchResultSetSize...
+            if(isInitial === true) {
+                //Set q.isInitial...
+                q.isInitial = false;
+                //Delete total and results...
+                delete q.total;
+                delete q.results;
+            } else {
+                completeSearch = false;
+                break;
             }
-            //Forward the query...
+        }
+        if(completeSearch === true) {
+            //Persist query so that it can be re-run...
+            var queries = this.db.use('querycache');
+            queries.$(searchSetId).value = dispatcher.stringify(query);
+            //Exit here - respond with the query, in case a service may need it...
             finished(dispatcher.getResponseMessage(request,{query:query}));
         } else {
             //Nothing to do here, so kill pipeline...
@@ -98,4 +121,5 @@ module.exports = function(args, finished) {
     } catch(ex) {
         finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
+
 }

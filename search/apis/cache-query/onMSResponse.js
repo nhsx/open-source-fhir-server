@@ -29,78 +29,10 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-var _ = require('underscore');
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
-var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
-module.exports = function(args, finished) {
-    console.log("Search Include: " + JSON.stringify(args,null,2));
-
-    var searchSetId = args.searchSetId || '';
-
-    var request = args.req.body;
-    request.pipeline = request.pipeline || [];
-    request.pipeline.push("search");
-    request.mode = "include";
-    request.searchSetId = searchSetId;
-
-    try
-    {
-        
-        //if no routes defined etc
-        var registry = request.registry || undefined;
-        //if registry undefined...
-        //if request.data undefined || request.data.query undefined
-        var query = request.data.query || undefined;
-        //if query.include undefined, is not an array or if it is an array and length === 0 
-        if(!Array.isArray(query)) {
-            query = [request.data.query];
-        }
-        //If a result set/bundle as been passed then searchset should reference it, else pull searchset from cache...
-        var searchSet = request.data.results || undefined
-        if(typeof searchSet === 'undefined') {
-            searchSet = this.db.use("Bundle", request.searchSetId);
-            if(!searchSet.exists) {
-                finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + request.searchSetId + ' does not exist or has expired')); 
-            }
-            else {
-                searchSet = searchSet.getDocument(true);
-            }
-        }
-        //Only do this if there are any results...
-        if(searchSet.total > 0)
-        {
-            //This generates a set of queries derived from the initial query (which contains include and revincludes)
-            //Once the include (and rev) queries have been generated, the initial query should be popped off the array as the generated search set is already cached (there wouldnt be a search set id otherwise)
-            var includeQueries = [];
-            var areIncludes = false;
-            for(var i=0;i<query.length;i++)
-            {
-                var q = query[i];
-                if(q.includes.length > 0 || q.revincludes.length > 0)
-                {
-                    q.isInitial = false;
-                    var referenceQueries = returnedResourceManager.includes.fetch(registry,searchSet,q.includes,q.revincludes);
-                    for(var j=0;j<referenceQueries.length;j++) {
-                        includeQueries.push(referenceQueries[j]);
-                    }
-                    areIncludes = true;
-                }
-            }
-            query.shift();
-            if(areIncludes)
-            {
-                //Copy include queries...
-                for(var i=0;i<includeQueries.length;i++)
-                {
-                    query.push(includeQueries[i]);
-                }
-            }
-            request.mode = "include";
-        }
-        
-        finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
-    } catch(ex) {
-        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
-    }
+module.exports = function(message, jwt, forward, sendBack) {
+    console.log("search CACHE-QUERY message in: " + JSON.stringify(message, null, 2));
+    var dispatched = dispatcher.dispatch(message,jwt,forward,sendBack); 
+    if(!dispatched) return false;
 }

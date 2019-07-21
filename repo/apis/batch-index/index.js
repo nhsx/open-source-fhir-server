@@ -29,7 +29,6 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
 var uuid = require('uuid');
 var _ = require('underscore');
 
@@ -73,11 +72,8 @@ module.exports = function(args, finished) {
             for(var j=0;j<queryResults.length;j++)
             {
                 var resourceId = queryResults[j];
-                var entry = entries.$(resourceId);
-                if(entry.exists)
-                {
-                    bundle.entry.push({resource: entry.getDocument(true)});
-                }
+                var entry = dispatcher.parse(entries.$(resourceId).value);
+                bundle.entry.push({resource: entry});
             }
         }
         //Add query and bundle to service response...

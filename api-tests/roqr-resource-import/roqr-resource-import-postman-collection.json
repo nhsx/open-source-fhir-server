@@ -59,7 +59,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -142,7 +148,7 @@
 								"key": "Content-Type",
 								"name": "Content-Type",
 								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json"
 							},
 							{
 								"key": "Accept",
@@ -224,7 +230,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -306,7 +318,7 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/fhir+json",
 								"type": "text"
 							},
 							{
@@ -389,7 +401,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -471,14 +489,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -555,7 +572,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -637,14 +660,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -721,7 +743,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -803,14 +831,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -909,7 +936,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -989,14 +1022,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1095,7 +1127,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1175,14 +1213,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1283,9 +1320,15 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{ccriSearchUrl}}",
+							"raw": "{{ccriSearchUrl}}?content-type=application/fhir+json;charset=utf-8",
 							"host": [
 								"{{ccriSearchUrl}}"
+							],
+							"query": [
+								{
+									"key": "content-type",
+									"value": "application/fhir+json;charset=utf-8"
+								}
 							]
 						}
 					},
@@ -1361,14 +1404,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1469,9 +1511,15 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{ccriSearchUrl}}",
+							"raw": "{{ccriSearchUrl}}?content-type=application/fhir+json;charset=utf-8",
 							"host": [
 								"{{ccriSearchUrl}}"
+							],
+							"query": [
+								{
+									"key": "content-type",
+									"value": "application/fhir+json;charset=utf-8"
+								}
 							]
 						}
 					},
@@ -1547,14 +1595,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1653,7 +1700,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1733,14 +1786,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1839,7 +1891,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1919,14 +1977,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2025,7 +2082,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2105,14 +2168,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2211,7 +2273,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2291,14 +2359,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2397,7 +2464,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2477,14 +2550,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2583,7 +2655,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2662,14 +2740,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {

@@ -86,7 +86,7 @@ module.exports = function(args, finished) {
         );
         //Persist resource...
         var doc = this.db.use(resource.resourceType);
-        doc.$(resource.id).setDocument(resource);
+        doc.$(resource.id).value = dispatcher.stringify(resource);
         finished(dispatcher.getResponseMessage(request,{results: resource}));
     }
     catch (ex) { 

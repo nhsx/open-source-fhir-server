@@ -534,6 +534,20 @@
     "authenticate": false
   },
   {
+    "uri": "/services/v1/search/:searchSetId/cache/query",
+    "method": "POST",
+    "handler": "cache-query",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repo",
+      "search",
+      "index"
+    ],
+    "authenticate": false
+  },
+  {
     "uri": "/services/v1/search/:searchSetId/complete",
     "method": "POST",
     "handler": "complete",

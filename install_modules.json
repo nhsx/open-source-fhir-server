@@ -3,5 +3,6 @@
     "crypto-js",
     "moment",
     "traverse",
-    "underscore"
+    "underscore",
+    "utf8"
 ]

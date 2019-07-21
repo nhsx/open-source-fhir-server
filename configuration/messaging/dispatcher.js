@@ -28,6 +28,7 @@
  ----------------------------------------------------------------------------------------------------------------------------
  MVP pre-Alpha release: 4 June 2019
 */
+var utf8 = require('utf8');
 var _ = require('underscore');
 var uuid = require('uuid');
 var moment = require('moment');
@@ -139,6 +140,11 @@ var dispatcher =  {
         },
         "/services/v1/search/:searchSetId":function(request, message, route) {
             message.operation = "UPDATE";
+            request.path = request.path.replace(':searchSetId',message.searchSetId);
+            request.body = message;
+        },
+        "/services/v1/search/:searchSetId/cache/query":function(request,message,route) {
+            message.operation = "CACHE-QUERY";
             request.path = request.path.replace(':searchSetId',message.searchSetId);
             request.body = message;
         },
@@ -378,7 +384,14 @@ var dispatcher =  {
             }
             return response;
         }
+    },
+    stringify: function(resource) {
+        return utf8.encode(JSON.stringify(resource));
+    },
+    parse: function(resource) {
+        return JSON.parse(utf8.decode(resource));
     }
+
 }
 
 module.exports = {

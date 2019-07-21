@@ -155,9 +155,9 @@ var fhirInteractionServicePipeline = {
             request.routes.push(
                 {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search"}},
-                //At this point, send to search completion service which will fetch any more records 'out of band' beyond the initial set - no need to wait for a reply
+                //At this point, send to query cache service which will store the query if needed so that it can be completed at the end of the pipeline
                 {paths:[
-                    {path:"/services/v1/search/:searchSetId/complete", awaitReply: false},
+                    {path:"/services/v1/search/:searchSetId/cache/query", awaitReply: false},
                     {path: "/services/v1/search/:searchSetId/sort"}
                 ]},
                 {paths:{path: "/services/v1/search/:searchSetId"}},
@@ -166,7 +166,13 @@ var fhirInteractionServicePipeline = {
                 {paths:{path: "/services/v1/repo/index/query"}},
                 {paths:{path: "/services/v1/repo/batch/index"}},
                 {paths:{path: "/services/v1/search/:searchSetId/add"}},
-                {paths:{path: "/services/v1/adapters/repo/respond"}},
+                {
+                    paths:[
+                        //Send to search complete service now that initial resultset has been generated so that the search can be finished 'out of band' if need be
+                        {path:"/services/v1/search/:searchSetId/complete", awaitReply: false},
+                        {path: "/services/v1/adapters/repo/respond"}
+                    ]
+                },
                 {paths:{path: "/services/v1/responder/create"}}
             );
 
