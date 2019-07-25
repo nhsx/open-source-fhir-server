@@ -407,7 +407,7 @@ var meta = {
             'create','read','update','delete','search-type'
         ]
     },
-    Pracitioner:{
+    Practitioner:{
         '_id':{
             documentation: "The ID of the resource"
         },
@@ -500,6 +500,60 @@ var meta = {
         'status':{
             documentation:"preparation | in-progress | suspended | aborted | completed | entered-in-error | unknown",
             type:"token"
+        },
+        interaction:[
+            'create','read','update','delete','search-type'
+        ]
+    },
+    Questionnaire: {
+        '_id':{
+            documentation: "The ID of the resource"
+        },
+        '_lastUpdated':{
+            documentation: "The date/time the resource was last update date",
+            type:"date"
+        },
+        '_tag':{
+            documentation:"Any tags that have been applied to the resource"
+        },
+        'identifier':{
+            documentation: "External/Business ids for this item"
+        },
+        'name':{
+            documentation:"Computationally friendly name of the questionnaire"
+        },
+        'title':{
+            documentation:"The human-friendly name of the questionnaire"
+        },
+        'url':{
+            documentation:"The uri that identifies the questionnaire"
+        },
+        interaction:[
+            'create','read','update','delete','search-type'
+        ]
+    },
+    QuestionnaireResponse: {
+        '_id':{
+            documentation: "The ID of the resource"
+        },
+        '_lastUpdated':{
+            documentation: "The date/time the resource was last update date",
+            type:"date"
+        },
+        '_tag':{
+            documentation:"Any tags that have been applied to the resource"
+        },
+        'context':{
+            documentation:"Encounter or episode associated with the procedure"
+        },
+        'identifier':{
+            documentation: "External/Business ids for this item"
+        },
+        'patient':{
+            documentation: "For whom the referral is for (patient)"
+        },
+        'questionnaire':{
+            documentation: "The questionnaire the answers are provided for"
         },
         interaction:[
             'create','read','update','delete','search-type'

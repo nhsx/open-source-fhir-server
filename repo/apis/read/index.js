@@ -50,11 +50,11 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'ResourceId cannot be empty or undefined')); 
         }
 
-        var resource = this.db.use(resourceType);
+        var resource = this.db.use(resourceType, resourceId);
         if(!resource.exists) {
             finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Resource ' + resourceType + ' ' + resourceId + ' does not exist'));
         } else {
-            resource = dispatcher.parse(resource.$(resourceId).value);
+            resource = resource.getDocument(true);
             //May have to "pick" the properties in the correct order according to spec... Yotta persists in alpha!
             finished(dispatcher.getResponseMessage(request,{results: resource}));
         }

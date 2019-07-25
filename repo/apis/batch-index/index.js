@@ -68,12 +68,15 @@ module.exports = function(args, finished) {
             var q = query[i]
             var resourceType = q.documentType;
             var queryResults = q.results;
-            var entries = this.db.use(resourceType);
             for(var j=0;j<queryResults.length;j++)
             {
                 var resourceId = queryResults[j];
-                var entry = dispatcher.parse(entries.$(resourceId).value);
-                bundle.entry.push({resource: entry});
+                var entry = this.db.use(resourceType,resourceId);
+                if(entry.exists)
+                {
+                    entry = entry.getDocument(true);
+                    bundle.entry.push({resource: entry});
+                }
             }
         }
         //Add query and bundle to service response...
