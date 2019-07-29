@@ -70,6 +70,8 @@ module.exports = function(args, finished) {
 
         //Add an id property to the resource before persisting...
         if (typeof bundle.id === 'undefined' || bundle.id.length === 0) bundle.id = uuid.v4();
+        //Change the bundle type to searchset...
+        bundle.type = 'searchset';
         //Set meta/version id...
         if (typeof bundle.meta === 'undefined' || (typeof bundle.meta !== 'undefined' && bundle.meta.versionId === undefined)) {
           bundle.meta = bundle.meta || {};
@@ -80,20 +82,16 @@ module.exports = function(args, finished) {
         bundle.link = [];
         bundle.link.push({relation:"self", url:server.url + query[0].raw});
         //Set the bundle total (note: this is how many matched the search critiera - does not include "included" or "revincluded" results)...
-        bundle.total = bundle.entry.length.toString();
+        bundle.total = query[0].total.toString();
         //For each entry, set the mode to match...
         for(var i=0;i<bundle.entry.length;i++) {
           var entry = bundle.entry[i];
           entry.fullUrl = request.server.url + entry.resource.resourceType + "/" + entry.resource.id;
           entry.search = {mode:"match"};
         }
-        bundle.entry = _.map(bundle.entry, function(entry, index) {
-          
-          return entry;
-        });
         //Persist bundle/search set...
-        var doc = this.db.use(bundle.resourceType);
-        doc.$(bundle.id).setDocument(bundle);
+        var doc = this.db.use(bundle.resourceType);   
+        doc.$(bundle.id).setDocument(bundle); 
         //Set searchSet id on the incoming request so that it is present in the response from this handler and available to other services that may be in the pipeline...
         request.searchSetId = bundle.id;
 

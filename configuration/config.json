@@ -62,6 +62,13 @@
         "serverName": "ROQR Responder Service",
         "poolSize":4
       }
+    },
+    {
+      "name": "capabilities",
+      "qewd": {
+        "serverName": "ROQR Capability Service",
+        "poolSize":4
+      }
     }
   ],
   "jwt": {

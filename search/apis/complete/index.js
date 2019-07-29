@@ -30,77 +30,72 @@
 */
 
 var _ = require('underscore');
-var moment = require('moment');
 
-var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher; 
+var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 
 module.exports = function(args, finished) {
-  console.log("Search Update: " + JSON.stringify(args,null,2));
+    console.log("Search Complete: " + JSON.stringify(args,null,2));
 
-  var searchSetId = args.searchSetId;
+    var request = args.req.body;
+    request.pipeline = [];
+    request.pipeline.push("search");
 
-  var request = args.req.body;
-  request.pipeline = request.pipeline || [];
-  request.pipeline.push("search");
-
-  try
-  {
-    //TODO: Validate request.data (query/results)
-    var query = request.data.query || undefined;
-    var bundle = request.data.results || request.data.bundle || undefined;
-
-    if (typeof bundle === 'undefined' || bundle === '' || _.isEmpty(bundle)) {
-        finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource cannot be empty or undefined')); 
+    try
+    {   
+        //Check that there are any results first - if not kill this pipeline...
+        var data = request.data || undefined;
+        if(typeof data === 'undefined' || _.isEmpty(data)) {
+            finished({searchcomplete:true});
+        }        
+        //Check searchSet id...
+        var searchSetId = request.searchSetId || undefined;
+        if (typeof searchSetId === 'undefined' || searchSetId === '') {
+            finished(dispatcher.error.badRequest(request, 'processing', 'fatal', 'Unable to complete search - SearchSetId cannot be empty or undefined')); 
+        }
+        //Check searchset exists!
+        searchSet = this.db.use("Bundle", searchSetId);
+        if(!searchSet.exists) {
+            finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Unable to complete search - Search Set ' + searchSetId + ' does not exist or has expired')); 
+        }
+        //Check server...
+        var server = request.server;
+        if(typeof server === 'undefined' || _.isEmpty(server)) {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': server cannot be undefined'));  
+        }
+        //Check registry...
+        var registry = request.registry;
+        if(typeof registry === 'undefined' || (typeof registry !== 'undefined' && registry.searchResultParameters === undefined)) {
+            finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Unable to complete search ' + searchSetId + ': No search result parameters configured'));  
+        }
+        //Got this far so fetch the query from cache and re-route it around the search process to complete...
+        var querycache = this.db.use("querycache");
+        var query = querycache.$(searchSetId).value;
+        if(typeof query !== 'undefined') {
+            query = dispatcher.parse(query);
+            //Bin of anything that is in request.data and anything else that may still be attached from the search pipeline...
+            delete request.data;
+            delete request.mode;
+            //Attach a new set of routes so that this query is effectively executed in full (out of band)...
+            request.routes = [
+                {paths:{path: "/services/v1/repo/index/query"}}, //Re run query...
+                {paths:{path: "/services/v1/repo/batch/index"}}, //Hydrate results from repo...
+                {paths:{path: "/services/v1/search/:searchSetId"}}, //Update/replace the existing initial search set...
+                {paths:{path: "/services/v1/search/:searchSetId/sort"}}, //Sort it...
+                {paths:{path: "/services/v1/search/:searchSetId"}} //Update with sorted search set...
+            ];
+            //Bin the query cache entry...
+            querycache = this.db.use('querycache',searchSetId);
+            if(querycache.exists)
+            {
+                querycache.delete();
+            }
+            //Forward the query...
+            finished(dispatcher.getResponseMessage(request,{query:query}));
+        } else {
+            //Nothing to do here, so kill pipeline...
+            finished({searchcomplete:true});
+        }
+    } catch(ex) {
+        finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
     } 
-
-    if (typeof bundle.resourceType === 'undefined' || bundle.resourceType === '' || (typeof bundle.resourceType !== 'undefined' && bundle.resourceType !== 'Bundle')) {
-        finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'ResourceType cannot be empty or undefined and must be equal to Bundle'));  
-    }
-
-    if (typeof bundle.id !== 'undefined' && bundle.id.length === 0) {
-        finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + bundle.resourceType + ' must have an \'id\' property'));
-    }
-
-    if(bundle.id !== searchSetId) {
-        finished(dispatcher.error.badRequest(request,'processing', 'fatal', 'Resource ' + bundle.id + ' does not match ' + searchSetId));
-    }
-
-    //Does this bundle exist...
-    var searchSet = this.db.use(bundle.resourceType, bundle.id);
-    var previousVersion;
-    if(!searchSet.exists) {
-        finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Searchset ' + bundle.id + ' does not exist or may have expired'));
-    } else {
-      previousVersion = searchSet.getDocument(true);
-    }
-    //Copy searchset meta to bundle and update version number, last updated etc...
-    bundle.meta = previousVersion.meta || {};
-    bundle.meta.versionId = typeof bundle.meta !== 'undefined' && typeof bundle.meta.versionId !== 'undefined' ?
-       parseInt(bundle.meta.versionId) + 1 : 1;
-    bundle.meta.lastUpdated = moment().utc().format();
-    //Ensure that the bundle type is set to search set...
-    bundle.type = "searchset";
-    //Copy over the total...
-    bundle.total = previousVersion.total;
-    //Copy the self link...
-    if(typeof bundle.link === 'undefined' || (_.isArray(bundle.link) && bundle.link.length === 0))
-    {
-      bundle.link = []
-      bundle.link.push(_.find(previousVersion.link, function(link) {
-        return link.relation === "self";
-      }));
-    }
-    //Now trash the previous search set...
-    searchSet.delete();
-    //Persist the new, updated one...
-    var updatedSearchSet = this.db.use(bundle.resourceType);
-    updatedSearchSet.$(bundle.id).setDocument(bundle);
-    //Set searchset id on outbound response...
-    request.searchSetId = searchSetId;
-    var results = bundle;
-    finished(dispatcher.getResponseMessage(request,{query, results}));
-
-  } catch(ex) {
-    finished(dispatcher.error.serverError(request, ex.stack || ex.toString()));
-  }
 }

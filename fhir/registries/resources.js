@@ -70,7 +70,8 @@ var resources =
             },
             include:{
                 'AllergyIntolerance:patient':{resourceType:'Patient',reference:'patient'}
-            }
+            },
+            revinclude:{}
         }
     },
     CarePlan:{
@@ -645,7 +646,7 @@ var resources =
             {
                 indexProperty:'effectiveDateTime',
                 property:'effectiveDateTime',
-                searchProperty:'date',
+                searchProperty:'effective',
                 type:'datetime',
                 indexType:'datetime'
             },
@@ -968,6 +969,7 @@ var resources =
                 'MedicationStatement:patient':{resourceType:'MedicationStatement',reference:'Subject',referenceType:'Patient'},
                 'Observation:patient':{resourceType:'Observation',reference:'Subject',referenceType:'Patient'},
                 'Procedure:patient':{resourceType:'Procedure',reference:'Subject',referenceType:'Patient'},
+                'QuestionnaireResponse:patient':{resourceType:'QuestionnaireResponse',reference:'Subject',referenceType:'Patient'},
                 'ReferralRequest:patient':{resourceType:'ReferralRequest',reference:'Subject',referenceType:'Patient'},
             }
         }
@@ -1296,6 +1298,134 @@ var resources =
             include:{
                 'Procedure:patient':{resourceType:'Patient',reference:'subject'},
                 'Procedure:encounter':{resourceType:'Encounter',reference:'context'}
+            },
+            revinclude:{}
+        }
+    },
+    Questionnaire: {
+        searchParameters: [
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty: 'name',
+                property:'name',
+                searchProperty:'name',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty: 'title',
+                property:'title',
+                searchProperty:'title',
+                type:'string',
+                indexType:'string'
+            },
+            {
+                indexProperty:'url',
+                property:'url',
+                searchProperty:'url',
+                type:'uri',
+                indexType:'uri'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{},
+            revinclude:{}
+        }
+    },
+    QuestionnaireResponse: {
+        searchParameters:[
+            {
+                indexProperty:'id',
+                property:'id',
+                searchProperty:'_id',
+                type:'string',
+                indexType:'id'
+            },
+            {
+                indexProperty:'lastUpdated',
+                property:'lastUpdated',
+                searchProperty:'_lastUpdated',
+                type:'datetime',
+                indexType:'datetime'
+            },
+            {
+                indexProperty:'tag',
+                property:'tag',
+                searchProperty:'_tag',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'context',
+                property:'context',
+                searchProperty:'encounter',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty: 'identifier',
+                property:'identifier',
+                searchProperty:'identifier',
+                type:'token',
+                indexType:'token'
+            },
+            {
+                indexProperty:'questionnaire',
+                property:'questionnaire',
+                searchProperty:'questionnaire',
+                type:'reference',
+                indexType:'reference'
+            },
+            {
+                indexProperty:'subject',
+                property:'subject',
+                searchProperty:'patient',
+                type:'reference',
+                indexType:'reference'
+            }
+        ],
+        searchResultParameters:
+        {
+            sort:{
+                _id:'id',
+                _lastUpdated:'lastUpdated'
+            },
+            include:{
+                'QuestionnaireResponse:patient':{resourceType:'Patient',reference:'subject'},
+                'QuestionnaireResponse:encounter':{resourceType:'Encounter',reference:'context'},
+                'QuestionnaireResponse:questionnaire':{resourceType:'Questionnaire',reference:'questionnaire'}
             },
             revinclude:{}
         }

@@ -28,6 +28,7 @@
  ----------------------------------------------------------------------------------------------------------------------------
  MVP pre-Alpha release: 4 June 2019
 */
+var utf8 = require('utf8');
 var _ = require('underscore');
 var uuid = require('uuid');
 var moment = require('moment');
@@ -37,6 +38,10 @@ var dispatcher =  {
     {
         "/services/v1/auth/validate":function(request, message, route) {
             message.operation = "TOKEN-VALIDATE";
+            request.body = message;
+        },
+        "/services/v1/capabilities/read":function(request,message,route) {
+            message.operation = "METADATA";
             request.body = message;
         },
         "/services/v1/responder/create":function(request, message, route) {
@@ -138,6 +143,16 @@ var dispatcher =  {
             request.path = request.path.replace(':searchSetId',message.searchSetId);
             request.body = message;
         },
+        "/services/v1/search/:searchSetId/cache/query":function(request,message,route) {
+            message.operation = "CACHE-QUERY";
+            request.path = request.path.replace(':searchSetId',message.searchSetId);
+            request.body = message;
+        },
+        "/services/v1/search/:searchSetId/complete":function(request,message,route) {
+            message.operation = "COMPLETE";
+            request.path = request.path.replace(':searchSetId',message.searchSetId);
+            request.body = message;
+        },
         "/services/v1/search/:searchSetId/add":function(request,message,route) {
             message.operation = "ADD";
             //Replace the :searchSetId with message.searchSetId
@@ -169,12 +184,6 @@ var dispatcher =  {
             message.operation = "RESULTS";
             request.body= message;
         },
-        "/services/v1/search/:searchSetId/revinclude":function(request,message,route) {
-            message.operation = "REVINCLUDE";
-            //Replace the :searchSetId with message.searchSetId
-            request.path = request.path.replace(':searchSetId',message.searchSetId);
-            request.body = message;
-        }
     },
     shouldForward:function(message) {
         //Check service and routes...
@@ -375,7 +384,14 @@ var dispatcher =  {
             }
             return response;
         }
+    },
+    stringify: function(resource) {
+        return utf8.encode(JSON.stringify(resource));
+    },
+    parse: function(resource) {
+        return JSON.parse(utf8.decode(resource));
     }
+
 }
 
 module.exports = {

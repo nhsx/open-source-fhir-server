@@ -59,7 +59,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -142,7 +148,7 @@
 								"key": "Content-Type",
 								"name": "Content-Type",
 								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json"
 							},
 							{
 								"key": "Accept",
@@ -224,7 +230,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -306,7 +318,7 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/fhir+json",
 								"type": "text"
 							},
 							{
@@ -389,7 +401,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -471,14 +489,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -555,7 +572,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -637,14 +660,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -721,7 +743,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -803,14 +831,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -909,7 +936,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -989,14 +1022,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1095,7 +1127,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1175,14 +1213,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1283,9 +1320,15 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{ccriSearchUrl}}",
+							"raw": "{{ccriSearchUrl}}?content-type=application/fhir+json;charset=utf-8",
 							"host": [
 								"{{ccriSearchUrl}}"
+							],
+							"query": [
+								{
+									"key": "content-type",
+									"value": "application/fhir+json;charset=utf-8"
+								}
 							]
 						}
 					},
@@ -1361,14 +1404,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1469,9 +1511,15 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{ccriSearchUrl}}",
+							"raw": "{{ccriSearchUrl}}?content-type=application/fhir+json;charset=utf-8",
 							"host": [
 								"{{ccriSearchUrl}}"
+							],
+							"query": [
+								{
+									"key": "content-type",
+									"value": "application/fhir+json;charset=utf-8"
+								}
 							]
 						}
 					},
@@ -1547,14 +1595,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1653,7 +1700,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1733,14 +1786,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1839,7 +1891,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -1919,14 +1977,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2025,7 +2082,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2105,14 +2168,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2211,7 +2273,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2291,14 +2359,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2397,7 +2464,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2477,14 +2550,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/fhir+json"
+								"value": "application/fhir+json",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -2583,7 +2655,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/fhir+json;charset=utf-8",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{ccriSearchUrl}}",
 							"host": [
@@ -2646,6 +2724,196 @@
 									"}",
 									"else if(pm.environment.get('atLastPage') === \"true\") ",
 									"{",
+									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Questionnaire?_count=10');",
+									"    pm.environment.set('currentPage', 0);",
+									"    pm.environment.set('atLastPage', \"false\");",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/fhir+json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/fhir+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request}}"
+						},
+						"url": {
+							"raw": "{{proxy_server_address}}/fhir/stu3/CarePlan",
+							"host": [
+								"{{proxy_server_address}}"
+							],
+							"path": [
+								"fhir",
+								"stu3",
+								"CarePlan"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "01619f41-8638-42ff-a5f9-a95fa37af98e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "23e65b53-f1b5-4e4b-be36-998e41decc13",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "import-questionnaire",
+			"item": [
+				{
+					"name": "Get Questionnaire Resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "afabce24-4329-4e4d-827b-ddb0e81aa85a",
+								"exec": [
+									"//Send each resource in bundle to elastic",
+									"pm.test(\"Bundle was returned\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.equal(null)",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if(jsonData !== undefined && jsonData !== null)",
+									"{",
+									"    pm.environment.set(\"total\", jsonData.total);",
+									"    pm.environment.set(\"bundle\", JSON.stringify(jsonData));",
+									"    pm.environment.set(\"current\", 0);",
+									"    ",
+									"    var url = jsonData.link[1];",
+									"    if(url && url.relation === 'next') {",
+									"       pm.environment.set(\"ccriSearchUrl\", jsonData.link[1].url); ",
+									"    } else {",
+									"        pm.environment.set('atLastPage', \"true\");",
+									"    }",
+									"    ",
+									"    postman.setNextRequest(\"Create Questionnaire Resource\");",
+									"}",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "00a03b24-fe00-43f1-b697-cdacd16ed887",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "content-type",
+								"type": "text",
+								"value": "application/fhir+json;charset=utf-8"
+							}
+						],
+						"url": {
+							"raw": "{{ccriSearchUrl}}",
+							"host": [
+								"{{ccriSearchUrl}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Questionnaire Resource",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a32c0791-3b6c-4f38-a3a9-24d24e46ab32",
+								"exec": [
+									"var _ = require(\"lodash\");",
+									"//Extract the next patient",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"var total = pm.variables.get(\"total\");",
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"",
+									"if(current !== bundle.entry.length-1)",
+									"{",
+									"    console.log(current);",
+									"    var resource = bundle.entry[current].resource;",
+									"    var request = resource;",
+									"    pm.environment.set(\"resourceId\", resource.id);",
+									"    pm.environment.set(\"resourceType\", resource.resourceType);",
+									"    pm.environment.set(\"request\", JSON.stringify(request));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca17de45-8a78-4fb2-ba0e-eed7d31078bc",
+								"exec": [
+									"var current = parseInt(pm.variables.get(\"current\"));",
+									"current = current + 1;",
+									"pm.environment.set(\"current\", current);",
+									"",
+									"var currentPage = parseInt(pm.variables.get(\"currentPage\"));",
+									"currentPage++;",
+									"pm.environment.set(\"currentPage\",currentPage);",
+									"",
+									"var bundle = JSON.parse(pm.variables.get(\"bundle\"));",
+									"if(current !== bundle.entry.length- 1)",
+									"{",
+									"   postman.setNextRequest(\"Create Questionnaire Resource\"); ",
+									"} ",
+									"else if(pm.environment.get('atLastPage') === \"false\") ",
+									"{",
+									"    postman.setNextRequest(\"Get Questionnaire Resources\");",
+									"}",
+									"else if(pm.environment.get('atLastPage') === \"true\") ",
+									"{",
 									"    pm.environment.set('ccriSearchUrl','https://data.developer.nhs.uk/ccri-fhir/STU3/Patient?_count=100');",
 									"    pm.environment.set('currentPage', 0);",
 									"    pm.environment.set('atLastPage', \"false\");",
@@ -2662,9 +2930,8 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"name": "Content-Type",
 								"type": "text",
-								"value": "application/json"
+								"value": "application/fhir+json"
 							},
 							{
 								"key": "Accept",
@@ -2677,14 +2944,14 @@
 							"raw": "{{request}}"
 						},
 						"url": {
-							"raw": "{{proxy_server_address}}/fhir/stu3/CarePlan",
+							"raw": "{{proxy_server_address}}/fhir/stu3/Questionnaire",
 							"host": [
 								"{{proxy_server_address}}"
 							],
 							"path": [
 								"fhir",
 								"stu3",
-								"CarePlan"
+								"Questionnaire"
 							]
 						}
 					},

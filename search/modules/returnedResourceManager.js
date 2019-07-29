@@ -77,17 +77,35 @@ var returnedResourceManager = {
         firstPage:function() {
             return 1;
         },
-        previousPage:function(page) {
+        previousPage:function(page, maxInitialSearchResultSize, maxSearchResultSize) {
             return this.firstPage() === parseInt(page) ? page : parseInt(page)-1 ;
         },
-        nextPage:function(searchSet, page, pageSize) {
-            return this.morePages(searchSet, page, pageSize) === true ? parseInt(page) + 1 : page;
+        nextPage:function(searchSet, page, pageSize, maxInitialSearchResultSize, maxSearchResultSize) {
+            return this.morePages(searchSet, page, pageSize, maxInitialSearchResultSize, maxSearchResultSize) === true ? parseInt(page) + 1 : page;
         },
-        lastPage:function(searchSet, pageSize) {
-            return Math.ceil(searchSet.entry.length/parseInt(pageSize));
+        lastPage:function(searchSet, pageSize, maxInitialSearchResultSize, maxSearchResultSize) {
+            var lastPage = 0;
+
+            if(searchSet.total >=1 && searchSet.total < pageSize) {
+                lastPage = 1;
+            }
+            else if(searchSet.entry.length === maxInitialSearchResultSize)
+            {
+                lastPage = Math.ceil(maxInitialSearchResultSize/parseInt(pageSize));
+            } 
+            else if(searchSet.total > maxSearchResultSize)
+            {
+                lastPage = Math.ceil(maxSearchResultSize/parseInt(pageSize));
+            }
+            else
+            {
+                lastPage = Math.ceil(searchSet.total/parseInt(pageSize));
+            }
+
+            return lastPage;
         },
-        morePages:function(searchSet, page, pageSize) {
-            return parseInt(page) < this.lastPage(searchSet, parseInt(pageSize));
+        morePages:function(searchSet, page, pageSize, maxInitialSearchResultSize, maxSearchResultSize) {
+            return parseInt(page) < this.lastPage(searchSet, parseInt(pageSize), maxInitialSearchResultSize, maxSearchResultSize);
         },
         trim:function(searchSet, page, pageSize) {
             var entries = searchSet.entry;
@@ -145,7 +163,7 @@ var returnedResourceManager = {
                 }
             }
         },
-        _aggregateReferenceQueries:function(queries,target) {
+        _addReferenceQueries:function(queries,target) {
             for(var i=0;i<queries.length;i++) {
                 target.push(queries[i]);
             }
@@ -154,10 +172,10 @@ var returnedResourceManager = {
             var referenceQueries = [];
             
             var incs = this.include.getReferencesToInclude(registry,searchset,includes);
-            this._aggregateReferenceQueries(incs,referenceQueries);
+            this._addReferenceQueries(incs,referenceQueries);
 
             var revs = this.revinclude.getReferencesToInclude(registry,searchset,revincludes);
-            this._aggregateReferenceQueries(revs,referenceQueries);
+            this._addReferenceQueries(revs,referenceQueries);
 
             return referenceQueries;
         },

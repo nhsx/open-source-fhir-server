@@ -29,7 +29,6 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
-
 var uuid = require('uuid');
 var _ = require('underscore');
 
@@ -44,7 +43,6 @@ module.exports = function(args, finished) {
    
     try
     {
-
         var query = request.data.query;
         if(typeof query === 'undefined')
         {
@@ -61,7 +59,7 @@ module.exports = function(args, finished) {
 
         var bundle = {};
         bundle.resourceType = "Bundle"
-        bundle.id = uuid.v4();
+        bundle.id = request.searchSetId || uuid.v4(); //Check for existing search set id... this request may have come from the search complete service, in which case, the bundle.id should be the same as the existing searchSetId
         bundle.type = request.bundleType || "batch-response";
         bundle.entry = [];
 
@@ -70,14 +68,14 @@ module.exports = function(args, finished) {
             var q = query[i]
             var resourceType = q.documentType;
             var queryResults = q.results;
-            var entries = this.db.use(resourceType);
             for(var j=0;j<queryResults.length;j++)
             {
                 var resourceId = queryResults[j];
-                var entry = entries.$(resourceId);
+                var entry = this.db.use(resourceType,resourceId);
                 if(entry.exists)
                 {
-                    bundle.entry.push({resource: entry.getDocument(true)});
+                    entry = entry.getDocument(true);
+                    bundle.entry.push({resource: entry});
                 }
             }
         }

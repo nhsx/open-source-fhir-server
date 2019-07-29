@@ -29,6 +29,8 @@
  MVP pre-Alpha release: 4 June 2019
 */
 
+var _ = require('underscore');
+
 var dispatcher = require('../../../configuration/messaging/dispatcher.js').dispatcher;
 var returnedResourceManager = require('../../modules/returnedResourceManager.js').returnedResourceManager;
 
@@ -63,23 +65,34 @@ module.exports = function(args, finished) {
             finished(dispatcher.error.notFound(request,'processing', 'fatal', 'Search Set ' + searchSetId + ' does not exist or has expired')); 
         } else {
             searchSet = searchSet.getDocument(true);
-            query.page = page;
-            query.pageSize = pageSize;
-            query.current = page;
-            //This function will reattach any include/revinclude parameters requested in original query
-            //This is necessary for cached searchsets as the original query is only persisted in bundle.link, specifically where link.relation === 'self'
-            returnedResourceManager.includes.rebuild(searchSet, query);
- 
-            if(pageSize !== '*') {
-                query.totalPages = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();
-                query.previous = returnedResourceManager.paginate.previousPage(page).toString();
-                query.next= returnedResourceManager.paginate.nextPage(searchSet, page, pageSize).toString();
-                query.last = returnedResourceManager.paginate.lastPage(searchSet, pageSize).toString();
-                //Attach Paging Links before trimming...
-                returnedResourceManager.paginate.attachLinks(searchSet, query, server);
-                //Now trim n return...
-                searchSet = returnedResourceManager.paginate.trim(searchSet, page, pageSize);
+            if(searchSet.total > 0)
+            {
+                query.page = page;
+                query.pageSize = pageSize;
+                query.current = page;
+                //This function will reattach any include/revinclude parameters requested in original query
+                //This is necessary for cached searchsets as the original query is only persisted in bundle.link, specifically where link.relation === 'self'
+                returnedResourceManager.includes.rebuild(searchSet, query);
+     
+                if(pageSize !== '*') {
+                    var localRepo = _.find(server.sources, function(source) {
+                        return source.isLocal === true;
+                    })
+    
+                    var maxInitialSearchResultSize = localRepo.maxInitialSearchResultSetSize;
+                    var maxSearchResultSize = localRepo.maxSearchResultSetSize;
+    
+                    query.totalPages = returnedResourceManager.paginate.lastPage(searchSet, pageSize, maxInitialSearchResultSize, maxSearchResultSize).toString();
+                    query.previous = returnedResourceManager.paginate.previousPage(page, maxInitialSearchResultSize, maxSearchResultSize).toString();
+                    query.next= returnedResourceManager.paginate.nextPage(searchSet, page, pageSize, maxInitialSearchResultSize, maxSearchResultSize).toString();
+                    query.last = returnedResourceManager.paginate.lastPage(searchSet, pageSize, maxInitialSearchResultSize, maxSearchResultSize).toString();
+                    //Attach Paging Links before trimming...
+                    returnedResourceManager.paginate.attachLinks(searchSet, query, server);
+                    //Now trim n return...
+                    searchSet = returnedResourceManager.paginate.trim(searchSet, page, pageSize);
+                }
             }
+            
             finished(dispatcher.getResponseMessage(request,{query,results:searchSet}));
         }
     } catch(ex) {

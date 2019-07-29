@@ -32,6 +32,20 @@
     "authenticate":false
   },
   {
+    "uri":"/fhir/stu3/roqr/metadata",
+    "method":"GET",
+    "handler":"metadata",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
+    "uri":"/fhir/stu3/roqr/$metadata",
+    "method":"GET",
+    "handler":"metadata",
+    "on_microservice":"fhir",
+    "authenticate":false
+  },
+  {
     "uri":"/fhir/stu3/:resource",
     "method":"POST",
     "handler":"create",
@@ -71,6 +85,17 @@
     "method":"POST",
     "handler":"fhirResponseTest",
     "on_microservice":"tests",
+    "authenticate":false
+  },
+  {
+    "uri":"/services/v1/capabilities/read",
+    "method":"POST",
+    "handler":"read",
+    "on_microservice":"capabilities",
+    "from_microservices":[
+      "tests",
+      "fhir"
+    ],
     "authenticate":false
   },
   {
@@ -212,6 +237,7 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "capabilities",
       "index",
       "repo",
       "repoadapter",
@@ -469,6 +495,7 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "repo",
       "search"
     ],
     "authenticate": false
@@ -488,15 +515,9 @@
     "from_microservices":[
       "tests",
       "authentication",
+      "repo",
       "search"
     ],
-    "authenticate": false
-  },
-  {
-    "uri": "/api/v1/tests/search/:searchSetId/add",
-    "method": "POST",
-    "handler": "searchAdd",
-    "on_microservice": "tests",
     "authenticate": false
   },
   {
@@ -509,6 +530,34 @@
       "authentication",
       "repo",
       "search"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/cache/query",
+    "method": "POST",
+    "handler": "cache-query",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repo",
+      "search",
+      "index"
+    ],
+    "authenticate": false
+  },
+  {
+    "uri": "/services/v1/search/:searchSetId/complete",
+    "method": "POST",
+    "handler": "complete",
+    "on_microservice": "search",
+    "from_microservices":[
+      "tests",
+      "authentication",
+      "repo",
+      "search",
+      "index"
     ],
     "authenticate": false
   },
